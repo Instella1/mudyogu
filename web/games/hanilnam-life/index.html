@@ -1989,5 +1989,40 @@ if(typeof document!=='undefined'){
 }
 </script>
 
+<script>
+/* ===================== 뮤됴구: 화면 맞춤 (앱 안에서만) =====================
+   원본 모양은 그대로 두고 페이지 전체를 '약간' 축소해서
+   첫 화면(타이틀)이 창 높이에 딱 맞게 한다. 다른 화면도 같은 비율을 쓰고,
+   그보다 긴 화면은 지금처럼 아래로 스크롤된다.
+   · 키우지는 않는다 (최대 1배) · 너무 작아지지 않게 최소 0.6배
+   · 폰 세로 화면(폭 700px 미만)에서는 축소하지 않는다 (글씨가 너무 작아짐) */
+(function fitToScreen(){
+  if (new URLSearchParams(location.search).get('mudEmbed') !== '1') return;
+  var root = document.documentElement;
+  var titleH = 0;
+  function onTitle(){ return !!document.querySelector('#app .logo .life'); }
+  function fit(){
+    if (window.innerWidth < 700) { root.style.zoom = ''; return; }
+    if (onTitle() || !titleH) {
+      root.style.zoom = '1';
+      titleH = root.scrollHeight || window.innerHeight;
+    }
+    var z = Math.min(1, Math.max(0.6, (window.innerHeight - 2) / titleH));
+    root.style.zoom = String(Math.floor(z * 1000) / 1000);
+  }
+  var queued = false;
+  function schedule(){
+    if (queued) return; queued = true;
+    requestAnimationFrame(function(){ queued = false; fit(); });
+  }
+  var app = document.getElementById('app');
+  if (app) new MutationObserver(schedule).observe(app, { childList: true });
+  window.addEventListener('resize', schedule);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+  window.addEventListener('load', schedule);
+  window.mudyoguFit = fit;
+  schedule();
+})();
+</script>
 </body>
 </html>
