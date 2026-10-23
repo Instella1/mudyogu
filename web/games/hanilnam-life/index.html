@@ -2087,6 +2087,25 @@ if(typeof document!=='undefined'){
 })();
 </script>
 <script>
+/* ===================== 뮤됴구: 엔터키로 대화 넘기기 =====================
+   원본은 대화창을 클릭하거나, 대화창에 포커스가 있을 때만 엔터가 먹었다.
+   → 어디서든 엔터를 누르면 지금 대화를 다음 줄로 넘긴다.
+   · 선택지가 떠 있는 줄(.dlg.lock)은 넘기지 않음 (선택지는 직접 고르기)
+   · 이름 입력칸·코드 칸·버튼 등에 포커스가 있으면 원래 동작 그대로
+   · 꾹 누르고 있을 때 연달아 넘어가지 않게 키 반복은 무시 */
+(function enterToAdvance(){
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.repeat || e.isComposing) return;
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var t = e.target;
+    if (t && t.closest && t.closest('input, textarea, select, button, a, [contenteditable], [data-act][role="button"]')) return;
+    var dlg = document.querySelector('.dlg[data-act="line"]');
+    if (!dlg) return;
+    e.preventDefault();
+    dlg.click();
+  });
+})();
+
 /* ===================== 뮤됴구: 화면 맞춤 (앱 안에서만) =====================
    원본 모양은 그대로 두고 페이지 전체를 '약간' 축소해서
    첫 화면(타이틀)이 창 높이에 딱 맞게 한다. 다른 화면도 같은 비율을 쓰고,
