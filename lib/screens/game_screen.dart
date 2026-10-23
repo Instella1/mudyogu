@@ -71,14 +71,12 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     if (parsed.state != null || parsed.isGameOver || score != null) {
-      state
-          .applyProgress(gameId: gameId, event: parsed)
-          .then((GameProgress p) {
-            if (!mounted) return;
-            if (parsed.isGameOver) {
-              _toastSaved(p.bestScore);
-            }
-          });
+      state.applyProgress(gameId: gameId, event: parsed).then((GameProgress p) {
+        if (!mounted) return;
+        if (parsed.isGameOver) {
+          _toastSaved(p.bestScore);
+        }
+      });
     }
   }
 
@@ -90,7 +88,11 @@ class _GameScreenState extends State<GameScreen> {
         duration: const Duration(seconds: 2),
         content: Row(
           children: <Widget>[
-            const Icon(Icons.check_circle_rounded, size: 16, color: Colors.white),
+            const Icon(
+              Icons.check_circle_rounded,
+              size: 16,
+              color: Colors.white,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text('기록 저장됨 · ${widget.game.bestScoreLabel} $best'),
@@ -134,54 +136,120 @@ class _GameScreenState extends State<GameScreen> {
     );
 
     // ── 전체화면(몰입) 모드 ─────────────────────────────────────
-    if (_immersive) {
-      return PopScope<Object?>(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, Object? result) {
-          if (didPop) return;
-          _saveAndExit();
-        },
-        child: Scaffold(
-          backgroundColor: const Color(0xFF0E1116),
-          body: SafeArea(
-            // ⚠️ 웹에서 iframe(HtmlElementView)은 Flutter 위젯보다 항상 위에 그려진다.
-            //    Stack 으로 겹쳐 놓으면 버튼이 iframe 에 가려 클릭이 먹힌다
-            //    (전체화면에서 나가지 못하던 버그).
-            //    → iframe 을 컨트롤 높이만큼 아래로 밀어 '겹치지 않게' 만든다.
-            child: Column(
+    // ⚠️ 창 모드 ↔ 전체화면을 오갈 때 위젯 트리 모양을 바꾸지 말 것.
+    //    예전엔 두 모드가 서로 다른 Scaffold 를 돌려줘서 GameHost 가 새로 만들어졌고,
+    //    그때마다 iframe 이 다시 로딩되어 게임이 처음부터 시작됐다(확대하면 이상해지던 버그).
+    //    → Scaffold 하나, 무대(Expanded)에 key 를 줘서 같은 iframe 을 계속 쓴다.
+    // ⚠️ 웹에서 iframe(HtmlElementView)은 Flutter 위젯보다 항상 위에 그려진다.
+    //    Stack 으로 겹쳐 놓으면 버튼이 iframe 에 가려 클릭이 먹힌다
+    //    (전체화면에서 나가지 못하던 버그). → Column 으로 위아래 분리.
+    final Widget immersiveBar = Container(
+      height: _kImmersiveBarHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      color: const Color(0xFF12161C),
+      child: Row(
+        children: <Widget>[
+          _FloatingControls(
+            best: progress.bestScore,
+            label: widget.game.bestScoreLabel,
+            onReload: () => setState(() => _reloadToken++),
+            onExit: _saveAndExit,
+            onShrink: () => setState(() => _immersive = false),
+          ),
+          const Spacer(),
+          Text(
+            widget.game.title,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final PreferredSizeWidget appBar = AppBar(
+      // 게임 화면을 최대한 크게: 상단바를 얇게 (기본 56 → 44)
+      toolbarHeight: _kImmersiveBarHeight,
+      titleSpacing: 0,
+      title: Row(
+        children: <Widget>[
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: widget.game.accentColor.withValues(alpha: 0.22),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              Icons.sports_esports_rounded,
+              size: 15,
+              color: widget.game.accentColor,
+            ),
+          ),
+          const SizedBox(width: 9),
+          Flexible(
+            child: Text(
+              widget.game.title,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: AppColors.brand.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
               children: <Widget>[
-                Container(
-                  height: _kImmersiveBarHeight,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  color: const Color(0xFF12161C),
-                  child: Row(
-                    children: <Widget>[
-                      _FloatingControls(
-                        best: progress.bestScore,
-                        label: widget.game.bestScoreLabel,
-                        onReload: () => setState(() => _reloadToken++),
-                        onExit: _saveAndExit,
-                        onShrink: () => setState(() => _immersive = false),
-                      ),
-                      const Spacer(),
-                      Text(
-                        widget.game.title,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                const Icon(
+                  Icons.emoji_events_rounded,
+                  size: 13,
+                  color: AppColors.brandDeep,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '${progress.bestScore}',
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.brandDeep,
                   ),
                 ),
-                Expanded(child: _GameStage(child: host)),
               ],
             ),
           ),
         ),
-      );
-    }
+        IconButton(
+          tooltip: '전체화면',
+          iconSize: 20,
+          onPressed: () => setState(() => _immersive = true),
+          icon: const Icon(Icons.fullscreen_rounded),
+        ),
+        IconButton(
+          tooltip: '다시 시작',
+          iconSize: 19,
+          onPressed: () => setState(() => _reloadToken++),
+          icon: const Icon(Icons.refresh_rounded),
+        ),
+        IconButton(
+          tooltip: '나가기',
+          iconSize: 20,
+          onPressed: _saveAndExit,
+          icon: const Icon(Icons.close_rounded),
+        ),
+        const SizedBox(width: 4),
+      ],
+    );
 
     return PopScope<Object?>(
       canPop: false,
@@ -190,96 +258,23 @@ class _GameScreenState extends State<GameScreen> {
         _saveAndExit();
       },
       child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          // 게임 화면을 최대한 크게: 상단바를 얇게 (기본 56 → 44)
-          toolbarHeight: _kImmersiveBarHeight,
-          titleSpacing: 0,
-          title: Row(
-            children: <Widget>[
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: widget.game.accentColor.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.sports_esports_rounded,
-                  size: 15,
-                  color: widget.game.accentColor,
-                ),
-              ),
-              const SizedBox(width: 9),
-              Flexible(
-                child: Text(
-                  widget.game.title,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 6,
-                ),
-                margin: const EdgeInsets.only(right: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.brand.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.emoji_events_rounded,
-                      size: 13,
-                      color: AppColors.brandDeep,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      '${progress.bestScore}',
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.brandDeep,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            IconButton(
-              tooltip: '전체화면',
-              iconSize: 20,
-              onPressed: () => setState(() => _immersive = true),
-              icon: const Icon(Icons.fullscreen_rounded),
-            ),
-            IconButton(
-              tooltip: '다시 시작',
-              iconSize: 19,
-              onPressed: () => setState(() => _reloadToken++),
-              icon: const Icon(Icons.refresh_rounded),
-            ),
-            IconButton(
-              tooltip: '나가기',
-              iconSize: 20,
-              onPressed: _saveAndExit,
-              icon: const Icon(Icons.close_rounded),
-            ),
-            const SizedBox(width: 4),
-          ],
-        ),
+        backgroundColor: _immersive
+            ? const Color(0xFF0E1116)
+            : theme.scaffoldBackgroundColor,
+        appBar: _immersive ? null : appBar,
         // 하단 '저장하고 나가기' 줄은 없앴다 (나가기 X 버튼이 같은 일을 한다).
         // 무대는 남는 공간 전부 — 여백/둥근 테두리 없음.
         body: SafeArea(
-          top: false,
-          child: _GameStage(child: host),
+          top: _immersive,
+          child: Column(
+            children: <Widget>[
+              if (_immersive) immersiveBar,
+              Expanded(
+                key: const ValueKey<String>('game-stage'),
+                child: _GameStage(child: host),
+              ),
+            ],
+          ),
         ),
       ),
     );

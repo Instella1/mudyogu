@@ -202,7 +202,8 @@ TAIL = r'''
 /* ===================== 뮤됴구: 화면 맞춤 (앱 안에서만) =====================
    원본 모양은 그대로 두고 페이지 전체를 '약간' 축소해서 홈 화면이 창 높이에
    딱 맞게 한다. 다른 화면도 같은 비율, 더 긴 화면은 스크롤.
-   · 키우지 않음(최대 1배) · 최소 0.6배 · 폰 세로(폭 700 미만)는 축소 안 함 */
+   · 키우지 않음(최대 1배) · 최소 0.6배 · 폰 세로(폭 700 미만)는 축소 안 함
+   · 브라우저 확대 배율은 빼고 계산 → Ctrl + 로 확대하면 그만큼 커지고 아래로 스크롤 */
 (function fitToScreen() {
   if (new URLSearchParams(location.search).get('mudEmbed') !== '1') return;
   var root = document.documentElement, homeH = 0;
@@ -213,10 +214,22 @@ TAIL = r'''
     var h = app.offsetHeight; app.style.minHeight = prev;
     return h;
   }
+  // 브라우저 확대(Ctrl +/-) 배율. 이걸 모르면 확대할수록 게임이 스스로 줄어들어
+  // 150% 까지는 크기가 그대로이다가 폭 700 밑으로 가는 순간 갑자기 커졌다.
+  // 크롬은 outerWidth 가 확대와 무관하므로 outer/inner 비율 = 확대 배율 (마우스/터치패드 기기만)
+  function browserZoom() {
+    try {
+      if (!window.matchMedia('(pointer: fine)').matches) return 1;
+      var t = window.top, r = t.outerWidth / t.innerWidth;
+      if (!(r > 0) || Math.abs(r - 1) < 0.1) return 1;
+      return Math.min(3, Math.max(0.3, r));
+    } catch (e) { return 1; }
+  }
   function fit() {
-    if (window.innerWidth < 700) { root.style.zoom = ''; return; }
+    var bz = browserZoom();
+    if (window.innerWidth * bz < 700) { root.style.zoom = ''; return; }
     if (onHome() || !homeH) { root.style.zoom = '1'; homeH = measureHome() || window.innerHeight; }
-    var z = Math.min(1, Math.max(0.6, (window.innerHeight - 2) / homeH));
+    var z = Math.min(1, Math.max(0.6, (window.innerHeight * bz - 2) / homeH));
     root.style.zoom = String(Math.floor(z * 1000) / 1000);
   }
   var queued = false;

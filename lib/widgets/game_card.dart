@@ -35,134 +35,142 @@ class _GameCardState extends State<GameCard> {
     final bool played = progress.playCount > 0;
     final Color accent = widget.game.accentColor;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          transform: Matrix4.translationValues(0, _hover ? -3 : 0, 0),
-          decoration: BoxDecoration(
-            color: theme.cardTheme.color,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: _hover
-                  ? accent.withValues(alpha: 0.55)
-                  : theme.dividerColor,
-              width: _hover ? 1.4 : 1,
-            ),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: (isDark ? Colors.black : accent).withValues(
-                  alpha: _hover ? (isDark ? 0.45 : 0.16) : (isDark ? 0.25 : 0.06),
-                ),
-                blurRadius: _hover ? 22 : 12,
-                offset: Offset(0, _hover ? 8 : 4),
+    // RepaintBoundary: 마우스를 올릴 때 이 카드만 다시 그린다.
+    // (없으면 호버 애니메이션 프레임마다 홈 화면 전체 + 배경을 다시 그려 크롬북에서 버벅임)
+    return RepaintBoundary(
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            transform: Matrix4.translationValues(0, _hover ? -3 : 0, 0),
+            decoration: BoxDecoration(
+              color: theme.cardTheme.color,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: _hover
+                    ? accent.withValues(alpha: 0.55)
+                    : theme.dividerColor,
+                width: _hover ? 1.4 : 1,
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // 썸네일 영역
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(21),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: (isDark ? Colors.black : accent).withValues(
+                    alpha: _hover
+                        ? (isDark ? 0.45 : 0.16)
+                        : (isDark ? 0.25 : 0.06),
                   ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: <Widget>[
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: <Color>[
-                              accent.withValues(alpha: isDark ? 0.32 : 0.30),
-                              accent.withValues(alpha: isDark ? 0.10 : 0.08),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Center(
-                        child: _GameGlyph(
-                          game: widget.game,
-                          size: 46,
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.92)
-                              : const Color(0xFF0E2419),
-                        ),
-                      ),
-                      if (played)
-                        Positioned(
-                          top: 10,
-                          right: 10,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.black.withValues(alpha: 0.42)
-                                  : Colors.white.withValues(alpha: 0.86),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                const Icon(
-                                  Icons.emoji_events_rounded,
-                                  size: 11,
-                                  color: AppColors.brandDeep,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${progress.bestScore}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.brandDeep,
-                                  ),
-                                ),
+                  blurRadius: _hover ? 22 : 12,
+                  offset: Offset(0, _hover ? 8 : 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                // 썸네일 영역
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(21),
+                    ),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: <Widget>[
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: <Color>[
+                                accent.withValues(alpha: isDark ? 0.32 : 0.30),
+                                accent.withValues(alpha: isDark ? 0.10 : 0.08),
                               ],
                             ),
                           ),
                         ),
+                        Center(
+                          child: _GameGlyph(
+                            game: widget.game,
+                            size: 46,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.92)
+                                : const Color(0xFF0E2419),
+                          ),
+                        ),
+                        if (played)
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.black.withValues(alpha: 0.42)
+                                    : Colors.white.withValues(alpha: 0.86),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  const Icon(
+                                    Icons.emoji_events_rounded,
+                                    size: 11,
+                                    color: AppColors.brandDeep,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${progress.bestScore}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.brandDeep,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                // 텍스트 영역
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        widget.game.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        widget.game.tagline,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-              // 텍스트 영역
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      widget.game.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      widget.game.tagline,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -171,7 +179,11 @@ class _GameCardState extends State<GameCard> {
 }
 
 class _GameGlyph extends StatelessWidget {
-  const _GameGlyph({required this.game, required this.size, required this.color});
+  const _GameGlyph({
+    required this.game,
+    required this.size,
+    required this.color,
+  });
 
   final GameInfo game;
   final double size;

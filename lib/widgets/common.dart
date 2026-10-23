@@ -11,51 +11,67 @@ class PastelBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    // 배경(그라데이션 + 동그라미)은 RepaintBoundary 로 분리해 한 번만 그린다.
+    // 위의 내용(카드 호버 등)이 바뀔 때마다 배경까지 다시 그리지 않도록.
     return Stack(
       children: <Widget>[
         Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? const <Color>[
-                        Color(0xFF0E1311),
-                        Color(0xFF101A16),
-                        Color(0xFF0C1210),
-                      ]
-                    : const <Color>[
-                        Color(0xFFF7FCF9),
-                        Color(0xFFF2FAF6),
-                        Color(0xFFFAF8FF),
-                      ],
-              ),
+          child: RepaintBoundary(
+            child: Stack(
+              children: <Widget>[
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? const <Color>[
+                                Color(0xFF0E1311),
+                                Color(0xFF101A16),
+                                Color(0xFF0C1210),
+                              ]
+                            : const <Color>[
+                                Color(0xFFF7FCF9),
+                                Color(0xFFF2FAF6),
+                                Color(0xFFFAF8FF),
+                              ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: -120,
+                  right: -90,
+                  child: _Blob(
+                    color: AppColors.brand.withValues(
+                      alpha: isDark ? 0.14 : 0.22,
+                    ),
+                    size: 300,
+                  ),
+                ),
+                Positioned(
+                  top: 120,
+                  left: -130,
+                  child: _Blob(
+                    color: AppColors.lavender.withValues(
+                      alpha: isDark ? 0.10 : 0.20,
+                    ),
+                    size: 260,
+                  ),
+                ),
+                Positioned(
+                  bottom: -140,
+                  right: -60,
+                  child: _Blob(
+                    color: AppColors.sky.withValues(
+                      alpha: isDark ? 0.08 : 0.18,
+                    ),
+                    size: 280,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ),
-        Positioned(
-          top: -120,
-          right: -90,
-          child: _Blob(
-            color: AppColors.brand.withValues(alpha: isDark ? 0.14 : 0.22),
-            size: 300,
-          ),
-        ),
-        Positioned(
-          top: 120,
-          left: -130,
-          child: _Blob(
-            color: AppColors.lavender.withValues(alpha: isDark ? 0.10 : 0.20),
-            size: 260,
-          ),
-        ),
-        Positioned(
-          bottom: -140,
-          right: -60,
-          child: _Blob(
-            color: AppColors.sky.withValues(alpha: isDark ? 0.08 : 0.18),
-            size: 280,
           ),
         ),
         Positioned.fill(child: child),
@@ -135,9 +151,6 @@ class SoftDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      color: Theme.of(context).dividerColor,
-    );
+    return Container(height: height, color: Theme.of(context).dividerColor);
   }
 }
