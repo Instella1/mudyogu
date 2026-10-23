@@ -118,6 +118,18 @@
       <div class="mud-bar"><i></i></div>
     </div>
 
+    <script>
+      // 확대 허용: Flutter 는 Ctrl+휠(크롬북 터치패드 두 손가락 벌리기도 이것)을 받아서
+      // preventDefault 해 버려 앱 화면에서는 확대가 아예 안 됐다(게임 위에서만 되어 들쭉날쭉).
+      // Flutter 보다 먼저(window 캡처 단계) 받아서 Flutter 로 안 넘기면 브라우저가 평소처럼 확대한다.
+      window.addEventListener(
+        'wheel',
+        function (e) {
+          if (e.ctrlKey) e.stopImmediatePropagation();
+        },
+        { capture: true, passive: true }
+      );
+    </script>
     <script src="flutter_bootstrap.js" async></script>
     <script>
       // Flutter 첫 프레임 이후 스플래시 제거

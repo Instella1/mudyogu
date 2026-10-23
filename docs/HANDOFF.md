@@ -374,7 +374,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v17`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v18`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -404,6 +404,10 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 | **게임 화면이 원본과 다름** | 게임 CSS 를 덧씌워 배치/글씨/이모지가 바뀜 + 앱이 16:9 상자에 또 넣음 | 원본으로 되돌리고 '추가만', 화면은 통째 `zoom`, 무대는 꽉 채움 |
 | **전체화면 누르면 게임이 처음부터 다시 로딩** | 창 모드/전체화면이 서로 다른 Scaffold 를 돌려줘 GameHost(iframe)가 새로 만들어짐 | Scaffold 하나 + 무대 `Expanded` 에 `ValueKey('game-stage')` → 트리 모양 유지 |
 | **Ctrl + 로 확대하면 게임 크기가 이상** (150%까진 그대로, 200%에서 갑자기 커짐) | LIFE/포케퀴즈 화면 맞춤이 확대된 만큼 스스로 줄어듦 + 폭 700 기준에서 툭 바뀜 | `browserZoom()` (top.outerWidth/innerWidth) 로 확대 배율을 빼고 계산 |
+| **앱 화면에서 확대가 안 됨** (Ctrl+휠·터치패드 두 손가락) | Flutter 가 Ctrl+휠을 받아 preventDefault | `web/index.html` 에서 window 캡처 단계로 먼저 받아 Flutter 로 안 넘김 |
+| LIFE: 엔딩에서 부상 상태 오버롤 / 마지막 주 부상 | 원본 로직 | 맨 아래 `lifeFixes` 에서 `dayStart`·`rEnd` 감싸기 (12/24~ 부상 금지, 엔딩 때 부상 해제) |
+| LIFE: '친구와 시간' 멤버가 탭 오갈 때마다 바뀜 | `rChoice()` 가 그릴 때마다 `ctxNow()` 로 무작위 재선택 | 하루 동안 고정 (`T.mudFr`) |
+| LIFE: MY TEAM 무한 복사 | 엔딩 화면이 뜨자마자 자동 등록 → 저장 안 하고 12/29 로 돌아가 반복 | 엔딩 뒤 슬롯 저장 때만 등록 + `runId` 로 같은 1학년은 한 번만 |
 | **LIFE 아래가 잘림 (스크롤 안 됨)** | iframe 에 `scrolling="no"` | 속성 제거. 스크롤 막기는 게임 CSS 에서 |
 | 한일전 기록이 15스테이지에서만 저장됨 | 동기화 호출이 Stage 15 클리어에만 있었음 | `goToMenu` 를 감싸 진행이 바뀌면 항상 저장 |
 | **오프라인에서 앱이 멈춤** | ① 서비스워커 2개 동시 등록 ② 캐너스킷을 CDN 에서 받음 ③ `assets/` 미캐시 | `patch_web.py` 로 SW 통합 + 로컬 canvaskit + 사전 캐시 확장 |

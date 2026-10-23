@@ -2087,6 +2087,74 @@ if(typeof document!=='undefined'){
 })();
 </script>
 <script>
+/* ===================== 뮤됴구: 버그 수정 (원본 함수를 감싸서 고침) =====================
+   1) 마지막 주(12/24~)에는 주인공이 새로 다치지 않는다. 엔딩에서는 주인공 부상을 지워
+      최종 오버롤·39기 순위가 부상 없는 상태로 나온다.
+   2) '친구와 시간' 멤버가 오늘 칸 ↔ 다른 칸을 오갈 때마다 바뀌던 버그.
+      rChoice() 가 그릴 때마다 ctxNow() 로 룸메이트·선배를 무작위로 다시 뽑았음 → 하루 동안 고정.
+   3) 엔딩 화면이 뜨자마자 MY TEAM 에 자동 등록되던 버그 (저장 안 하고 나가면 12/29 로
+      돌아가 같은 캐릭터를 몇 번이고 다시 등록 가능). → 엔딩 뒤 '리포트 저장'(슬롯 저장)을
+      눌렀을 때만 등록. 같은 1학년 기록은 한 번만 (슬롯 저장 때 붙이는 runId 로 중복 제거). */
+(function lifeFixes(){
+  if (typeof dayStart !== 'function' || typeof rEnd !== 'function') return;
+  var LAST_WEEK = END - 6;   // 12월 24일
+
+  // 1) 마지막 주 부상 금지 + 엔딩 때 부상 지우기
+  var origDayStart = dayStart;
+  dayStart = function (i) {
+    var h = S && S.players && P(S.hero);
+    if (!h || i < LAST_WEEK) return origDayStart.apply(this, arguments);
+    var prone = h.prone; h.prone = 0;
+    try { return origDayStart.apply(this, arguments); } finally { h.prone = prone; }
+  };
+
+  // 2) 친구와 시간: 하루 동안 같은 멤버
+  var origRChoice = rChoice;
+  rChoice = function () {
+    var origCtx = ctxNow;
+    var key = S.day + ':' + S.hero;
+    if (!T.mudFr || T.mudFr.key !== key) T.mudFr = { key: key, c: origCtx() };
+    ctxNow = function () { return T.mudFr.c; };
+    try { return origRChoice.apply(this, arguments); } finally { ctxNow = origCtx; }
+  };
+
+  // 3) MY TEAM 은 엔딩 뒤 리포트 저장 때만
+  var origSaveMyTeam = saveMyTeam;
+  var allowMT = false;
+  saveMyTeam = function () {
+    if (!allowMT || !S.ended || S.mtSaved) return;
+    origSaveMyTeam.apply(this, arguments);
+    var L = mtList();
+    if (L[0]) {
+      L[0].runId = S.runId;
+      L = L.filter(function (r, k) { return k === 0 || r.runId !== S.runId; });
+      LS.set(MT_KEY, L.slice(0, 20));
+    }
+  };
+
+  var origREnd = rEnd;
+  rEnd = function () {
+    var h = P(S.hero);
+    if (h && h.inj) h.inj = null;
+    var html = origREnd.apply(this, arguments);
+    var msg = T.mtFail ? '이 브라우저에서는 MY TEAM에 저장할 수 없었다.'
+            : S.mtSaved ? '이번 1학년 기록이 MY TEAM에 등록됐다. 처음 화면에서 언제든 다시 볼 수 있다.'
+            : '아래 <b>리포트 저장</b>에서 슬롯에 저장하면 MY TEAM에도 등록된다. 저장하지 않고 나가면 기록이 남지 않는다.';
+    return html.replace(/이 브라우저에서는 MY TEAM에 저장할 수 없었다\.|이번 1학년 기록이 MY TEAM에 저장됐다\. 처음 화면에서 언제든 다시 볼 수 있다\./, msg);
+  };
+
+  var origSaveSlot = ACT.saveSlot;
+  ACT.saveSlot = function (el) {
+    // 중간 저장에도 runId 를 붙여 둔다 → 12/29 슬롯을 불러와 다시 끝내도 같은 기록으로 취급(덮어씀)
+    if (S.players && !S.runId) S.runId = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    if (S.ended && !S.mtSaved) {
+      allowMT = true;
+      try { saveMyTeam(); } finally { allowMT = false; }
+    }
+    return origSaveSlot.apply(this, arguments);
+  };
+})();
+
 /* ===================== 뮤됴구: 엔터키로 대화 넘기기 =====================
    원본은 대화창을 클릭하거나, 대화창에 포커스가 있을 때만 엔터가 먹었다.
    → 어디서든 엔터를 누르면 지금 대화를 다음 줄로 넘긴다.
