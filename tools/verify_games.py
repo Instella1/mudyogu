@@ -9,7 +9,7 @@ BASE = "http://127.0.0.1:8089"
 CASES = [
     ("hanilnam-life", "/games/hanilnam-life/index.html", "hanilnam"),
     ("haniljeon", "/games/haniljeon/index.html", "haniljeon"),
-    ("reaction", "/games/reaction/index.html", "reaction"),
+    ("pokequiz", "/games/pokequiz/index.html", "pokequiz"),
 ]
 
 VIEWPORTS = [

@@ -38,19 +38,5 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "반응 속도",
-      "short_name": "반응",
-      "url": "./games/reaction/index.html",
-      "icons": [{ "src": "icons/Icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "기억 카드",
-      "short_name": "기억",
-      "url": "./games/memory/index.html",
-      "icons": [{ "src": "icons/Icon-192.png", "sizes": "192x192" }]
-    }
   ]
 }

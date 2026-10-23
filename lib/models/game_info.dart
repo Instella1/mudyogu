@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// 게임 카탈로그 항목.
 ///
-/// [entry] 는 웹 루트 기준 상대 경로입니다. (예: `games/reaction/index.html`)
+/// [entry] 는 웹 루트 기준 상대 경로입니다. (예: `games/haniljeon/index.html`)
 /// build/web 에 그대로 복사되는 `web/games/` 아래에 게임을 두면
 /// 별도 변환 없이 iframe 으로 로드할 수 있습니다.
 @immutable
