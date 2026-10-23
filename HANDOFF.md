@@ -351,7 +351,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v9`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v10`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -379,6 +379,7 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 | 게임 하단 버튼이 잘림 | `justify-content:center` 가 넘칠 때 위아래를 자름 | `flex-start` + `margin-block:auto`, `@media (max-height:700px)` 보정 |
 | 게임 카드가 안 보임 | `SliverGrid` 를 `Padding` 으로 감쌈 | **`SliverPadding`** 사용 |
 | **게임 화면이 원본과 다름** | 게임 CSS 를 덧씌워 배치/글씨/이모지가 바뀜 + 앱이 16:9 상자에 또 넣음 | 원본으로 되돌리고 '추가만', 화면은 통째 `zoom`, 무대는 꽉 채움 |
+| **LIFE 아래가 잘림 (스크롤 안 됨)** | iframe 에 `scrolling="no"` | 속성 제거. 스크롤 막기는 게임 CSS 에서 |
 | 한일전 기록이 15스테이지에서만 저장됨 | 동기화 호출이 Stage 15 클리어에만 있었음 | `goToMenu` 를 감싸 진행이 바뀌면 항상 저장 |
 | **오프라인에서 앱이 멈춤** | ① 서비스워커 2개 동시 등록 ② 캐너스킷을 CDN 에서 받음 ③ `assets/` 미캐시 | `patch_web.py` 로 SW 통합 + 로컬 canvaskit + 사전 캐시 확장 |
 

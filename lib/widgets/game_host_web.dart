@@ -126,7 +126,9 @@ class _GameHostState extends State<GameHost> {
       ..backgroundColor = 'transparent';
     iframe.setAttribute('allowfullscreen', 'true');
     iframe.setAttribute('allow', 'fullscreen; autoplay; clipboard-write');
-    iframe.setAttribute('scrolling', 'no');
+    // ⚠️ scrolling="no" 를 넣지 말 것. 한(일)남 LIFE 처럼 아래로 내려가며 보는 게임이
+    //    스크롤이 안 돼서 아래가 통째로 잘린다. 스크롤을 막아야 하는 게임은
+    //    게임 쪽 CSS(body { overflow: hidden })로 막는다 (한일전이 그렇게 함).
 
     _iframe = iframe;
     ui_web.platformViewRegistry.registerViewFactory(
