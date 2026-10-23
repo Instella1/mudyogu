@@ -29,7 +29,6 @@ class _GameScreenState extends State<GameScreen> {
   final GameHostController _controller = GameHostController();
   int _reloadToken = 0;
   int _liveScore = 0;
-  bool _saved = false;
   late bool _immersive = widget.immersive;
 
   @override
@@ -85,7 +84,6 @@ class _GameScreenState extends State<GameScreen> {
           .then((GameProgress p) {
             if (!mounted) return;
             if (parsed.isGameOver) {
-              setState(() => _saved = true);
               _toastSaved(p.bestScore);
             }
           });
@@ -185,7 +183,7 @@ class _GameScreenState extends State<GameScreen> {
                     ],
                   ),
                 ),
-                Expanded(child: _GameStage(game: widget.game, child: host)),
+                Expanded(child: _GameStage(child: host)),
               ],
             ),
           ),
@@ -202,6 +200,8 @@ class _GameScreenState extends State<GameScreen> {
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
+          // 게임 화면을 최대한 크게: 상단바를 얇게 (기본 56 → 44)
+          toolbarHeight: _kImmersiveBarHeight,
           titleSpacing: 0,
           title: Row(
             children: <Widget>[
@@ -283,54 +283,11 @@ class _GameScreenState extends State<GameScreen> {
             const SizedBox(width: 4),
           ],
         ),
+        // 하단 '저장하고 나가기' 줄은 없앴다 (나가기 X 버튼이 같은 일을 한다).
+        // 무대는 남는 공간 전부 — 여백/둥근 테두리 없음.
         body: SafeArea(
           top: false,
-          bottom: false,
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-                  child: _GameStage(game: widget.game, child: host),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(18, 4, 12, 10),
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      _saved
-                          ? Icons.check_circle_outline_rounded
-                          : Icons.sync_rounded,
-                      size: 14,
-                      color: theme.textTheme.bodySmall?.color,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        _saved ? '자동 저장됨' : '플레이 중 자동 저장돼요',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: _saveAndExit,
-                      icon: const Icon(Icons.logout_rounded, size: 15),
-                      label: const Text('저장하고 나가기'),
-                      style: TextButton.styleFrom(
-                        textStyle: const TextStyle(
-                          fontFamily: AppTheme.fontFamily,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          child: _GameStage(child: host),
         ),
       ),
     );
@@ -433,62 +390,16 @@ class _FloatingButton extends StatelessWidget {
   }
 }
 
-/// 게임 비율을 유지하는 무대.
+/// 게임 무대: 남는 공간을 전부 게임(iframe)에 준다.
 ///
-/// 부모가 줄 수 있는 최대 크기 안에서 [GameInfo.aspectRatio] 를 만족하는
-/// 가장 큰 사각형을 계산합니다. 크롬북처럼 넓은 화면에서는 최대한 크게,
-/// 모바일에서는 화면 폭에 맞춰 자동으로 줄어듭니다.
+/// 예전에는 앱이 16:9 상자를 따로 만들고 둥근 카드로 감쌌는데, 게임도 스스로
+/// 화면에 맞추기 때문에 여백이 이중으로 생겨 게임이 작아졌다.
+/// 이제 비율 맞추기는 게임 HTML 이 한다 (원본 모양 그대로 통째로 확대/축소).
 class _GameStage extends StatelessWidget {
-  const _GameStage({required this.game, required this.child});
+  const _GameStage({required this.child});
 
-  final GameInfo game;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final double ratio = game.aspectRatio;
-
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        double width = constraints.maxWidth;
-        double height = width / ratio;
-
-        if (height > constraints.maxHeight) {
-          height = constraints.maxHeight;
-          width = height * ratio;
-        }
-
-        if (width.isNaN || width <= 0 || height.isNaN || height <= 0) {
-          width = constraints.maxWidth;
-          height = constraints.maxHeight;
-        }
-
-        return Center(
-          child: SizedBox(
-            width: width,
-            height: height,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: theme.cardTheme.color,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: theme.dividerColor),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(19),
-                child: child,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => SizedBox.expand(child: child);
 }

@@ -29,64 +29,6 @@
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--f-ui);font-size:15px;line-height:1.55;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 32px}
 #app{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-
-/* ── 뮤됴구 무대(16:9) 대응 ────────────────────────────────────────
-   앱은 게임을 16:9 박스 안에 넣습니다. 그 박스 안에서
-   · 세로가 남으면 내용이 세로로 늘어나고
-   · 가로가 남으면 폭이 넓어집니다.
-   어느 쪽이든 "가운데 정렬 + 빈 공간 최소화" 가 되도록 잡습니다. */
-html,body{min-height:100%}
-body{
-  display:flex;
-  flex-direction:column;
-  /* justify-content:center 는 내용이 길면 위쪽이 잘린다.
-     auto 마진은 여유가 있을 때만 중앙 정렬하고, 넘치면 그냥 0 이 된다. */
-  justify-content:flex-start;
-  overflow-y:auto;
-  overflow-x:hidden;
-}
-#app{width:100%;max-width:min(1180px,100%);}
-
-/* ── 뮤됴구 앱(iframe) 안에서: 여백 제거 + 세로 스크롤 허용 ──────────
-   이 게임은 세로로 긴 카드 목록이라 잘리지 않으려면 스크롤이 필요하다.
-   justify-content:center 를 쓰면 넘칠 때 위가 잘리므로 flex-start 유지. */
-html.mud-embed, html.mud-embed body{ height:100%; margin:0; overflow:hidden; }
-html.mud-embed body{
-  padding:8px max(12px,env(safe-area-inset-right,0px)) 20px max(12px,env(safe-area-inset-left,0px));
-  overflow-y:auto; overflow-x:hidden;
-}
-html.mud-embed #app{ margin-block:0; gap:clamp(8px,1.6vh,16px); max-width:min(1200px,100%); padding-bottom:8px; }
-html.mud-embed .logo{ font-size:clamp(38px,9.5vh,110px); }
-html.mud-embed .card{ padding:clamp(10px,2vh,20px); }
-@media (min-aspect-ratio: 16/9) and (min-width:1100px){
-  /* 크롬북 등 넓은 가로 화면: 좌우 여백 확보 + 요소 키우기 */
-  #app{max-width:min(1400px,94vw);gap:clamp(10px,1.8vh,22px)}
-  .logo{font-size:clamp(72px,15vh,190px)}
-  .title-sub{font-size:clamp(15px,2.4vh,23px);max-width:52em}
-  .card{padding:clamp(14px,2.4vh,26px)}
-  .slot{padding:clamp(10px,2vh,18px) 18px;font-size:clamp(14px,2vh,18px)}
-  .h2{font-size:clamp(20px,2.8vh,30px)}
-  body{font-size:clamp(15px,2vh,18px);padding-block:12px 24px}
-}
-@media (min-aspect-ratio: 4/3){
-  /* 가로가 넉넉한 무대(16:9): 로고/설명/카드를 키워 여백을 메운다 */
-  .title{padding-block:clamp(6px,2vh,26px) 2px;gap:clamp(8px,1.8vh,20px)}
-  .logo{font-size:clamp(56px, 13.5vh, 170px)}
-  .title-sub{font-size:clamp(13px,2.3vh,21px);max-width:44em}
-  .card{padding:clamp(10px,2vh,20px)}
-  .slot{padding:clamp(8px,1.7vh,16px) 14px;font-size:clamp(13px,1.9vh,16px)}
-  #app{gap:clamp(8px,1.6vh,18px)}
-  .h2{font-size:clamp(18px,2.5vh,26px)}
-  body{font-size:clamp(14px,1.9vh,17px)}
-}
-@media (max-aspect-ratio: 1/1){
-  /* 세로가 긴(모바일) 무대: 조금 더 촘촘하게 */
-  .title{padding-block:8px 0;gap:12px}
-  .logo{font-size:clamp(40px,9.5vh,72px)}
-  .title-sub{font-size:14px}
-}
-/* 내용이 짧을 때만 세로 중앙, 길면 위에서부터 자연스럽게 스크롤 */
-#app{margin-block:auto;box-sizing:border-box}
 button{font:inherit;color:inherit}
 .btn{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer;transition:transform .08s,background .15s}
 .btn:hover{background:var(--surface-2)}

@@ -1,7 +1,7 @@
 # 뮤됴구 (Mudyogu) — 개발 인수인계 문서
 
 > 이 문서 하나만 읽으면 이 앱을 이어서 개발할 수 있게 쓰였습니다.
-> 마지막 갱신: 2026-10-23 · 작성 환경: Flutter 3.35.4 / Dart 3.9.2
+> 마지막 갱신: 2026-10-23 (Claude 인수 후 개정) · 환경: Flutter 3.35.4 / Dart 3.9.2
 
 ---
 
@@ -62,7 +62,21 @@ Padding(padding: ..., child: SliverGrid(...))
 SliverPadding(padding: ..., sliver: SliverGrid(...))
 ```
 
-### ⚠️ 3) CSS `aspect-ratio` 는 고정 `height` 와 함께 쓰면 무효
+### ⚠️ 3) 게임은 '원본 모양 그대로' — 배치를 바꾸지 말고 통째로 확대/축소
+
+(2026-10-23 개정) 예전엔 게임 화면을 앱에 맞추려고 게임 CSS 를 200줄 가까이 덧씌웠고,
+그 결과 **원본 게임과 화면이 달라졌습니다** (버튼 배치, 글씨 크기, 로고 크기, 이모지 삭제).
+지금 규칙:
+
+- 게임 원본 HTML 의 기존 줄은 **고치지 않는다. 덧붙이기만** 한다 (SDK 연동, 진행 코드, 폰 터치 버튼).
+- 화면 맞춤이 필요한 게임(고정 크기 캔버스, 예: 한일전 1000×550)은 화면 전체를
+  CSS `zoom` 으로 **통째로** 줄이거나 키운다 → `web/games/haniljeon/index.html` 맨 아래 `fitToScreen`.
+- 원래 반응형인 게임(한(일)남 LIFE)은 원본 CSS 그대로 둔다.
+- 앱의 게임 무대(`_GameStage`)는 **남는 공간 전부**를 iframe 에 준다. 16:9 상자·둥근 테두리 없음.
+  (catalog 의 `aspect` 값은 지금 무대 크기에 쓰이지 않음)
+- 원본 파일 보관: 게임을 고칠 땐 항상 사용자가 준 원본과 `diff` 해서 '추가만' 있는지 확인.
+
+#### (참고) CSS `aspect-ratio` 는 고정 `height` 와 함께 쓰면 무효
 
 게임 캔버스가 찌그러지던 원인입니다. 세로만 줄어들어 비율이 1.818 → 1.465 로 깨졌습니다.
 
@@ -335,11 +349,16 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 5. `service_worker.js` 의 `VERSION` 올리기 (`mudyogu-v7` → `v8`)
    → **안 올리면 기존 사용자 브라우저에 옛 게임이 남습니다.**
 
-### 새 버전 배포
+### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가**
-2. `./build.sh`  (BUILD_ID 자동 갱신 → 사용자에게 "새 버전" 배너)
-3. 배포
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v9`)
+2. GitHub `main` 브랜치에 올린다(push)
+3. 끝. `.github/workflows/deploy.yml` 이 자동으로
+   `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
+4. 설치된 앱은 `version.json` 이 바뀐 걸 보고 "새 버전 있음" 배너를 띄운다
+
+> 젠스파크 미리보기 주소(`*.sandbox.novita.ai`)는 임시 개발 서버였다. 정식 주소는 GitHub Pages.
+> 주소가 바뀌면 브라우저 저장소(기록)도 새로 시작하므로, 옮길 때는 진행 코드/리포트 코드로 이전.
 
 ### 계정/저장 관련 디버깅
 
@@ -359,6 +378,8 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 | 게임 캔버스가 찌그러짐 | `height:550px` + `flex-shrink:1` → 세로만 축소 | `flex:1 1 auto; min-height:0; aspect-ratio:1000/550` |
 | 게임 하단 버튼이 잘림 | `justify-content:center` 가 넘칠 때 위아래를 자름 | `flex-start` + `margin-block:auto`, `@media (max-height:700px)` 보정 |
 | 게임 카드가 안 보임 | `SliverGrid` 를 `Padding` 으로 감쌈 | **`SliverPadding`** 사용 |
+| **게임 화면이 원본과 다름** | 게임 CSS 를 덧씌워 배치/글씨/이모지가 바뀜 + 앱이 16:9 상자에 또 넣음 | 원본으로 되돌리고 '추가만', 화면은 통째 `zoom`, 무대는 꽉 채움 |
+| 한일전 기록이 15스테이지에서만 저장됨 | 동기화 호출이 Stage 15 클리어에만 있었음 | `goToMenu` 를 감싸 진행이 바뀌면 항상 저장 |
 | **오프라인에서 앱이 멈춤** | ① 서비스워커 2개 동시 등록 ② 캐너스킷을 CDN 에서 받음 ③ `assets/` 미캐시 | `patch_web.py` 로 SW 통합 + 로컬 canvaskit + 사전 캐시 확장 |
 
 ---
@@ -403,7 +424,7 @@ node --check web/service_worker.js   # SW 문법 검사
 
 ## 11. 저장소
 
-- Genspark 자동 백업 remote: `genspark`
+- GitHub 저장소 (main 에 push → 자동 배포). 예전 Genspark remote 는 더 이상 쓰지 않음
 - 커밋 메시지는 한국어로, `fix:` / `feat:` 접두사 사용
 - 작업 단위로 자주 커밋 (빌드는 `build/` 라 gitignore 됨)
 

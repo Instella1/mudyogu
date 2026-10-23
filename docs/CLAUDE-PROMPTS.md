@@ -29,6 +29,8 @@
    옛 파일이 남는다.
 6. build.sh 를 거치지 않고 flutter build web 만 돌리지 마. tools/patch_web.py 가
    서비스워커 충돌과 canvaskit CDN 문제를 잡아주는데 그게 빠진다.
+7. 게임 원본 HTML 의 기존 줄을 고치지 마. 덧붙이기만 하고, 화면 맞춤은 통째 zoom 으로.
+   (원본과 달라 보이던 문제의 원인. docs/HANDOFF.md 1-3 참고)
 
 [디자인]
 브랜드 컬러 #2FCC8B, 폰트 NanumSquareRound, 클린/파스텔, 한국어만,
@@ -131,14 +133,14 @@ tools/add_game.py 를 쓰거나 직접:
 ## E. 배포할 때
 
 ```
-뮤됴구 웹 배포 준비해줘.
+뮤됴구 새 버전 배포해줘.
 
-1. flutter analyze 통과 확인
-2. web/service_worker.js 의 VERSION 을 한 단계 올려줘 (예: v7 → v8)
-3. ./build.sh 실행
-4. python3 tools/pack_html.py 실행
-5. build/web/downloads/mudyogu-html.zip 링크 알려줘
-6. 바뀐 내용을 한국어로 요약해줘
+1. web/service_worker.js 의 VERSION 을 한 단계 올려줘 (예: v9 → v10)
+2. 바뀐 내용을 한국어 커밋 메시지(fix:/feat:)로 커밋하고 GitHub main 에 push
+3. GitHub Actions(빌드 & 배포)가 성공했는지 확인해줘
+   - 실패하면 로그를 보고 고쳐서 다시 push
+4. 배포 주소에서 version.json 이 새 buildId 로 바뀌었는지 확인
+5. 바뀐 내용을 한국어로 요약해줘
 
 VERSION 을 안 올리면 기존 사용자 브라우저에 옛 파일이 남으니 꼭 확인해줘.
 ```
