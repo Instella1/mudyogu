@@ -1461,16 +1461,19 @@ function snapshot(){return JSON.stringify(S)}
 /* 뮤됴구: 리포트 코드를 앱 계정에 자동 보관 (다른 기기 이어하기) */
 function mudPushCode(){
   try{
-    if(typeof window.mudyoguStoreCode!=='function')return;
-    window.mudyoguStoreCode(toB64(snapshot()));
+    if(typeof window.mudyoguStoreCode!=='function'||typeof window.mudAllCode!=='function')return;
+    if(window.mudHasLocal&&!window.mudHasLocal())return;
+    window.mudyoguStoreCode(window.mudAllCode());   // 리포트 슬롯 + MY TEAM 전체
   }catch(e){}
 }
-/* 뮤됴구: 앱이 넘겨준 코드로 복원 */
+/* 뮤됴구: 앱이 넘겨준 코드로 복원
+   전체 기록 코드(MUDX1|hanilnam-life|...)만 받는다. 이 기기에 기록이 없을 때만 조용히 채운다.
+   (예전 '리포트 코드'를 열 때마다 자동으로 불러와 게임 화면으로 튀던 문제를 없앰) */
 window.mudyoguRestore=function(code){
   try{
-    const obj=JSON.parse(fromB64(code));
-    if(!obj||!obj.players)return false;
-    loadState(obj);render();return true;
+    if(typeof window.mudApplyAll!=='function')return false;
+    if(window.mudHasLocal&&window.mudHasLocal())return false;
+    return window.mudApplyAll(code,{silent:true});
   }catch(e){return false;}
 };
 function toB64(str){const b=new TextEncoder().encode(str);let s='';for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s)}
@@ -1989,6 +1992,81 @@ if(typeof document!=='undefined'){
 }
 </script>
 
+<script>
+/* ===================== 뮤됴구: 전체 기록 옮기기 =====================
+   리포트 슬롯 3칸 + MY TEAM + 라인업을 코드 하나로 만들고, 다른 곳(사이트/다른 기기)에서
+   붙여넣어 그대로 옮긴다. 원본 코드는 건드리지 않고 타이틀 화면 카드에 칸만 덧붙인다. */
+(function(){
+  var KEYS=[SLOT_KEY, MT_KEY, MTL_KEY];
+  var PREFIX='MUDX1|hanilnam-life|';
+  function b64e(str){var b=new TextEncoder().encode(str),s='';for(var i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s)}
+  function b64d(t){var s=atob(t),b=new Uint8Array(s.length);for(var i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return new TextDecoder().decode(b)}
+  function nonEmpty(v){ if(v==null)return false; try{var o=JSON.parse(v); if(Array.isArray(o))return o.some(Boolean); if(o&&typeof o==='object')return Object.keys(o).length>0 && !(k0(o)); return !!o;}catch(e){return false} }
+  function k0(o){ return o.form && Array.isArray(o.ids) && o.ids.length===0; }   // 빈 라인업
+  function hasLocal(){ try{ return KEYS.some(function(k){return nonEmpty(localStorage.getItem(k))}); }catch(e){return false} }
+  function allCode(){
+    var keys={};
+    KEYS.forEach(function(k){ try{ var v=localStorage.getItem(k); if(v!=null) keys[k]=v; }catch(e){} });
+    return PREFIX+b64e(JSON.stringify({v:1,at:Date.now(),keys:keys}));
+  }
+  function parse(code){
+    var raw=String(code||'').replace(/\s+/g,'');
+    if(raw.indexOf(PREFIX)!==0) return null;
+    var o=JSON.parse(b64d(raw.slice(PREFIX.length)));
+    return (o&&o.keys&&typeof o.keys==='object')?o.keys:null;
+  }
+  function bestRecord(){
+    var L=mtList(), best=null, bs=-1;
+    L.forEach(function(r){ var st=r.st||{}; var sc=(parseFloat(r.ovr)||0)*10+(r.fame||0)*2+(st.w||0)*3; if(sc>bs){bs=sc;best=r;} });
+    return best;
+  }
+  function applyAll(code,opts){
+    opts=opts||{};
+    var keys; try{ keys=parse(code); }catch(e){ keys=null; }
+    if(!keys) return false;
+    if(!opts.silent && hasLocal() && !confirm('이 기기에 있는 한(일)남 LIFE 기록을 가져온 기록으로 바꿀까요?\n(리포트 슬롯 3칸 + MY TEAM 전체)')) return false;
+    KEYS.forEach(function(k){ try{ if(k in keys) localStorage.setItem(k,keys[k]); }catch(e){} });
+    try{ var b=bestRecord(); if(b&&typeof mudyoguSync==='function') mudyoguSync(b); }catch(e){}
+    try{ if(typeof mudPushCode==='function') mudPushCode(); }catch(e){}
+    try{ if(typeof stopTimer==='function')stopTimer(); T.screen='title'; if(!opts.silent)T.msg='전체 기록을 불러왔다.'; render(); }catch(e){}
+    return true;
+  }
+  window.mudAllCode=allCode; window.mudApplyAll=applyAll; window.mudHasLocal=hasLocal;
+
+  // ── 타이틀 화면 '저장된 리포트' 카드에 칸 덧붙이기 ──
+  function inject(){
+    var logo=document.querySelector('#app .logo .life'); if(!logo) return;
+    var card=document.querySelector('#app section.card'); if(!card||card.querySelector('#mudAll')) return;
+    var d=document.createElement('details'); d.id='mudAll'; d.style.marginTop='8px';
+    d.innerHTML='<summary class="muted" style="cursor:pointer">전체 기록 옮기기 (다른 기기 · 사이트로)</summary>'+
+      '<div style="display:grid;gap:8px;margin-top:8px">'+
+      '<p class="muted" style="margin:0;font-size:13px">리포트 슬롯과 MY TEAM 전체를 코드 하나로 옮긴다. 옮길 곳의 같은 칸에 붙여넣으면 된다.</p>'+
+      '<textarea id="mudAllOut" readonly></textarea>'+
+      '<div class="row"><button class="btn sm" id="mudAllCopy">코드 복사</button></div>'+
+      '<textarea id="mudAllIn" placeholder="옮겨온 전체 기록 코드를 붙여넣기"></textarea>'+
+      '<div class="row"><button class="btn sm" id="mudAllApply">불러오기</button><span class="err" id="mudAllMsg"></span></div></div>';
+    card.appendChild(d);
+    var out=d.querySelector('#mudAllOut'), msg=d.querySelector('#mudAllMsg');
+    d.addEventListener('toggle',function(){ if(d.open) out.value=allCode(); });
+    d.querySelector('#mudAllCopy').addEventListener('click',function(){
+      out.value=allCode(); try{ mudPushCode(); }catch(e){}
+      navigator.clipboard.writeText(out.value).then(function(){ msg.textContent='코드를 복사했다.'; })
+        .catch(function(){ out.select(); msg.textContent='자동 복사가 안 돼서 코드를 선택해 뒀다. 직접 복사해줘.'; });
+    });
+    d.querySelector('#mudAllApply').addEventListener('click',function(){
+      var v=d.querySelector('#mudAllIn').value;
+      if(!v.trim()){ msg.textContent='코드를 붙여넣어줘.'; return; }
+      if(!applyAll(v)){ msg.textContent='코드를 읽지 못했다. 처음부터 끝까지 빠짐없이 붙여넣었는지 확인해줘.'; }
+    });
+  }
+  var origRender=render;
+  render=function(){ var r=origRender.apply(this,arguments); try{ inject(); }catch(e){} return r; };
+  try{ inject(); }catch(e){}
+
+  // 앱(사이트) 안이면, 이미 있는 기록을 계정에 한 번 보관
+  setTimeout(function(){ try{ mudPushCode(); }catch(e){} },1500);
+})();
+</script>
 <script>
 /* ===================== 뮤됴구: 화면 맞춤 (앱 안에서만) =====================
    원본 모양은 그대로 두고 페이지 전체를 '약간' 축소해서

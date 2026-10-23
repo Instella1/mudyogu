@@ -2410,7 +2410,7 @@ function afterResolved(){ if(B.mode==="online"){ if(B.role==="host") doAdvanceHo
   // 포획 목록은 합치고(합집합), 티켓/프로필/기록은 이 기기가 '새것'일 때만 가져온다.
   function applyCode(code) {
     try {
-      var raw = String(code || '').trim();
+      var raw = String(code || '').replace(/\s+/g, '');
       if (raw.indexOf(CODE_PREFIX) !== 0) return false;
       var o = JSON.parse(b64d(raw.slice(CODE_PREFIX.length)));
       if (!o || typeof o !== 'object') return false;
@@ -2488,6 +2488,49 @@ function afterResolved(){ if(B.mode==="online"){ if(B.role==="host") doAdvanceHo
 
   window.mudyoguBuildCode = buildCode;
   window.mudyoguApplyCode = applyCode;
+
+  /* ── 기록저장실 화면 맨 아래에 '진행 코드 옮기기' 칸 덧붙이기 (원본 화면은 그대로) ── */
+  var TA = 'width:100%;min-height:60px;margin:8px 0;padding:10px 12px;border-radius:12px;resize:vertical;' +
+           'border:1.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:var(--ink);' +
+           'font-family:var(--mono);font-size:11px;line-height:1.45;word-break:break-all';
+  function injectTransfer() {
+    var view = document.getElementById('recview');
+    if (!view || view.querySelector('#mudPk')) return;
+    var box = document.createElement('div');
+    box.id = 'mudPk';
+    box.innerHTML =
+      '<div class="bt-label" style="margin-top:16px">📦 진행 코드 옮기기</div>' +
+      '<div class="prof-card">' +
+        '<div class="bt-sub">포획 도감 · 티켓 · 대전 기록을 코드 하나로 옮겨요. 옮길 곳(다른 기기 · 뮤됴구 사이트)의 기록저장실에 붙여넣으세요. 포획 기록은 합쳐져요.</div>' +
+        '<textarea id="mudPkOut" readonly style="' + TA + '"></textarea>' +
+        '<button class="bt-act" id="mudPkCopy">코드 복사</button>' +
+        '<textarea id="mudPkIn" placeholder="옮겨온 코드를 붙여넣기" style="' + TA + ';margin-top:14px"></textarea>' +
+        '<button class="bt-act" id="mudPkApply">불러오기</button>' +
+        '<div class="bt-sub" id="mudPkMsg" style="margin-top:8px"></div>' +
+      '</div>';
+    view.appendChild(box);
+    var out = box.querySelector('#mudPkOut'), msg = box.querySelector('#mudPkMsg');
+    out.value = buildCode();
+    box.querySelector('#mudPkCopy').addEventListener('click', function () {
+      out.value = buildCode(); pushCodeSoon();
+      navigator.clipboard.writeText(out.value).then(function () { msg.textContent = '복사했어요.'; })
+        .catch(function () { out.select(); msg.textContent = '자동 복사가 안 돼요. 선택해 둔 코드를 직접 복사해 주세요.'; });
+    });
+    box.querySelector('#mudPkApply').addEventListener('click', function () {
+      var v = box.querySelector('#mudPkIn').value.replace(/\s+/g, '');
+      if (!v) { msg.textContent = '코드를 붙여넣어 주세요.'; return; }
+      var before = caught.size;
+      if (applyCode(v)) {
+        sync();
+        msg.textContent = '불러왔어요! 포획 ' + before + ' → ' + caught.size + '마리';
+        out.value = buildCode();
+      } else {
+        msg.textContent = '코드를 읽지 못했어요. 처음부터 끝까지 빠짐없이 붙여넣었는지 확인해 주세요. (이미 같은 기록이면 바뀌는 게 없어요)';
+      }
+    });
+  }
+  var origRenderRecords = renderRecords;
+  renderRecords = function () { var r = origRenderRecords.apply(this, arguments); try { injectTransfer(); } catch (e) {} return r; };
 })();
 
 /* ===================== 뮤됴구: 화면 맞춤 (앱 안에서만) =====================

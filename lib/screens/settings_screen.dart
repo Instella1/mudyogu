@@ -776,8 +776,8 @@ void _showSaveCode(
             ),
             const SizedBox(height: 6),
             Text(
-              '이 코드를 다른 기기에서 게임의 "기록 코드로 불러오기"에 붙여넣으면 '
-              '진행상황이 그대로 복원됩니다.',
+              '같은 계정으로 로그인하면 자동으로 복원돼요. 직접 옮길 때는 이 코드를 '
+              '${_codeWhere(game.id)}에 붙여넣으세요.',
               style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5),
             ),
             const SizedBox(height: 14),
@@ -822,4 +822,18 @@ void _showSaveCode(
       );
     },
   );
+}
+
+/// 게임마다 '코드 붙여넣는 곳' 안내
+String _codeWhere(String gameId) {
+  switch (gameId) {
+    case 'haniljeon':
+      return '한일전 메뉴의 "💾 진행 코드 → 코드로 불러오기"';
+    case 'hanilnam-life':
+      return '한(일)남 LIFE 첫 화면의 "전체 기록 옮기기"';
+    case 'pokequiz':
+      return '포케퀴즈 "🏅 기록저장실 → 진행 코드 옮기기"';
+    default:
+      return '게임 안의 코드 불러오기 칸';
+  }
 }

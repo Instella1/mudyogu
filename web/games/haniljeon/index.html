@@ -3932,15 +3932,25 @@
                 catch (e) { return ''; }
             }
             let lastKey = snapshotKey();
-            const originalGoToMenu = goToMenu;
-            goToMenu = function () {
-                const r = originalGoToMenu.apply(this, arguments);
+            function syncIfChanged() {
                 const key = snapshotKey();
                 if (key && key !== lastKey) {
                     lastKey = key;
                     try { mudyoguSyncProgress(true); } catch (e) {}
                     try { pushSaveCode(true); } catch (e) {}
                 }
+            }
+            const originalGoToMenu = goToMenu;
+            goToMenu = function () {
+                const r = originalGoToMenu.apply(this, arguments);
+                syncIfChanged();
+                return r;
+            };
+            // '진행 코드 → 불러오기'로 다른 곳의 기록을 옮겨 왔을 때도 바로 앱에 저장
+            const originalImport = importSaveCode;
+            importSaveCode = function () {
+                const r = originalImport.apply(this, arguments);
+                syncIfChanged();
                 return r;
             };
         })();
