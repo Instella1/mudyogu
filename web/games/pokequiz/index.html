@@ -2407,24 +2407,49 @@ function afterResolved(){ if(B.mode==="online"){ if(B.role==="host") doAdvanceHo
       records: records.slice(-200), at: Date.now()
     }));
   }
-  // 포획 목록은 합치고(합집합), 티켓/프로필/기록은 이 기기가 '새것'일 때만 가져온다.
+  // 가져오기 = 아무것도 버리지 않고 합치기
+  //  · 포획 도감: 합집합
+  //  · 프로필(내 고유 코드 · 닉네임): 가져온 것으로 (옮겨 온 곳의 '나'를 그대로 이어감)
+  //  · 대전 기록: 합치기 (같은 기록은 한 번만), 최근 200개
+  //  · 티켓: 장수/보상 단계는 큰 쪽, 지급 표시는 하나라도 받았으면 받은 것으로
+  function sameRec(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
   function applyCode(code) {
     try {
       var raw = String(code || '').replace(/\s+/g, '');
       if (raw.indexOf(CODE_PREFIX) !== 0) return false;
       var o = JSON.parse(b64d(raw.slice(CODE_PREFIX.length)));
       if (!o || typeof o !== 'object') return false;
+      var changed = false;
+      // 이 기기(사이트)에서 아직 한 번도 안 했으면 → 티켓은 가져온 그대로 (기본 환영 티켓과 섞지 않음)
       var fresh = caught.size === 0 && records.length === 0;
+
       var before = caught.size;
       if (Array.isArray(o.caught)) o.caught.forEach(function (id) { if (typeof id === 'number') caught.add(id); });
-      if (caught.size !== before) origSaveCaught();
-      if (fresh) {
-        if (o.tickets && typeof o.tickets.n === 'number') { tickets = o.tickets; origSaveTickets(); }
-        if (o.profile && o.profile.code) { profile = o.profile; origSaveProfile(); }
-        if (Array.isArray(o.records)) { records = o.records; origSaveRecords(); }
+      if (caught.size !== before) { origSaveCaught(); changed = true; }
+
+      if (o.profile && o.profile.code && (o.profile.code !== profile.code || (o.profile.nick || '') !== (profile.nick || ''))) {
+        profile = Object.assign({}, profile, o.profile); origSaveProfile(); changed = true;
       }
+
+      if (Array.isArray(o.records) && o.records.length) {
+        var merged = o.records.slice();
+        records.forEach(function (r) { if (!merged.some(function (m) { return sameRec(m, r); })) merged.push(r); });
+        merged = merged.slice(-200);
+        if (!sameRec(merged, records)) { records = merged; origSaveRecords(); changed = true; }
+      }
+
+      if (o.tickets && typeof o.tickets.n === 'number') {
+        var t = fresh ? {} : Object.assign({}, tickets);
+        Object.keys(o.tickets).forEach(function (k) {
+          var a = t[k], b = o.tickets[k];
+          if (typeof b === 'number') t[k] = Math.max(typeof a === 'number' ? a : 0, b);
+          else if (b && !a) t[k] = b;
+        });
+        if (!sameRec(t, tickets)) { tickets = t; origSaveTickets(); changed = true; }
+      }
+
       try { updateHomeFoot(); checkTicketRewards(); updateTicketBtn(); } catch (e) {}
-      return caught.size !== before || fresh;
+      return changed;
     } catch (e) { return false; }
   }
 
@@ -2439,7 +2464,7 @@ function afterResolved(){ if(B.mode==="online"){ if(B.role==="host") doAdvanceHo
       try { MUD.saveCode({ code: buildCode(), label: '진행 코드' }); } catch (e) {}
     }, 1200);
   }
-  function sync() {
+  function sync(force) {
     if (!MUD || !ready) return;
     var n = caught.size;
     var wins = records.filter(function (r) { return r && r.result === 'win'; }).length;
@@ -2447,7 +2472,7 @@ function afterResolved(){ if(B.mode==="online"){ if(B.role==="host") doAdvanceHo
       MUD.save({
         score: n,
         state: { version: 1, caught: n, tickets: tickets.n, battles: records.length, wins: wins, nick: profile.nick || '' },
-        isGameOver: lastSynced >= 0 && n > lastSynced
+        isGameOver: !!force || (lastSynced >= 0 && n > lastSynced)
       });
     } catch (e) {}
     lastSynced = n;
@@ -2521,11 +2546,13 @@ function afterResolved(){ if(B.mode==="online"){ if(B.role==="host") doAdvanceHo
       if (!v) { msg.textContent = '코드를 붙여넣어 주세요.'; return; }
       var before = caught.size;
       if (applyCode(v)) {
-        sync();
-        msg.textContent = '불러왔어요! 포획 ' + before + ' → ' + caught.size + '마리';
-        out.value = buildCode();
+        sync(true);
+        var done = '불러왔어요! 포획 ' + before + ' → ' + caught.size + '마리 · 대전 기록 ' + records.length + '개 · 티켓 ' + tickets.n + '장 · 고유 코드 ' + profile.code;
+        try { renderRecords(); } catch (e) {}          // 전적/고유 코드 화면을 새 기록으로 다시 그림
+        var m2 = document.getElementById('mudPkMsg'); if (m2) m2.textContent = done;
+        return;
       } else {
-        msg.textContent = '코드를 읽지 못했어요. 처음부터 끝까지 빠짐없이 붙여넣었는지 확인해 주세요. (이미 같은 기록이면 바뀌는 게 없어요)';
+        msg.textContent = '코드를 읽지 못했거나, 이미 같은 기록이라 바뀐 게 없어요. 처음부터 끝까지 빠짐없이 붙여넣었는지 확인해 주세요.';
       }
     });
   }

@@ -411,20 +411,25 @@
                 const obj = JSON.parse(new TextDecoder().decode(bytes));
                 if (!obj || typeof obj !== 'object') return false;
 
+                // 합치기: 최고 스테이지는 큰 쪽, 클리어는 모두, 별점은 스테이지별 최고, 업적은 하나라도 달성했으면 달성
                 if (typeof obj.maxStage === 'number') {
-                    maxUnlockedStage = Math.max(1, Math.min(15, obj.maxStage));
+                    maxUnlockedStage = Math.max(maxUnlockedStage || 1, Math.max(1, Math.min(15, obj.maxStage)));
                     localStorage.setItem('haniljeon_max_stage', maxUnlockedStage);
                 }
                 if (Array.isArray(obj.cleared)) {
-                    clearedStages = obj.cleared;
+                    obj.cleared.forEach(function (n) { if (!clearedStages.includes(n)) clearedStages.push(n); });
+                    clearedStages.sort(function (a, b) { return a - b; });
                     localStorage.setItem('haniljeon_cleared_stages', JSON.stringify(clearedStages));
                 }
                 if (obj.stars && typeof obj.stars === 'object') {
-                    stageStars = obj.stars;
+                    Object.keys(obj.stars).forEach(function (k) {
+                        const v = Number(obj.stars[k]) || 0;
+                        if (v > (Number(stageStars[k]) || 0)) stageStars[k] = v;
+                    });
                     localStorage.setItem('haniljeon_stage_stars', JSON.stringify(stageStars));
                 }
                 if (obj.ach && typeof obj.ach === 'object') {
-                    achievements = obj.ach;
+                    Object.keys(obj.ach).forEach(function (k) { if (obj.ach[k] && !achievements[k]) achievements[k] = obj.ach[k]; });
                     localStorage.setItem('haniljeon_achievements', JSON.stringify(achievements));
                 }
                 if (obj.keys && typeof obj.keys === 'object') {
@@ -3947,6 +3952,10 @@
                 return r;
             };
             // '진행 코드 → 불러오기'로 다른 곳의 기록을 옮겨 왔을 때도 바로 앱에 저장
+            // 켤 때 이미 있는 기록도 앱 계정에 한 번 보관 (다른 기기에서 자동 복원되게)
+            setTimeout(function () {
+                try { if (clearedStages.length || maxUnlockedStage > 1) pushSaveCode(true); } catch (e) {}
+            }, 1500);
             const originalImport = importSaveCode;
             importSaveCode = function () {
                 const r = originalImport.apply(this, arguments);

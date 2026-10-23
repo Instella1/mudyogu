@@ -2024,14 +2024,33 @@ if(typeof document!=='undefined'){
     opts=opts||{};
     var keys; try{ keys=parse(code); }catch(e){ keys=null; }
     if(!keys) return false;
-    if(!opts.silent && hasLocal() && !confirm('이 기기에 있는 한(일)남 LIFE 기록을 가져온 기록으로 바꿀까요?\n(리포트 슬롯 3칸 + MY TEAM 전체)')) return false;
-    KEYS.forEach(function(k){ try{ if(k in keys) localStorage.setItem(k,keys[k]); }catch(e){} });
+    // 합치기 (아무것도 잃지 않게)
+    //  · 리포트 슬롯: 가져온 쪽에 있는 칸은 가져온 것으로, 비어 있는 칸은 이 기기 것을 그대로
+    //    (둘 다 들어 있는 칸이 있으면 한 번 물어봄)
+    //  · MY TEAM: 두 쪽 선수를 모두 (같은 선수는 한 명만), 최신순 최대 20명
+    //  · 라인업: 가져온 라인업에 선수가 있으면 그것으로
+    function J(v,d){ try{ var o=JSON.parse(v); return o==null?d:o; }catch(e){ return d; } }
+    var lSl=J(localStorage.getItem(SLOT_KEY),[null,null,null]), iSl=J(keys[SLOT_KEY],[null,null,null]);
+    var clash=[0,1,2].filter(function(k){ return lSl[k]&&iSl[k]&&JSON.stringify(lSl[k])!==JSON.stringify(iSl[k]); });
+    if(!opts.silent && clash.length && !confirm('리포트 슬롯 '+clash.map(function(k){return k+1}).join(', ')+'번이 양쪽에 다 있어요.\n가져온 리포트로 바꿀까요? (취소하면 이 기기 리포트를 남겨요)')) clash.forEach(function(k){ iSl[k]=null; });
+    var mSl=[0,1,2].map(function(k){ return iSl[k]||lSl[k]||null; });
+    var lMt=J(localStorage.getItem(MT_KEY),[]), iMt=J(keys[MT_KEY],[]);
+    var seen={}, mMt=[];
+    iMt.concat(lMt).forEach(function(r){ if(!r)return; var id=(r.id!=null)?('i'+r.id):JSON.stringify(r); if(seen[id])return; seen[id]=1; mMt.push(r); });
+    mMt.sort(function(a,b){ return (b.id||0)-(a.id||0); }); mMt=mMt.slice(0,20);
+    var iLu=J(keys[MTL_KEY],null), lLu=J(localStorage.getItem(MTL_KEY),null);
+    var mLu=(iLu&&Array.isArray(iLu.ids)&&iLu.ids.some(Boolean))?iLu:lLu;
+    try{ localStorage.setItem(SLOT_KEY,JSON.stringify(mSl)); localStorage.setItem(MT_KEY,JSON.stringify(mMt)); if(mLu)localStorage.setItem(MTL_KEY,JSON.stringify(mLu)); }catch(e){ return false; }
     try{ var b=bestRecord(); if(b&&typeof mudyoguSync==='function') mudyoguSync(b); }catch(e){}
     try{ if(typeof mudPushCode==='function') mudPushCode(); }catch(e){}
     try{ if(typeof stopTimer==='function')stopTimer(); T.screen='title'; if(!opts.silent)T.msg='전체 기록을 불러왔다.'; render(); }catch(e){}
     return true;
   }
   window.mudAllCode=allCode; window.mudApplyAll=applyAll; window.mudHasLocal=hasLocal;
+
+  // 리포트 슬롯 저장 · MY TEAM · 라인업이 바뀔 때마다 앱 계정의 코드도 최신으로 (1초 모아서)
+  var pushT=null, origSet=LS.set;
+  LS.set=function(k,v){ var r=origSet.apply(LS,arguments); if(KEYS.indexOf(k)>=0){ clearTimeout(pushT); pushT=setTimeout(function(){ try{ mudPushCode(); }catch(e){} },1000); } return r; };
 
   // ── 타이틀 화면 '저장된 리포트' 카드에 칸 덧붙이기 ──
   function inject(){

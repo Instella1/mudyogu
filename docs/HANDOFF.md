@@ -349,11 +349,15 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 세 게임 모두 '진행 코드' 한 줄로 기록 전체를 옮길 수 있다. 앱 계정에도 자동 보관된다.
 
-| 게임 | 화면 위치 | 형식 | 가져올 때 |
+가져오기는 **아무것도 버리지 않고 합치기**가 원칙이다.
+
+| 게임 | 화면 위치 | 형식 | 가져올 때 (합치기 규칙) |
 |---|---|---|---|
-| 한일전 | 메뉴 `💾 진행 코드` | `HIJ1|...` | 덮어쓰기 |
-| 한(일)남 LIFE | 첫 화면 `전체 기록 옮기기` | `MUDX1|hanilnam-life|...` (슬롯+MY TEAM+라인업) | 기록 있으면 확인창 후 덮어쓰기 |
-| 포케퀴즈 | `🏅 기록저장실` 맨 아래 | `PKQ1|...` | 포획은 합치기, 티켓/프로필/대전기록은 새 기기일 때만 |
+| 한일전 | 메뉴 `💾 진행 코드` | `HIJ1|...` | 최고 스테이지 큰 쪽 · 클리어 합집합 · 별점 스테이지별 최고 · 업적 합집합 |
+| 한(일)남 LIFE | 첫 화면 `전체 기록 옮기기` | `MUDX1|hanilnam-life|...` | 슬롯: 가져온 칸 우선, 빈 칸은 유지(둘 다 있으면 확인창) · MY TEAM 합집합(id) 최대 20 · 라인업 가져온 것 |
+| 포케퀴즈 | `🏅 기록저장실` 맨 아래 | `PKQ1|...` | 도감 합집합 · 고유 코드/닉네임 가져온 것 · 대전 기록 합치기 · 티켓 큰 쪽(사이트 처음이면 가져온 그대로) |
+
+세 게임 모두 켤 때/기록이 바뀔 때 앱 계정에 코드를 보관 → 새 기기에서 로그인하면 자동 복원.
 
 **독립 실행본** (예전에 하던 곳에서 열어 코드를 뽑는 용도):
 `python3 tools/make_standalone.py` → `build/standalone/*.html`
@@ -370,7 +374,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v13`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v14`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포

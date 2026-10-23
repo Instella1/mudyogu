@@ -11,7 +11,7 @@
  *       (예: https://example.com/mudyogu/) 에서도 그대로 동작합니다.
  * ------------------------------------------------------------------ */
 
-const VERSION = 'mudyogu-v13';
+const VERSION = 'mudyogu-v14';
 const SHELL_CACHE = `${VERSION}-shell`;
 const GAME_CACHE = `${VERSION}-games`;
 
