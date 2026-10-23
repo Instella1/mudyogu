@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2025-01-04T00:00:00Z",
+  "games": [
+    {
+      "id": "hanilnam-life",
+      "title": "한(일)남 LIFE",
+      "tagline": "한일고 39기로 살아가는 게임",
+      "entry": "games/hanilnam-life/index.html",
+      "accent": "#A8E6CF",
+      "tags": [
+        "육성",
+        "스토리",
+        "축구"
+      ],
+      "version": "1.0.0",
+      "supportsState": true,
+      "bestScoreLabel": "최종 오버롤",
+      "builtIn": false,
+      "aspect": "16/9"
+    },
+    {
+      "id": "haniljeon",
+      "title": "한일전",
+      "tagline": "15개 스테이지 보스를 격파하라",
+      "entry": "games/haniljeon/index.html",
+      "accent": "#FFC9B7",
+      "tags": [
+        "액션",
+        "보스전",
+        "아케이드"
+      ],
+      "version": "1.0.0",
+      "supportsState": true,
+      "bestScoreLabel": "최고 점수",
+      "builtIn": false,
+      "aspect": "16/9"
+    }
+  ]
+}

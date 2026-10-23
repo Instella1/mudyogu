@@ -1,0 +1,35 @@
+뮤됴구 (Mudyogu) — 인수인계 패키지
+=====================================
+
+이 폴더는 Flutter PWA 미니게임 허브 "뮤됴구"의 전체 소스입니다.
+AI(클로드 등)에게 이 폴더를 통째로 주고 아래 순서대로 읽게 하세요.
+
+읽는 순서
+---------
+1. HANDOFF.md          ← 여기부터. 구조 / 절대규칙 / 과거 버그 이력
+2. docs/GAME-SPEC.md   ← 게임 만들 때 지킬 규약
+3. docs/CLAUDE-PROMPTS.md ← AI 에게 시킬 때 그대로 붙여넣는 프롬프트 모음
+
+바로 실행해 보기
+---------------
+    flutter pub get
+    flutter analyze
+    ./build.sh
+    python3 -m http.server 5060 --directory build/web
+    # → http://localhost:5060
+
+배포용 zip 만들기
+----------------
+    python3 tools/pack_html.py
+    # → build/web/downloads/mudyogu-html.zip
+
+환경
+----
+Flutter 3.35.4 / Dart 3.9.2  ← 버전 업그레이드 금지 (검증된 조합)
+
+절대 규칙 4가지 (어기면 과거 버그 재발)
+--------------------------------------
+1. iframe 위에 Flutter 위젯을 Stack 으로 겹치지 말 것 (클릭 안 먹힘)
+2. Sliver 를 Padding 같은 박스 위젯으로 감싸지 말 것 (조용히 안 보임)
+3. 게임 CSS 에서 aspect-ratio + 고정 height 조합 금지 (찌그러짐)
+4. 게임에 외부 URL 금지 / build.sh 를 건너뛰지 말 것 (오프라인 깨짐)

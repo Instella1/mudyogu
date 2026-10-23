@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>게임 템플릿</title>
+    <!-- 앱 셸과 톤을 맞추는 공용 스타일 -->
+    <link rel="stylesheet" href="../mudyogu.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="hud">
+        <div class="chip">게임 이름</div>
+        <div class="spacer"></div>
+        <div class="chip plain">최고 <span id="best">0</span></div>
+      </div>
+
+      <div class="stage">
+        <div style="text-align: center; padding: 24px">
+          <div class="big" id="score">0</div>
+          <p style="font-size: 12px; color: var(--mud-muted)">
+            화면을 누르면 점수가 올라갑니다
+          </p>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="chip plain" id="status">준비됨</div>
+      </div>
+    </div>
+
+    <!-- ① SDK 로드 -->
+    <script src="../mudyogu-sdk.js"></script>
+    <script>
+      (function () {
+        'use strict';
+
+        // ② SDK 인스턴스 생성
+        const MUD = MudyoguSDK.create();
+
+        const scoreEl = document.getElementById('score');
+        const bestEl = document.getElementById('best');
+        const statusEl = document.getElementById('status');
+
+        let score = 0;
+        let best = 0;
+
+        // ③ 저장된 상태 복원 (앱이 init 메시지를 보내줍니다)
+        MUD.onInit(function (payload) {
+          best = Math.max(payload.bestScore || 0, (payload.state || {}).best || 0);
+          bestEl.textContent = best;
+          statusEl.textContent = payload.state ? '이어하기 준비됨' : '새 게임';
+        });
+
+        // ④ 호스트 제어 (일시정지 등)
+        MUD.onControl(function (msg) {
+          if (msg.type === 'pause') statusEl.textContent = '일시정지';
+          if (msg.type === 'resume') statusEl.textContent = '재개';
+        });
+
+        // 게임 로직
+        document.querySelector('.stage').addEventListener('click', function () {
+          score++;
+          scoreEl.textContent = score;
+          if (score > best) {
+            best = score;
+            bestEl.textContent = best;
+          }
+          MUD.vibrate(8);
+
+          // ⑤ 진행상황 저장 (점수 + 임의 상태)
+          MUD.save({
+            score: score,
+            state: { best: best },
+            isGameOver: false,
+          });
+        });
+
+        // ⑥ 준비 완료 알림 (필수!)
+        MUD.ready();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,169 @@
+/* 뮤됴구 공용 게임 스타일 — 파스텔 / 미니멀 / 깔끔 */
+:root {
+  --mud-bg: #f7fcf9;
+  --mud-card: #ffffff;
+  --mud-line: #e4ede8;
+  --mud-text: #14211b;
+  --mud-muted: #6b7c74;
+  --mud-brand: #2fcc8b;
+  --mud-brand-deep: #16a26e;
+  --mud-brand-soft: #dcf8ea;
+  --mud-radius: 18px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mud-bg: #0e1311;
+    --mud-card: #171f1b;
+    --mud-line: #27332d;
+    --mud-text: #eaf3ee;
+    --mud-muted: #93a69d;
+    --mud-brand-soft: rgba(47, 204, 139, 0.16);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--mud-bg);
+  color: var(--mud-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  gap: 10px;
+}
+
+.hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--mud-brand-soft);
+  color: var(--mud-brand-deep);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.chip.plain {
+  background: transparent;
+  color: var(--mud-muted);
+  font-weight: 600;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  border-radius: var(--mud-radius);
+  background: var(--mud-card);
+  border: 1px solid var(--mud-line);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  background: color-mix(in srgb, var(--mud-card) 88%, transparent);
+  backdrop-filter: blur(6px);
+  z-index: 5;
+}
+
+.overlay.show {
+  display: flex;
+}
+
+.overlay h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+
+.overlay p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--mud-muted);
+  line-height: 1.5;
+}
+
+.btn {
+  margin-top: 10px;
+  border: none;
+  border-radius: 14px;
+  padding: 13px 30px;
+  background: var(--mud-brand);
+  color: #06301f;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+  filter: brightness(0.96);
+}
+
+.big {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: var(--mud-brand-deep);
+  line-height: 1.05;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--mud-muted);
+}
+
+@media (max-height: 520px) {
+  .big {
+    font-size: 30px;
+  }
+  #app {
+    padding: 10px;
+  }
+}

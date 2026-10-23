@@ -1,0 +1,45 @@
+name: flutter_app
+description: "뮤됴구 - 미니게임 허브 (오프라인 지원 PWA)"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # 상태관리 / 저장소
+  provider: 6.1.5+1
+  shared_preferences: 2.5.3
+  hive: 2.2.3
+  hive_flutter: 1.1.0
+
+  # 웹 플랫폼 연동 (iframe, PWA, storage)
+  web: ^1.1.0
+  js: ^0.7.2
+
+  # 해시(로컬 계정 비밀번호)
+  crypto: ^3.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/games/
+
+  fonts:
+    - family: NanumSquareRound
+      fonts:
+        - asset: assets/fonts/NanumSquareRound-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NanumSquareRound-Bold.ttf
+          weight: 700
