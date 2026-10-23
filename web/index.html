@@ -7,7 +7,7 @@
     <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta
       name="description"
@@ -40,6 +40,12 @@
         body {
           background: #0e1311;
         }
+      }
+      /* 부분 확대: Flutter 가 body 에 touch-action:none 을 넣어 터치스크린 핀치가 막힌다.
+         두 손가락 확대만 브라우저에 허용 (한 손가락 스크롤·탭은 그대로 Flutter 가 받음) */
+      body,
+      flutter-view {
+        touch-action: pinch-zoom !important;
       }
       /* 첫 로딩 스플래시 (Flutter 부팅 전) */
       #mud-splash {
@@ -129,6 +135,49 @@
         },
         { capture: true, passive: true }
       );
+    </script>
+    <script>
+      // 부분 확대(두 손가락으로 벌려 그 부분만 크게 보기) 허용.
+      // Flutter 가 부팅하면서 viewport 메타를 'maximum-scale=1.0, user-scalable=no' 로 덮어써
+      // 폰·터치스크린에서 핀치 확대가 막혔다 → 덮어쓸 때마다 다시 확대 가능으로 되돌린다.
+      (function () {
+        var WANT = 'width=device-width, initial-scale=1, viewport-fit=cover';
+        function fix() {
+          var ms = document.querySelectorAll('meta[name="viewport"]');
+          for (var i = 0; i < ms.length; i++) {
+            if (ms[i].content !== WANT) ms[i].content = WANT;
+          }
+        }
+        fix();
+        new MutationObserver(fix).observe(document.head, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['content'],
+        });
+      })();
+
+      // Flutter 는 앱 크기를 visualViewport.width/height 로 잰다. 두 손가락으로 확대하면 이 값이
+      // '보이는 부분' 크기로 줄어서, 앱이 그 크기로 쪼그라들고 나머지가 하얗게 깨졌다.
+      // → 확대 중(scale>1)일 때만 확대 전 크기를 돌려준다. 확대 안 했을 때는 원래 값 그대로
+      //   (폰 키보드가 올라올 때 높이가 줄어드는 건 그대로 전달됨).
+      (function () {
+        var VV = window.VisualViewport && window.VisualViewport.prototype;
+        if (!VV) return;
+        ['width', 'height'].forEach(function (k) {
+          var d = Object.getOwnPropertyDescriptor(VV, k);
+          if (!d || !d.get) return;
+          Object.defineProperty(VV, k, {
+            configurable: true,
+            enumerable: d.enumerable,
+            get: function () {
+              var v = d.get.call(this);
+              var s = this.scale;
+              return s > 1.01 ? v * s : v;
+            },
+          });
+        });
+      })();
     </script>
     <script src="flutter_bootstrap.js" async></script>
     <script>
