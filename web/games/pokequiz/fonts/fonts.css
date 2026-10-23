@@ -1,0 +1,9 @@
+/* 포케퀴즈 오프라인 폰트 (Google Fonts 원본을 서브셋: 게임 글자 + 상용 한글 2350자)
+   Black Han Sans / Gothic A1 / Space Mono — SIL Open Font License (OFL-*.txt) */
+@font-face{font-family:'Black Han Sans';font-style:normal;font-weight:400;font-display:swap;src:url('BlackHanSans-Regular.woff2') format('woff2')}
+@font-face{font-family:'Gothic A1';font-style:normal;font-weight:400;font-display:swap;src:url('GothicA1-Regular.woff2') format('woff2')}
+@font-face{font-family:'Gothic A1';font-style:normal;font-weight:500;font-display:swap;src:url('GothicA1-Medium.woff2') format('woff2')}
+@font-face{font-family:'Gothic A1';font-style:normal;font-weight:700;font-display:swap;src:url('GothicA1-Bold.woff2') format('woff2')}
+@font-face{font-family:'Gothic A1';font-style:normal;font-weight:900;font-display:swap;src:url('GothicA1-Black.woff2') format('woff2')}
+@font-face{font-family:'Space Mono';font-style:normal;font-weight:400;font-display:swap;src:url('SpaceMono-Regular.woff2') format('woff2')}
+@font-face{font-family:'Space Mono';font-style:normal;font-weight:700;font-display:swap;src:url('SpaceMono-Bold.woff2') format('woff2')}

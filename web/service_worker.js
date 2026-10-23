@@ -11,7 +11,7 @@
  *       (예: https://example.com/mudyogu/) 에서도 그대로 동작합니다.
  * ------------------------------------------------------------------ */
 
-const VERSION = 'mudyogu-v11';
+const VERSION = 'mudyogu-v12';
 const SHELL_CACHE = `${VERSION}-shell`;
 const GAME_CACHE = `${VERSION}-games`;
 
@@ -39,6 +39,10 @@ const PRECACHE_SHELL = [
   'games/hanilnam-life/fonts/fonts.css',
   // 한일전
   'games/haniljeon/index.html',
+  // 포케퀴즈 (포켓몬 그림은 인터넷에서 불러옴 — 오프라인에선 그림만 안 보임)
+  'games/pokequiz/index.html',
+  'games/pokequiz/fonts/fonts.css',
+  'games/pokequiz/vendor/peerjs.min.js',
 ];
 
 /** 용량이 큰 폰트 / 그래픽 엔진 (실패해도 설치는 계속) */
@@ -52,6 +56,13 @@ const PRECACHE_FONTS = [
   'games/hanilnam-life/fonts/IBMPlexSansKR-Regular.woff2',
   'games/hanilnam-life/fonts/IBMPlexSansKR-SemiBold.woff2',
   'games/hanilnam-life/fonts/IBMPlexSansKR-Bold.woff2',
+  'games/pokequiz/fonts/BlackHanSans-Regular.woff2',
+  'games/pokequiz/fonts/GothicA1-Regular.woff2',
+  'games/pokequiz/fonts/GothicA1-Medium.woff2',
+  'games/pokequiz/fonts/GothicA1-Bold.woff2',
+  'games/pokequiz/fonts/GothicA1-Black.woff2',
+  'games/pokequiz/fonts/SpaceMono-Regular.woff2',
+  'games/pokequiz/fonts/SpaceMono-Bold.woff2',
   'assets/packages/cupertino_icons/assets/CupertinoIcons.ttf',
   'canvaskit/canvaskit.js',
   'canvaskit/canvaskit.wasm',

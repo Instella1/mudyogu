@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2025-01-04T00:00:00Z",
+  "updatedAt": "2026-10-23T00:00:00Z",
   "games": [
     {
       "id": "hanilnam-life",
@@ -33,6 +33,23 @@
       "version": "1.0.0",
       "supportsState": true,
       "bestScoreLabel": "최고 점수",
+      "builtIn": false,
+      "aspect": "16/9"
+    },
+    {
+      "id": "pokequiz",
+      "title": "포케퀴즈",
+      "tagline": "종족값만 보고 포켓몬을 맞혀라",
+      "entry": "games/pokequiz/index.html",
+      "accent": "#C4B5FD",
+      "tags": [
+        "퀴즈",
+        "도감",
+        "배틀"
+      ],
+      "version": "1.0.0",
+      "supportsState": true,
+      "bestScoreLabel": "포획 수",
       "builtIn": false,
       "aspect": "16/9"
     }

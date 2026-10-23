@@ -43,17 +43,9 @@ class _GameScreenState extends State<GameScreen> {
     if (event is Map && event['type'] == 'saveCode') {
       final Object? code = event['code'];
       if (code is String && code.isNotEmpty) {
-        state.storeGameCode(gameId: gameId, code: code).then((_) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context)
-            ..clearSnackBars()
-            ..showSnackBar(
-              const SnackBar(
-                duration: Duration(seconds: 2),
-                content: Text('기록 코드를 계정에 보관했어요'),
-              ),
-            );
-        });
+        // 조용히 보관 (게임이 자주 보내므로 알림을 띄우지 않는다.
+        // 기록 저장 알림은 progress(isGameOver) 쪽 '기록 저장됨' 토스트가 담당)
+        state.storeGameCode(gameId: gameId, code: code);
       }
       return;
     }

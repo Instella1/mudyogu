@@ -180,6 +180,7 @@ class _GameGlyph extends StatelessWidget {
   static const Map<String, IconData> _icons = <String, IconData>{
     'hanilnam-life': Icons.sports_soccer_rounded,
     'haniljeon': Icons.sports_martial_arts_rounded,
+    'pokequiz': Icons.catching_pokemon_rounded,
   };
 
   @override

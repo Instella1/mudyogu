@@ -8,3 +8,5 @@ diff originals/haniljeon.html web/games/haniljeon/index.html | grep '^<'      # 
 diff originals/hanilnam-life.html web/games/hanilnam-life/index.html | grep '^<'
 # (LIFE 는 구글 폰트 링크 3줄 → 로컬 fonts/fonts.css 로 바뀐 것, 코드 복사 시 앱 보관 2줄만 예외)
 ```
+
+포케퀴즈: `originals/pokemon_quiz.html` ↔ `web/games/pokequiz/index.html` (외부 폰트/peerjs 4줄 → 로컬 3줄만 바뀜)

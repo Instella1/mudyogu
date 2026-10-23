@@ -188,7 +188,8 @@ flutter_app/
 │       ├── mudyogu-sdk.js    게임↔앱 연동 SDK
 │       ├── mudyogu.css       공통 스타일
 │       ├── haniljeon/        한일전
-│       └── hanilnam-life/    한(일)남 LIFE
+│       ├── hanilnam-life/    한(일)남 LIFE
+│       └── pokequiz/         포케퀴즈 (실루엣 인카운터) — 폰트/peerjs 로컬, 포켓몬 그림만 외부
 │
 └── tools/
     ├── add_game.py           게임 자동 설치 (복사 + SDK 주입 + 카탈로그 등록)
@@ -315,6 +316,10 @@ flutter_app/
 - `type == 'requestCode'` → 보관된 코드를 게임에 전송
 - 나머지 → `ProgressEvent.tryParse()` → `state.applyProgress()`
 
+> **포케퀴즈 예외**: 포켓몬 공식 일러스트(1025장)는 저작권·용량(수백 MB) 때문에 우리 사이트에
+> 다시 올리지 않고 원본처럼 `raw.githubusercontent.com/PokeAPI/sprites` 에서 불러온다.
+> 오프라인에서는 그림만 안 보이고 퀴즈(종족값)는 동작. 온라인 대전(peerjs)은 원래 인터넷 필요.
+
 ### 게임 파일이 지켜야 할 3가지
 
 1. **모든 경로가 상대경로** — 하위 폴더 배포에서도 동작해야 함
@@ -351,7 +356,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v11`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v12`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -403,7 +408,7 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 - **소셜 로그인** — sandbox 에 Firebase 자격증명 없음. `AuthService` 를 교체하면 됨
 - **APK 빌드** — PWA 우선이므로 보류. `flutter build apk --release` 로 가능하나
   `GameHost` 가 스텁이라 **웹뷰 구현이 필요** (`lib/widgets/game_host_stub.dart`)
-- **게임 수** — 현재 2개. 원래 목표 6~10개
+- **게임 수** — 현재 3개(한일전, 한(일)남 LIFE, 포케퀴즈). 원래 목표 6~10개
 - **저장 데이터 확장** — 재화 / 업적 / 연속출석 / 리더보드
 
 ---
