@@ -376,7 +376,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v22`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v23`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -483,5 +483,6 @@ node --check web/service_worker.js   # SW 문법 검사
 - **저장**: localStorage `towerdrop.v1` · 진행 코드 `MUDX1|tower-drop|` + base64(JSON {v, at, keys:{towerdrop.v1: …}})
 - **캐릭터 9종**(겉모습만, 너트로 구매). 사용자 추가안 3종: TKD마스터(발차기, 10,000) · 창기(뽀글머리·안경, 커터칼, 30,000) · 꽉(배치기, 100,000).
   공격 방식(`tool`)이 `kick`/`belly` 면 팔 대신 다리/몸통이 움직임 (`drawChar` 의 `atk`) · **업적 15개**(너트 보상)
+- 판이 끝나도 `isGameOver:false` 로 보냄: 앱의 '기록 저장됨' 알림이 결과 화면과 겹쳐서 (점수·상태·시간 저장은 그대로)
 - 테스트용으로 `window.__towerDrop` 에 상태를 열어 둠 (Playwright 봇이 안전한 쪽을 골라 100층·피버까지 자동 확인 가능)
 

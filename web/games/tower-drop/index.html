@@ -809,7 +809,8 @@ function endRun() {
   liveAchCheck();
   data.seen.played = 1;
   persist(false);
-  MUD.save({ score: fl, state: data, playSeconds: secs, isGameOver: true });
+  // isGameOver 는 앱의 '기록 저장됨' 알림만 띄움 → 결과 화면이 따로 있으니 보내지 않음 (기록 저장은 그대로)
+  MUD.save({ score: fl, state: data, playSeconds: secs, isGameOver: false });
   $('btnPause').classList.remove('on');
 }
 
