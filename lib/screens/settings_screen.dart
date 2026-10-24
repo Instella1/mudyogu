@@ -833,6 +833,8 @@ String _codeWhere(String gameId) {
       return '한(일)남 LIFE 첫 화면의 "전체 기록 옮기기"';
     case 'pokequiz':
       return '포케퀴즈 "🏅 기록저장실 → 진행 코드 옮기기"';
+    case 'tower-drop':
+      return '타워 크래시 첫 화면의 "💾 진행 코드 → 불러와서 합치기"';
     default:
       return '게임 안의 코드 불러오기 칸';
   }

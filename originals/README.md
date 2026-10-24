@@ -10,3 +10,5 @@ diff originals/hanilnam-life.html web/games/hanilnam-life/index.html | grep '^<'
 ```
 
 포케퀴즈: `originals/pokemon_quiz.html` ↔ `web/games/pokequiz/index.html` (외부 폰트/peerjs 4줄 → 로컬 3줄만 바뀜)
+
+타워 크래시(`tower-drop`): 사용자 아이디어로 Claude 가 만든 게임이라 원본 파일이 없음. `web/games/tower-drop/index.html` 이 곧 원본.

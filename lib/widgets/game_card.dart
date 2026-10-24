@@ -193,6 +193,7 @@ class _GameGlyph extends StatelessWidget {
     'hanilnam-life': Icons.sports_soccer_rounded,
     'haniljeon': Icons.sports_martial_arts_rounded,
     'pokequiz': Icons.catching_pokemon_rounded,
+    'tower-drop': Icons.apartment_rounded,
   };
 
   @override

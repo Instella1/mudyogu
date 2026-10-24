@@ -189,7 +189,8 @@ flutter_app/
 │       ├── mudyogu.css       공통 스타일
 │       ├── haniljeon/        한일전
 │       ├── hanilnam-life/    한(일)남 LIFE
-│       └── pokequiz/         포케퀴즈 (실루엣 인카운터) — 폰트/peerjs 로컬, 포켓몬 그림만 외부
+│       ├── pokequiz/         포케퀴즈 (실루엣 인카운터) — 폰트/peerjs 로컬, 포켓몬 그림만 외부
+│       └── tower-drop/       타워 크래시 — 캔버스로 전부 그림(이미지 0장), 폰트만 로컬
 │
 └── tools/
     ├── add_game.py           게임 자동 설치 (복사 + SDK 주입 + 카탈로그 등록)
@@ -356,8 +357,9 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 | 한일전 | 메뉴 `💾 진행 코드` | `HIJ1|...` | 최고 스테이지 큰 쪽 · 클리어 합집합 · 별점 스테이지별 최고 · 업적 합집합 |
 | 한(일)남 LIFE | 첫 화면 `전체 기록 옮기기` | `MUDX1|hanilnam-life|...` | 슬롯: 가져온 칸 우선, 빈 칸은 유지(둘 다 있으면 확인창) · MY TEAM 합집합(id) 최대 20 · 라인업 가져온 것 |
 | 포케퀴즈 | `🏅 기록저장실` 맨 아래 | `PKQ1|...` | 도감 합집합 · 고유 코드/닉네임 가져온 것 · 대전 기록 합치기 · 티켓 큰 쪽(사이트 처음이면 가져온 그대로) |
+| 타워 크래시 | 첫 화면 `💾 진행 코드` | `MUDX1|tower-drop|...` | 최고 층·너트·통계 큰 쪽 · 캐릭터/업적 합집합 · 착용 캐릭터는 지금 것 |
 
-세 게임 모두 켤 때/기록이 바뀔 때 앱 계정에 코드를 보관 → 새 기기에서 로그인하면 자동 복원.
+네 게임 모두 켤 때/기록이 바뀔 때 앱 계정에 코드를 보관 → 새 기기에서 로그인하면 자동 복원.
 
 **독립 실행본** (예전에 하던 곳에서 열어 코드를 뽑는 용도):
 `python3 tools/make_standalone.py` → `build/standalone/*.html`
@@ -374,7 +376,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v19`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v20`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -433,7 +435,7 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 - **소셜 로그인** — sandbox 에 Firebase 자격증명 없음. `AuthService` 를 교체하면 됨
 - **APK 빌드** — PWA 우선이므로 보류. `flutter build apk --release` 로 가능하나
   `GameHost` 가 스텁이라 **웹뷰 구현이 필요** (`lib/widgets/game_host_stub.dart`)
-- **게임 수** — 현재 3개(한일전, 한(일)남 LIFE, 포케퀴즈). 원래 목표 6~10개
+- **게임 수** — 현재 4개(한일전, 한(일)남 LIFE, 포케퀴즈, 타워 크래시). 원래 목표 6~10개
 - **저장 데이터 확장** — 재화 / 업적 / 연속출석 / 리더보드
 
 ---
@@ -463,3 +465,22 @@ node --check web/service_worker.js   # SW 문법 검사
 
 문의할 것이 있으면 이 저장소의 `git log` 를 보세요.
 커밋 메시지에 **왜** 그렇게 고쳤는지 적어두었습니다.
+
+---
+
+## 12. 타워 크래시 (tower-drop) 메모
+
+사용자 아이디어("무한의 계단 반대 버전, 2버튼 좌/우 타격, 100층마다 건물 붕괴 + 무적 피버")로 Claude 가 만든 게임.
+파일 하나(`web/games/tower-drop/index.html`) + 폰트 1개. 그림은 전부 캔버스 코드로 그림(외부 이미지 없음). 사운드 없음(디자인 규칙).
+
+- **판정** (`hit()`): 누른 쪽으로 옮김 → 지금 층 철골이 그쪽이면 쾅 → 지금 층 파괴 → 새로 올라온 층 철골이 내 쪽이면 쾅
+- **층 생성** (`makeFloor()`): 바로 위층과 **반대쪽** 철골은 만들지 않음(피할 수 없는 배치 금지). TNT 뒤 4층은 빈 층
+- **게이지**: 한 번 부술 때 `REFILL`(0.065), 초당 감소 = `REFILL × needRate(층)` (1.5회/초 → 최대 6.6회/초)
+- **특수 층**: 금고(너트) · 시계(게이지 +0.32) · TNT(4층 한꺼번에) · 강철(2타, ZONE 2부터)
+- **100층마다** `startFever()`: 보이는 탑 전체가 파편으로 터지고 새 건물이 아래서 솟음 → 6초 무적, 한 번에 2층, 철골도 부숨.
+  끝날 때 아래 4층 철골을 충격파로 정리(끝나자마자 억울한 죽음 방지)
+- **구역 테마 7개**(`ZONES`)가 100층마다 바뀌고 7개 뒤엔 다시 처음부터 (ZONE 번호는 계속 증가)
+- **저장**: localStorage `towerdrop.v1` · 진행 코드 `MUDX1|tower-drop|` + base64(JSON {v, at, keys:{towerdrop.v1: …}})
+- **캐릭터 6종**(겉모습만, 너트로 구매) · **업적 15개**(너트 보상)
+- 테스트용으로 `window.__towerDrop` 에 상태를 열어 둠 (Playwright 봇이 안전한 쪽을 골라 100층·피버까지 자동 확인 가능)
+

@@ -283,6 +283,7 @@ MUD.requestCode();
 - 한(일)남 LIFE: `MUDX1|hanilnam-life|` (전체 기록: 슬롯+MY TEAM+라인업). 예전 접두사 없는 '리포트 코드'는 게임 안 수동 불러오기 전용
 - 새 게임 권장 형식: `MUDX1|<게임id>|` + base64(JSON {v, at, keys:{localStorage키: 값}})
 - 포케퀴즈: `PKQ1|` (포획 목록은 합치고, 티켓/프로필/기록은 새 기기일 때만 가져옴)
+- 타워 크래시: `MUDX1|tower-drop|` (위 '새 게임 권장 형식' 그대로)
 - 새 게임: `<ID대문자>1|`
 
 ---
@@ -318,6 +319,7 @@ MUD.requestCode();
 |---|---|
 | `web/games/haniljeon/index.html` | 캔버스 비율 처리, 스테이지 UI, `HIJ1|` 저장코드 |
 | `web/games/hanilnam-life/index.html` | 폰트 로컬 번들, DOM 기반 UI, 긴 스크롤 레이아웃 |
+| `web/games/tower-drop/index.html` | 처음부터 규약대로 만든 캔버스 게임: 화면 꽉 채우기, 키보드+터치 반반, `MUDX1|` 코드 합치기, 일시정지 연동 |
 
 ---
 

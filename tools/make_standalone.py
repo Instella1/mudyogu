@@ -37,9 +37,15 @@ SWAPS = {
         '<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">\n'
         '<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>',
     )],
+    "tower-drop": [(
+        '<!-- 오프라인 번들 폰트 (CDN 미사용) -->\n<link rel="stylesheet" href="fonts/fonts.css">',
+        '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
+        '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">',
+    )],
 }
 
-NAMES = {"haniljeon": "한일전", "hanilnam-life": "한(일)남 LIFE", "pokequiz": "포케퀴즈(실루엣 인카운터)"}
+NAMES = {"haniljeon": "한일전", "hanilnam-life": "한(일)남 LIFE", "pokequiz": "포케퀴즈(실루엣 인카운터)", "tower-drop": "타워 크래시"}
 
 
 def main() -> None:

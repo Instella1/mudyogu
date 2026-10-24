@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-10-23T00:00:00Z",
+  "updatedAt": "2026-10-24T00:00:00Z",
   "games": [
     {
       "id": "hanilnam-life",
@@ -50,6 +50,23 @@
       "version": "1.0.0",
       "supportsState": true,
       "bestScoreLabel": "포획 수",
+      "builtIn": false,
+      "aspect": "16/9"
+    },
+    {
+      "id": "tower-drop",
+      "title": "타워 크래시",
+      "tagline": "좌우 연타로 빌딩을 부수며 끝없이 추락",
+      "entry": "games/tower-drop/index.html",
+      "accent": "#FFD166",
+      "tags": [
+        "액션",
+        "아케이드",
+        "연타"
+      ],
+      "version": "1.0.0",
+      "supportsState": true,
+      "bestScoreLabel": "최고 층수",
       "builtIn": false,
       "aspect": "16/9"
     }
