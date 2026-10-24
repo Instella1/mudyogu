@@ -356,6 +356,12 @@ const SKINS = [
     suit:'#eef1f7', pants:'#c7cede', skin:'#ffd9b8', shoe:'#7a849c', hat:'astro', tool:'laser', trail:'#7fe9ff' },
   { id:'king', name:'황금왕', desc:'부수는 것도 품격 있게', price:2500,
     suit:'#7b2cbf', pants:'#4a1a7a', skin:'#ffdcbc', shoe:'#ffd166', hat:'crown', tool:'goldhammer', trail:'#ffd166' },
+  { id:'tkd', name:'TKD마스터', desc:'태권도복 휘날리며 돌려차기!', price:10000,
+    suit:'#f7f7f2', pants:'#f7f7f2', skin:'#f6c9a0', shoe:'#f6c9a0', hat:'tkd', tool:'kick', trail:'#ff4d5e' },
+  { id:'changgi', name:'창기', desc:'뽀글머리 안경 친구. 커터칼 한 자루면 충분', price:30000,
+    suit:'#7fa7c9', pants:'#3d5a80', skin:'#ffd9b8', shoe:'#e9ecef', hat:'curly', tool:'cutter', trail:'#cfd8e3' },
+  { id:'kkwak', name:'꽉', desc:'볼록 나온 배로 배치기! 꽉 찬 한 방', price:100000,
+    suit:'#ef8354', pants:'#4f5d75', skin:'#ffd2b0', shoe:'#2d3142', hat:'chubby', tool:'belly', trail:'#ffb703' },
 ];
 const skinById = (id) => SKINS.find((s) => s.id === id) || SKINS[0];
 
@@ -1345,6 +1351,11 @@ function drawChar(g, sk, x, y, s, face, sw, t, o) {
   const OL = 'rgba(22,14,34,.9)', LW = 0.055;
   const fill = (col) => { g.fillStyle = col; g.fill(); g.lineWidth = LW; g.strokeStyle = OL; g.stroke(); };
   const swinging = sw < 0.6;
+  const atk = sw >= 1 ? 0 : sw < 0.32 ? easeOut(sw / 0.32) : (() => { const k = (sw - 0.32) / 0.68; return 1 - k * k * (3 - 2 * k); })();
+  // 꽉: 배치기 = 몸 전체가 탑 쪽으로 돌진
+  if (sk.tool === 'belly') g.translate(atk * 0.42, -atk * 0.04);
+  // TKD: 발차기할 때 몸을 살짝 뒤로 젖힘
+  if (sk.tool === 'kick') g.rotate(-atk * 0.22);
 
   // 뒤쪽 장식
   if (sk.hat === 'crown') {
@@ -1362,35 +1373,74 @@ function drawChar(g, sk, x, y, s, face, sw, t, o) {
 
   // 다리 (매달려 대롱대롱)
   const leg = Math.sin(t * 5) * 0.05;
+  const kick = sk.tool === 'kick' && atk > 0.04;   // 차는 순간에만 다리를 뻗음
   rr(g, -0.27, 0.33, 0.2, 0.36, 0.08); fill(sk.pants);
-  rr(g, 0.06, 0.33 + leg * 0.5, 0.2, 0.36, 0.08); fill(sk.pants);
+  if (!kick) { rr(g, 0.06, 0.33 + leg * 0.5, 0.2, 0.36, 0.08); fill(sk.pants); }
   ellipse(g, -0.16, 0.71, 0.14, 0.08); fill(sk.shoe);
-  ellipse(g, 0.2, 0.71 + leg * 0.5, 0.14, 0.08); fill(sk.shoe);
+  if (!kick) { ellipse(g, 0.2, 0.71 + leg * 0.5, 0.14, 0.08); fill(sk.shoe); }
 
   // 몸통
-  rr(g, -0.36, -0.1, 0.72, 0.56, 0.2); fill(sk.suit);
+  if (sk.tool === 'belly') {
+    // 볼록 배: 티셔츠 아래로 배가 살짝 보임
+    rr(g, -0.4, -0.12, 0.78, 0.6, 0.24); fill(sk.suit);
+    const bw = 0.32 + atk * 0.08;
+    ellipse(g, 0.2 + atk * 0.06, 0.2, bw, 0.27); fill(sk.suit);
+    g.save(); ellipse(g, 0.2 + atk * 0.06, 0.2, bw, 0.27); g.clip();
+    g.fillStyle = sk.skin; g.fillRect(-0.3, 0.3, 1, 0.3);
+    g.restore();
+    ellipse(g, 0.2 + atk * 0.06, 0.2, bw, 0.27); g.lineWidth = LW; g.strokeStyle = OL; g.stroke();
+    g.fillStyle = '#c98b6b'; ellipse(g, 0.36 + atk * 0.08, 0.38, 0.025, 0.035); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.25)'; ellipse(g, 0.12, 0.08, 0.12, 0.06); g.fill();
+  } else {
+    rr(g, -0.36, -0.1, 0.72, 0.56, 0.2); fill(sk.suit);
+  }
+  if (sk.hat === 'tkd') {
+    // 도복 깃(V) + 검은 띠
+    g.strokeStyle = '#d8d8cf'; g.lineWidth = 0.05;
+    g.beginPath(); g.moveTo(-0.12, -0.08); g.lineTo(0.06, 0.18); g.lineTo(0.22, -0.08); g.stroke();
+    g.fillStyle = '#1b1b1f'; g.fillRect(-0.35, 0.24, 0.7, 0.08);
+    g.strokeStyle = '#1b1b1f'; g.lineWidth = 0.05;
+    g.beginPath(); g.moveTo(0.12, 0.3); g.lineTo(0.08 + Math.sin(t * 8) * 0.03, 0.46); g.moveTo(0.16, 0.3); g.lineTo(0.22, 0.45); g.stroke();
+  }
+  if (sk.hat === 'curly') {
+    // 평범한 티셔츠: 주머니 하나
+    rr(g, 0.04, 0.04, 0.16, 0.14, 0.03); g.lineWidth = 0.03; g.strokeStyle = 'rgba(0,0,0,.25)'; g.stroke();
+  }
   if (sk.hat === 'helmet') { g.fillStyle = '#e8ff5a'; g.fillRect(-0.34, 0.12, 0.68, 0.07); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(-0.34, 0.135, 0.68, 0.025); }
   if (sk.hat === 'robot') { rr(g, -0.18, 0.02, 0.36, 0.22, 0.05); fill('#3d4454'); g.fillStyle = Math.sin(t * 6) > 0 ? '#4cc9f0' : '#2a7a96'; circle(g, -0.08, 0.13, 0.035); g.fill(); g.fillStyle = '#ff6b6b'; circle(g, 0.06, 0.13, 0.035); g.fill(); }
   if (sk.hat === 'astro') { rr(g, -0.16, 0.02, 0.32, 0.18, 0.05); fill('#5b6b8c'); g.fillStyle = '#7fe9ff'; g.fillRect(-0.11, 0.07, 0.08, 0.04); g.fillStyle = '#ffd166'; g.fillRect(0.02, 0.07, 0.08, 0.04); }
   if (sk.hat === 'crown') { g.fillStyle = '#ffd166'; for (const yy of [0.04, 0.16, 0.28]) { circle(g, 0.05, yy, 0.035); g.fill(); } }
   if (sk.hat === 'cat') { g.fillStyle = '#e63946'; g.fillRect(-0.35, 0.2, 0.7, 0.07); }
   if (sk.hat === 'headband') { g.fillStyle = '#ffffff'; g.fillRect(-0.35, 0.22, 0.7, 0.05); }
-  // 하네스 줄
+  // 하네스 줄 (꽉은 배 위로 줄이 지나가지 않게 어깨끈만)
   g.strokeStyle = '#2a2a33'; g.lineWidth = 0.06;
-  g.beginPath(); g.moveTo(-0.28, -0.06); g.lineTo(0.22, 0.4); g.stroke();
+  g.beginPath(); g.moveTo(-0.28, -0.06); g.lineTo(sk.tool === 'belly' ? -0.08 : 0.22, sk.tool === 'belly' ? 0.12 : 0.4); g.stroke();
+  if (kick) {
+    // 앞다리: 아래(대기) → 탑 쪽으로 쭉 뻗기
+    g.save();
+    g.translate(0.16, 0.36);
+    g.rotate(lerp(Math.PI / 2 - leg, -0.12, atk));
+    rr(g, -0.1, -0.1, 0.62 + atk * 0.08, 0.2, 0.09); fill(sk.pants);
+    ellipse(g, 0.6 + atk * 0.1, 0, 0.12, 0.09); fill(sk.skin);
+    g.restore();
+  }
   // 뒷손
-  circle(g, -0.32, 0.22, 0.09); fill(sk.hat === 'robot' ? '#8d99ae' : sk.skin);
+  if (sk.tool === 'belly') { circle(g, -0.4 - atk * 0.12, 0.12 - atk * 0.1, 0.09); fill(sk.skin); }
+  else { circle(g, -0.32, 0.22, 0.09); fill(sk.hat === 'robot' ? '#8d99ae' : sk.skin); }
 
   // 머리
   drawHead(g, sk, t, swinging, fill, OL, LW, o);
 
   // 연장 든 팔
-  const a = o.arm != null ? o.arm : armAngle(sw, t);
+  const bodyAtk = sk.tool === 'kick' || sk.tool === 'belly';
+  const a = bodyAtk
+    ? (sk.tool === 'kick' ? -0.5 + Math.sin(t * 3) * 0.05 - atk * 0.4 : 2.3 + Math.sin(t * 3) * 0.05 + atk * 0.5)
+    : o.arm != null ? o.arm : armAngle(sw, t);
   g.save();
   g.translate(0.14, 0.04);
   g.rotate(a);
   const punch = sk.tool === 'paw' || sk.tool === 'glove';
-  const armL = punch ? 0.55 : 0.32;
+  const armL = punch ? 0.55 : bodyAtk ? 0.26 : 0.32;
   g.strokeStyle = OL; g.lineWidth = 0.2;
   g.beginPath(); g.moveTo(0, 0); g.lineTo(armL, 0); g.stroke();
   g.strokeStyle = sk.suit; g.lineWidth = 0.15;
@@ -1478,12 +1528,56 @@ function drawHead(g, sk, t, swinging, fill, OL, LW, o) {
     g.fillStyle = '#e63946'; circle(g, 0, hy - 0.34, 0.05); g.fill();
     g.fillStyle = '#4cc9f0'; circle(g, -0.17, hy - 0.32, 0.035); g.fill(); circle(g, 0.17, hy - 0.32, 0.035); g.fill();
     if (Math.sin(t * 3) > 0.7) { g.fillStyle = '#fff'; circle(g, 0, hy - 0.62, 0.03 + 0.02 * Math.sin(t * 20)); g.fill(); }
+  } else if (sk.hat === 'tkd') {
+    g.beginPath(); g.arc(hx, hy - 0.02, R + 0.01, Math.PI * 1.02, Math.PI * 1.98); g.closePath(); fill('#1b1b1f');
+    g.fillStyle = '#1b1b1f'; g.beginPath(); g.moveTo(0.05, hy - 0.3); g.lineTo(0.3, hy - 0.22); g.lineTo(0.1, hy - 0.2); g.fill();
+    eyes(0.03);
+    g.strokeStyle = '#1b1426'; g.lineWidth = 0.035;   // 진지한 눈썹
+    g.beginPath(); g.moveTo(0.05, hy - 0.08); g.lineTo(0.15, hy - 0.05); g.moveTo(0.2, hy - 0.05); g.lineTo(0.3, hy - 0.08); g.stroke();
+    mouth(0.03);
+  } else if (sk.hat === 'curly') {
+    // 뽀글머리
+    for (let k = 0; k < 11; k++) {
+      const an = Math.PI * (1.02 + k * 0.1);
+      circle(g, hx + Math.cos(an) * (R - 0.02), hy - 0.04 + Math.sin(an) * (R - 0.02), 0.11); fill('#3b2618');
+    }
+    circle(g, hx - 0.04, hy - 0.2, 0.2); g.fillStyle = '#3b2618'; g.fill();
+    eyes(0.03); mouth(0.03);
+    // 동그란 안경
+    g.strokeStyle = '#1b1426'; g.lineWidth = 0.035;
+    circle(g, 0.1, hy + 0.03, 0.085); g.stroke();
+    circle(g, 0.27, hy + 0.03, 0.085); g.stroke();
+    g.beginPath(); g.moveTo(0.015, hy + 0.02); g.lineTo(-0.2, hy - 0.02); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.35)'; circle(g, 0.08, hy, 0.025); g.fill(); circle(g, 0.25, hy, 0.025); g.fill();
+  } else if (sk.hat === 'chubby') {
+    // 동글동글 얼굴 + 짧은 머리
+    circle(g, hx, hy + 0.02, R + 0.03); fill(sk.skin);
+    g.beginPath(); g.arc(hx, hy - 0.02, R + 0.02, Math.PI * 1.05, Math.PI * 1.95); g.closePath(); fill('#2a1a14');
+    eyes(0.06); mouth(0.08);
+    g.fillStyle = 'rgba(255,120,140,.55)'; ellipse(g, 0.3, hy + 0.14, 0.07, 0.045); g.fill();
+    g.fillStyle = 'rgba(255,120,140,.35)'; ellipse(g, -0.06, hy + 0.14, 0.06, 0.04); g.fill();
   } else {
     eyes(0); mouth(0); cheeks();
   }
 }
 function drawTool(g, sk, armL, t, fill, swinging) {
   const tl = sk.tool;
+  if (tl === 'kick' || tl === 'belly') {
+    circle(g, armL + 0.04, 0, 0.1); fill(sk.skin);   // 주먹
+    return;
+  }
+  if (tl === 'cutter') {
+    circle(g, armL + 0.02, 0, 0.09); fill(sk.skin);
+    // 노란 손잡이 + 칼날(마디 선)
+    rr(g, armL - 0.02, -0.06, 0.42, 0.12, 0.04); fill('#ffd60a');
+    g.fillStyle = '#3a3a3a'; g.fillRect(armL + 0.12, -0.065, 0.05, 0.13);
+    g.beginPath(); g.moveTo(armL + 0.4, -0.05); g.lineTo(armL + 0.74, -0.05); g.lineTo(armL + 0.82, 0.05); g.lineTo(armL + 0.4, 0.05); g.closePath();
+    fill('#dfe6ee');
+    g.strokeStyle = 'rgba(80,90,110,.6)'; g.lineWidth = 0.015;
+    for (let k = 1; k < 4; k++) { const xx = armL + 0.4 + k * 0.09; g.beginPath(); g.moveTo(xx, -0.05); g.lineTo(xx + 0.04, 0.05); g.stroke(); }
+    if (swinging) { g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(armL + 0.45, -0.03, 0.3, 0.015); }
+    return;
+  }
   if (tl === 'paw') {
     circle(g, armL + 0.12, 0, 0.18); fill('#2b2d42');
     g.fillStyle = '#ff9fb2'; circle(g, armL + 0.18, 0.02, 0.07); g.fill();
@@ -1711,7 +1805,23 @@ function drawPlayer() {
   c.globalAlpha = 1;
 
   // 휘두른 궤적
-  if (player.swingT < 0.45 && !player.dead) {
+  if (player.swingT < 0.45 && !player.dead && sk.tool === 'belly') {
+    const k = player.swingT / 0.45;
+    c.globalAlpha = (1 - k) * 0.7;
+    c.strokeStyle = sk.trail; c.lineWidth = u * 0.12 * (1 - k) + 1;
+    c.beginPath(); c.ellipse(px + face * u * (0.75 + k * 0.2), py + u * 0.2, u * (0.15 + k * 0.4), u * (0.3 + k * 0.5), 0, 0, TAU); c.stroke();
+    c.globalAlpha = 1;
+  } else if (player.swingT < 0.45 && !player.dead && sk.tool === 'kick') {
+    const k = player.swingT / 0.45;
+    c.save();
+    c.translate(px + face * u * 0.16, py + u * 0.36);
+    c.scale(face, 1);
+    c.globalAlpha = (1 - k) * 0.55;
+    c.strokeStyle = sk.trail; c.lineWidth = u * 0.2; c.lineCap = 'round';
+    c.beginPath(); c.arc(0, 0, u * 0.7, Math.PI / 2, lerp(Math.PI / 2, -0.12, Math.min(1, k * 2.2)), true); c.stroke();
+    c.restore();
+    c.globalAlpha = 1;
+  } else if (player.swingT < 0.45 && !player.dead) {
     const k = player.swingT / 0.45;
     c.save();
     c.translate(px + face * u * 0.14, py + u * 0.04);
@@ -1917,7 +2027,7 @@ let overAt = 0;
 const canRetry = () => state === 'over' && T - overAt > 0.45;
 
 function renderSkins() {
-  $('skCoins').textContent = data.coins;
+  $('skCoins').textContent = data.coins.toLocaleString('ko-KR');
   const box = $('skinList');
   box.innerHTML = '';
   SKINS.forEach((sk) => {
@@ -1933,7 +2043,7 @@ function renderSkins() {
     b.className = 'btn' + (sel ? ' mint' : owned ? '' : ' pri');
     if (sel) b.textContent = '착용 중';
     else if (owned) b.textContent = '착용';
-    else { b.innerHTML = '🔩 ' + sk.price; if (data.coins < sk.price) b.disabled = true; }
+    else { b.innerHTML = '🔩 ' + sk.price.toLocaleString('ko-KR'); if (data.coins < sk.price) b.disabled = true; }
     b.onclick = (e) => {
       e.stopPropagation();
       if (sel) return;
@@ -2091,7 +2201,7 @@ MUD.onControl((m) => { if (m.type === 'pause') pause(); });
 window.__towerDrop = {
   get state() { return state; }, get floors() { return floors; }, get fever() { return fever; },
   get gauge() { return gauge; }, set gauge(v) { gauge = v; }, get side() { return player.side; },
-  get data() { return data; }, press, score, buildCode, applyCode,
+  get data() { return data; }, press, score, buildCode, applyCode, drawChar, skinById,
 };
 
 /* 시작 */
