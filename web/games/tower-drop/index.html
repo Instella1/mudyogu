@@ -65,7 +65,21 @@ kbd{font-family:inherit;font-size:.72em;padding:1px 6px;border-radius:6px;backgr
 .stats{display:flex;justify-content:space-around;margin-bottom:10px;font-size:14px}
 .stats b{font-family:var(--hfont);font-weight:400;font-size:22px;color:var(--y);margin:0 3px}
 .hint{text-align:center;font-size:12.5px;color:var(--mut);margin:8px 0 10px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.grid4{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+/* 설정 */
+.keyrow{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border-radius:12px;padding:8px 10px;margin-bottom:7px}
+.keyrow>span{flex:1;font-weight:800;font-size:14px}
+.kbtn{min-width:86px;padding:8px 10px;border-radius:10px;background:#2c2552;box-shadow:0 3px 0 #1a1536;font-weight:800;font-size:14px}
+.kbtn:hover{filter:brightness(1.2)}
+.kbtn.wait{background:var(--y);color:#2a1a00;box-shadow:0 3px 0 #b86e00;animation:blink .5s infinite alternate}
+.kbtn.empty{color:var(--mut)}
+.tog{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:12px;padding:10px 12px;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:7px}
+.tog input{width:20px;height:20px;accent-color:var(--mint)}
+/* 부활 */
+#sRevive .card{text-align:center;width:min(360px,100%)}
+.rv-ring{width:96px;height:96px;margin:6px auto 4px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--y) calc(var(--p,1)*360deg),rgba(255,255,255,.1) 0)}
+.rv-ring div{width:80px;height:80px;border-radius:50%;background:#1b1535;display:grid;place-items:center;font-family:var(--hfont);font-size:38px}
 .grid4 .btn{flex-direction:column;font-size:12.5px;padding:8px 2px;gap:2px;font-weight:700}
 .grid4 .btn i{font-style:normal;font-size:20px}
 .dot{position:relative}
@@ -149,7 +163,8 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
 #btnPause.on{display:block}
 
 /* 업적 알림 */
-#toasts{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;gap:6px;
+#toasts.bot{top:auto;bottom:14px}
+#toasts{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;gap:6px;
   pointer-events:none;width:min(360px,92vw)}
 .toast{background:rgba(18,14,38,.94);border:1px solid rgba(255,197,49,.5);border-radius:14px;padding:9px 12px;
   font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .35s cubic-bezier(.2,1.4,.4,1),tout .4s 2.6s forwards}
@@ -185,6 +200,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
         <button class="btn dot" id="btnAch"><i>🏆</i>업적</button>
         <button class="btn" id="btnHelp"><i>❓</i>방법</button>
         <button class="btn" id="btnCode"><i>💾</i>진행 코드</button>
+        <button class="btn" id="btnSet"><i>⚙️</i>설정</button>
       </div>
     </div>
   </div>
@@ -196,6 +212,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
       <div style="display:flex;flex-direction:column;gap:9px">
         <button class="btn big pri" id="btnResume">계속하기<kbd>P</kbd></button>
         <button class="btn" id="btnRestart">처음부터</button>
+        <button class="btn" id="btnPauseSet">⚙️ 설정</button>
         <button class="btn" id="btnQuit">메인으로</button>
       </div>
     </div>
@@ -241,7 +258,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
     <div class="card">
       <div class="ttl"><div class="h">하는 방법</div><button class="x" data-close>✕</button></div>
       <div class="help">
-        <div class="it"><span>🔨</span><div><b>좌/우 타격</b> — <span class="keys"><kbd>←</kbd><kbd>→</kbd></span> (또는 <kbd>A</kbd><kbd>D</kbd>),
+        <div class="it"><span>🔨</span><div><b>좌/우 타격</b> — <span class="keys" id="helpKeys"><kbd>←</kbd><kbd>→</kbd></span> (⚙️ 설정에서 바꿀 수 있어요),
           폰은 화면 <b>왼쪽/오른쪽</b>을 탭. 누른 쪽으로 옮겨 기둥을 부수고 한 층 내려가요.</div></div>
         <div class="it"><span>⚠️</span><div>튀어나온 <b>철골</b>이 있는 쪽에 있으면 맞고 끝! 바로 <b>아래층 철골의 반대쪽</b>을 치세요.</div></div>
         <div class="it"><span>⏱️</span><div>위의 <b>게이지</b>가 다 떨어지면 추락. 부술 때마다 차오르고, 내려갈수록 빨리 줄어요.</div></div>
@@ -249,6 +266,35 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
         <div class="it"><span>🔥</span><div><b>1000층마다</b> 건물 전체가 산산조각! 6초 동안 <b>무적 FEVER</b> — 한 번에 2층, 철골도 부숴요.</div></div>
         <div class="it"><span>🔩</span><div>5층마다 <b>너트</b> 1개. 모은 너트로 새 캐릭터를 열어요. <kbd>P</kbd> 일시정지</div></div>
       </div>
+    </div>
+  </div>
+
+  <!-- 설정 -->
+  <div class="screen" id="sSet">
+    <div class="card">
+      <div class="ttl"><div class="h">설정</div><button class="x" data-close>✕</button></div>
+      <div class="lab" style="margin-top:0">조작 키 <span class="mut" style="font-weight:400">— 칸을 누르고 원하는 키를 누르세요</span></div>
+      <div class="keyrow"><span>◀ 왼쪽 치기</span><button class="kbtn" data-side="left" data-i="0"></button><button class="kbtn" data-side="left" data-i="1"></button></div>
+      <div class="keyrow"><span>오른쪽 치기 ▶</span><button class="kbtn" data-side="right" data-i="0"></button><button class="kbtn" data-side="right" data-i="1"></button></div>
+      <div class="mut" style="font-size:12px;margin:2px 0 10px" id="setMsg">한 칸에 키 하나씩, 쪽마다 2개까지. Esc 는 취소, 비우려면 Backspace.</div>
+      <div class="lab">기타</div>
+      <label class="tog">진동 (폰)<input type="checkbox" id="setVib"></label>
+      <button class="btn" id="btnKeyReset" style="margin-top:4px">조작 키 기본값으로 (← A / → D)</button>
+      <div class="mut" style="font-size:11.5px;margin-top:10px;text-align:center">P · Esc 일시정지 / Space · Enter 시작 은 고정이에요. 폰은 화면 왼쪽·오른쪽 탭.</div>
+    </div>
+  </div>
+
+  <!-- 부활 -->
+  <div class="screen" id="sRevive">
+    <div class="card">
+      <div class="h" style="font-size:28px;color:var(--y)">부활할까요?</div>
+      <div class="mut" style="font-size:13px;margin-top:4px"><b id="rvFloor" style="color:#fff">0</b>층에서 쓰러졌어요 · 이번 판 부활 <b id="rvLeft" style="color:#fff">2</b>번 남음</div>
+      <div class="rv-ring" id="rvRing"><div id="rvSec">8</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <button class="btn big pri" id="btnRevive">🔩 300 부활<kbd>Space</kbd></button>
+        <button class="btn" id="btnGiveUp">그만하기<kbd>Esc</kbd></button>
+      </div>
+      <div class="mut" style="font-size:12px;margin-top:8px">보유 너트 <b id="rvCoins" style="color:var(--y)">0</b>개 · 300층부터 한 판에 2번 (300 → 500 너트)</div>
     </div>
   </div>
 
@@ -402,6 +448,32 @@ function mergeData(a, b) {
   if (r.skin === 'worker' && o.skin !== 'worker' && r.owned.indexOf(o.skin) >= 0) r.skin = o.skin;
   return r;
 }
+/* 기기별 설정 (진행 코드로 옮기지 않음) */
+const SET_KEY = 'towerdrop.settings';
+const DEFAULT_KEYS = { left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'] };
+let settings = { left: DEFAULT_KEYS.left.slice(), right: DEFAULT_KEYS.right.slice(), vib: true };
+try {
+  const sv = JSON.parse(localStorage.getItem(SET_KEY) || 'null');
+  if (sv && Array.isArray(sv.left) && Array.isArray(sv.right)) {
+    settings.left = [sv.left[0] || null, sv.left[1] || null];
+    settings.right = [sv.right[0] || null, sv.right[1] || null];
+  }
+  if (sv && typeof sv.vib === 'boolean') settings.vib = sv.vib;
+} catch (e) { /* 기본값 */ }
+function saveSettings() { try { localStorage.setItem(SET_KEY, JSON.stringify(settings)); } catch (e) {} }
+const KEY_NAMES = { ArrowLeft:'←', ArrowRight:'→', ArrowUp:'↑', ArrowDown:'↓', ShiftLeft:'왼 Shift', ShiftRight:'오른 Shift',
+  ControlLeft:'왼 Ctrl', ControlRight:'오른 Ctrl', AltLeft:'왼 Alt', AltRight:'오른 Alt', Tab:'Tab', Backquote:'`', Minus:'-', Equal:'=',
+  BracketLeft:'[', BracketRight:']', Backslash:'\\', Semicolon:';', Quote:"'", Comma:',', Period:'.', Slash:'/', CapsLock:'Caps' };
+function keyName(code) {
+  if (!code) return '없음';
+  if (KEY_NAMES[code]) return KEY_NAMES[code];
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  if (/^Digit\d$/.test(code)) return code.slice(5);
+  if (/^Numpad/.test(code)) return 'Num ' + code.slice(6);
+  return code;
+}
+const firstKey = (side) => keyName(settings[side][0] || settings[side][1]);
+
 let data = blankData();
 try { data = sanitize(JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (e) { /* 새로 시작 */ }
 
@@ -777,7 +849,59 @@ function die(why) {
   }
   slowT = 0.5; shake(u * 0.45); flash('#ff3048', 0.55); freeze = 0.09;
   vib([90, 40, 60]);
+  // 300층 이상이면 부활 기회 (한 판 2번) → 부활 안 할 때만 판을 끝냄
+  pendingRevive = score() >= REVIVE_FROM && run.revives < REVIVE_COST.length;
+  if (!pendingRevive) endRun();
+}
+
+const REVIVE_FROM = 300;            // 이 층수 이상에서 죽으면 부활 가능
+const REVIVE_COST = [300, 500];     // 1번째, 2번째 부활 값
+const REVIVE_WAIT = 8;              // 고민할 시간(초)
+let pendingRevive = false, reviveAt = 0;
+const reviveCost = () => REVIVE_COST[run.revives];
+function showRevive() {
+  state = 'revive';
+  reviveAt = T;
+  const cost = reviveCost();
+  $('rvFloor').textContent = score();
+  $('rvLeft').textContent = REVIVE_COST.length - run.revives;
+  $('rvCoins').textContent = data.coins.toLocaleString('ko-KR');
+  const b = $('btnRevive');
+  b.innerHTML = data.coins >= cost ? '🔩 ' + cost + ' 부활<kbd>Space</kbd>' : '너트 부족 (🔩 ' + cost + ')';
+  b.disabled = data.coins < cost;
+  show('sRevive');
+}
+function doRevive() {
+  if (state !== 'revive' || T - reviveAt < 0.4) return;
+  const cost = reviveCost();
+  if (data.coins < cost) return;
+  data.coins -= cost;
+  run.revives++;
+  pendingRevive = false;
+  persist(false);
+  // 제자리에서 다시 매달리기 + 바로 아래 5층 철골 치우기 + 게이지 가득 (첫 타격 전까진 안 줄어듦)
+  Object.assign(player, { dead:false, snap:false, rot:0, vr:0, vx:0, vy:0, y:0, x: player.side * PX, ghost:[], swingT:1 });
+  for (let i = 0; i < 5 && i < floors.length; i++) {
+    const f = floors[i];
+    if (!f.beam) continue;
+    const side = f.beam, y = floorTop(i) + SH * 0.45;
+    f.beam = 0;
+    burst(CX + side * (TW / 2 + BL * 0.5), y, 'spark', 10, side, '#ffe066');
+  }
+  gauge = 1; started = false; combo = 0;
+  state = 'play';
+  closeAllScreens();
+  $('btnPause').classList.add('on');
+  addPart({ k:'ring', x: CX + player.side * PX, y: PY, life: 0.6, r: u * 0.4, grow: u * 6, col: '#ffe066' });
+  flash('#ffffff', 0.5);
+  pop('부활!', CX + player.side * PX, PY - u * 1.2, '#ffe066', 1.3);
+  vib(40);
+}
+function giveUp() {
+  if (state !== 'revive') return;
+  pendingRevive = false;
   endRun();
+  showOver();
 }
 
 /* ---------------------------------------------------------------------
@@ -789,7 +913,8 @@ function startGame() {
   resetWorld();
   state = 'play';
   paused = false;
-  run = { floors:0, coins:0, combo:0, vaults:0, fevers:0, t0: T, newAch: [], firstBest: data.best };
+  run = { floors:0, coins:0, combo:0, vaults:0, fevers:0, revives:0, t0: T, newAch: [], firstBest: data.best };
+  pendingRevive = false;
   $('btnPause').classList.add('on');
   flash('#ffffff', 0.35);
   try { window.focus(); } catch (e) {}
@@ -875,7 +1000,7 @@ function pop(text, x, y, col, size) {
 }
 function shake(a) { shakeA = Math.max(shakeA, a); }
 function flash(col, a) { flashC = col; flashA = Math.max(flashA, a); }
-function vib(p) { if (demo) return; try { MUD.vibrate(p); } catch (e) {} if (!MUD.isEmbedded && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
+function vib(p) { if (demo || !settings.vib) return; try { MUD.vibrate(p); } catch (e) {} if (!MUD.isEmbedded && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
 
 /* ---------------------------------------------------------------------
  * 갱신
@@ -928,7 +1053,12 @@ function update(dt, rdt) {
     if (fever > 0) { fever -= dt; if (fever <= 0) endFever(); }
   } else if (state === 'dying') {
     deathT += rdt;
-    if (deathT > 1.25 && state === 'dying') showOver();
+    if (deathT > 1.25 && state === 'dying') { if (pendingRevive) showRevive(); else showOver(); }
+  } else if (state === 'revive') {
+    const left = REVIVE_WAIT - (T - reviveAt);
+    $('rvSec').textContent = Math.max(0, Math.ceil(left));
+    $('rvRing').style.setProperty('--p', clamp(left / REVIVE_WAIT, 0, 1).toFixed(3));
+    if (left <= 0) giveUp();
   }
   if (combo && T - lastHit > COMBO_GAP && state === 'play') combo = 0;
   while (hitTimes.length && T - hitTimes[0] > 1) hitTimes.shift();
@@ -1855,8 +1985,8 @@ function drawTutorial() {
   const coarse = matchMedia('(pointer: coarse)').matches;
   const yy = H - u * 0.7;
   c.globalAlpha = 0.85;
-  outlined(coarse ? '◀ 왼쪽 탭' : '◀ ← 키', W * 0.18, yy, Math.round(u * 0.36), '#fff', 'rgba(0,0,0,.6)');
-  outlined(coarse ? '오른쪽 탭 ▶' : '→ 키 ▶', W * 0.82, yy, Math.round(u * 0.36), '#fff', 'rgba(0,0,0,.6)');
+  outlined(coarse ? '◀ 왼쪽 탭' : '◀ ' + firstKey('left') + ' 키', W * 0.18, yy, Math.round(u * 0.36), '#fff', 'rgba(0,0,0,.6)');
+  outlined(coarse ? '오른쪽 탭 ▶' : firstKey('right') + ' 키 ▶', W * 0.82, yy, Math.round(u * 0.36), '#fff', 'rgba(0,0,0,.6)');
   outlined('아래층 철골 반대쪽을 쳐라!', CX, yy - u * 0.6, Math.round(u * 0.3), '#ffe066', 'rgba(0,0,0,.65)');
   c.globalAlpha = 1;
 }
@@ -1916,8 +2046,8 @@ function drawHUD() {
   const cx = W - 70;
   drawNut(c, cx, 26, 11 * (1 + coinPulse * 0.35), coinPulse > 0);
   c.font = '20px ' + FONT; c.textAlign = 'right';
-  c.lineWidth = 4; c.strokeStyle = 'rgba(20,10,30,.7)'; c.strokeText(String(data.coins), cx - 16, 33);
-  c.fillStyle = '#ffe066'; c.fillText(String(data.coins), cx - 16, 33);
+  c.lineWidth = 4; c.strokeStyle = 'rgba(20,10,30,.7)'; c.strokeText(data.coins.toLocaleString('ko-KR'), cx - 16, 33);
+  c.fillStyle = '#ffe066'; c.fillText(data.coins.toLocaleString('ko-KR'), cx - 16, 33);
 
   // 콤보
   if (combo >= 5 && state === 'play') {
@@ -1956,7 +2086,7 @@ function frame(now) {
  * ------------------------------------------------------------------- */
 let subOpen = null;     // 열린 서브 화면 id
 let subReturn = 'sTitle';
-const SCREENS = ['sTitle', 'sPause', 'sOver', 'sSkins', 'sAch', 'sHelp', 'sCode'];
+const SCREENS = ['sTitle', 'sPause', 'sOver', 'sSkins', 'sAch', 'sHelp', 'sCode', 'sSet', 'sRevive'];
 function show(id) { SCREENS.forEach((s) => $(s).classList.toggle('on', s === id)); }
 function closeAllScreens() { SCREENS.forEach((s) => $(s).classList.remove('on')); subOpen = null; }
 function openSub(id, from) {
@@ -1964,10 +2094,12 @@ function openSub(id, from) {
   subOpen = id;
   if (id === 'sSkins') renderSkins();
   if (id === 'sAch') renderAch();
+  if (id === 'sSet') { capture = null; renderSettings('한 칸에 키 하나씩, 쪽마다 2개까지. Esc 는 취소, 비우려면 Backspace.'); }
   if (id === 'sCode') { $('codeOut').value = buildCode(); $('codeIn').value = ''; $('codeMsg').textContent = ''; }
   show(id);
 }
 function closeSub() {
+  capture = null;
   subOpen = null;
   show(subReturn);
   refreshMenus();
@@ -1986,10 +2118,11 @@ function goTitle() {
 
 function refreshMenus() {
   $('tBest').textContent = data.best;
-  $('tCoins').textContent = data.coins;
+  $('tCoins').textContent = data.coins.toLocaleString('ko-KR');
   $('tHint').textContent = matchMedia('(pointer: coarse)').matches
     ? '화면 왼쪽·오른쪽을 탭해도 바로 시작'
-    : '← → 키를 누르면 바로 시작 · Space 시작';
+    : firstKey('left') + ' ' + firstKey('right') + ' 키를 누르면 바로 시작 · Space 시작';
+  $('helpKeys').innerHTML = settings.left.concat(settings.right).filter(Boolean).map((k) => '<kbd>' + keyName(k) + '</kbd>').join('');
   const canBuy = SKINS.some((s) => data.owned.indexOf(s.id) < 0 && data.coins >= s.price);
   $('btnSkins').classList.toggle('on', canBuy);
   $('btnAch').classList.toggle('on', false);
@@ -2011,7 +2144,8 @@ function showOver() {
     '<div class="chip">최고 콤보 <b>' + run.combo + '</b></div>' +
     '<div class="chip">ZONE <b>' + (zoneOf(Math.max(1, fl)) + 1) + '</b></div>' +
     (run.fevers ? '<div class="chip">FEVER <b>' + run.fevers + '</b></div>' : '') +
-    (run.vaults ? '<div class="chip">금고 <b>' + run.vaults + '</b></div>' : '');
+    (run.vaults ? '<div class="chip">금고 <b>' + run.vaults + '</b></div>' : '') +
+    (run.revives ? '<div class="chip">부활 <b>' + run.revives + '</b></div>' : '');
   $('ovAch').innerHTML = run.newAch.map((a) => '<div>' + a.ic + ' 업적 <b>' + a.name + '</b> 달성 · 너트 +' + a.rw + '</div>').join('');
   show('sOver');
   // 점수 올라가는 연출
@@ -2091,6 +2225,8 @@ function toast(html) {
   const d = document.createElement('div');
   d.className = 'toast';
   d.innerHTML = html;
+  // 플레이 중엔 점수판을 가리지 않게 아래, 메뉴에선 버튼을 가리지 않게 위
+  $('toasts').classList.toggle('bot', state === 'play' || state === 'dying');
   $('toasts').appendChild(d);
   setTimeout(() => d.remove(), 3100);
 }
@@ -2113,6 +2249,10 @@ $('btnSkins').onclick = () => openSub('sSkins', 'sTitle');
 $('btnAch').onclick = () => openSub('sAch', 'sTitle');
 $('btnHelp').onclick = () => openSub('sHelp', 'sTitle');
 $('btnCode').onclick = () => openSub('sCode', 'sTitle');
+$('btnSet').onclick = () => openSub('sSet', 'sTitle');
+$('btnPauseSet').onclick = () => openSub('sSet', 'sPause');
+$('btnRevive').onclick = () => doRevive();
+$('btnGiveUp').onclick = () => giveUp();
 $('btnOverSkins').onclick = () => openSub('sSkins', 'sOver');
 $('btnRetry').onclick = () => startGame();
 $('btnHome').onclick = () => goTitle();
@@ -2139,18 +2279,66 @@ $('btnLoad').onclick = () => {
   $('codeOut').value = buildCode();
 };
 
+/* 설정 화면 */
+let capture = null;   // { side, i, el } 키 바꾸는 중
+const RESERVED = ['Escape', 'KeyP', 'Space', 'Enter', 'NumpadEnter'];
+function renderSettings(msg) {
+  document.querySelectorAll('.kbtn').forEach((b) => {
+    const code = settings[b.dataset.side][+b.dataset.i];
+    const waiting = capture && capture.el === b;
+    b.textContent = waiting ? '키를 누르세요…' : keyName(code);
+    b.classList.toggle('wait', !!waiting);
+    b.classList.toggle('empty', !code && !waiting);
+  });
+  $('setVib').checked = settings.vib;
+  if (msg) $('setMsg').textContent = msg;
+}
+document.querySelectorAll('.kbtn').forEach((b) => {
+  b.onclick = () => { capture = { side: b.dataset.side, i: +b.dataset.i, el: b }; renderSettings('바꿀 키를 누르세요. (Esc 취소 · Backspace 비우기)'); };
+});
+$('setVib').onchange = () => { settings.vib = $('setVib').checked; saveSettings(); };
+$('btnKeyReset').onclick = () => {
+  capture = null;
+  settings.left = DEFAULT_KEYS.left.slice(); settings.right = DEFAULT_KEYS.right.slice();
+  saveSettings(); renderSettings('기본값으로 되돌렸어요.');
+};
+function captureKey(e) {
+  e.preventDefault(); e.stopPropagation();
+  const cp = capture;
+  const code = e.code;
+  if (code === 'Escape') { capture = null; renderSettings('취소했어요.'); return; }
+  if (code === 'Backspace' || code === 'Delete') {
+    const other = settings[cp.side][1 - cp.i];
+    if (!other) { renderSettings('쪽마다 키가 하나는 있어야 해요.'); return; }
+    settings[cp.side][cp.i] = null; capture = null; saveSettings(); renderSettings('비웠어요.'); return;
+  }
+  if (!code || RESERVED.indexOf(code) >= 0) { renderSettings(keyName(code) + ' 키는 시작·일시정지용이라 못 써요. 다른 키를 누르세요.'); return; }
+  // 다른 칸에 있던 같은 키는 빼기 (한 키가 양쪽을 동시에 치지 않게)
+  ['left', 'right'].forEach((sd) => [0, 1].forEach((k) => { if (settings[sd][k] === code) settings[sd][k] = null; }));
+  settings[cp.side][cp.i] = code;
+  // 빼다가 어느 쪽이 텅 비면 그쪽 기본키로 채움
+  ['left', 'right'].forEach((sd) => { if (!settings[sd][0] && !settings[sd][1]) settings[sd][0] = DEFAULT_KEYS[sd].find((k) => k !== code) || DEFAULT_KEYS[sd][1]; });
+  capture = null;
+  saveSettings();
+  renderSettings((cp.side === 'left' ? '왼쪽' : '오른쪽') + ' 치기를 ' + keyName(code) + ' 키로 바꿨어요.');
+}
+
 /* 키보드 */
-const LEFT_CODES = ['ArrowLeft', 'KeyA', 'KeyF'];
-const RIGHT_CODES = ['ArrowRight', 'KeyD', 'KeyJ'];
 window.addEventListener('keydown', (e) => {
+  if (capture) { captureKey(e); return; }
   const code = e.code, key = e.key;
-  const isL = LEFT_CODES.indexOf(code) >= 0 || key === 'ArrowLeft';
-  const isR = RIGHT_CODES.indexOf(code) >= 0 || key === 'ArrowRight';
+  const isL = settings.left.indexOf(code) >= 0;
+  const isR = !isL && settings.right.indexOf(code) >= 0;
   const typing = e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT');
   if (typing) { if (key === 'Escape') closeSub(); return; }
   if (isL || isR || code === 'Space' || key === ' ' || key === 'ArrowUp' || key === 'ArrowDown') e.preventDefault();
   if (e.repeat) return;               // 누르고 있기로 연타 금지
   if (subOpen) { if (key === 'Escape') closeSub(); return; }
+  if (state === 'revive') {
+    if (code === 'Space' || key === 'Enter') doRevive();
+    else if (key === 'Escape') giveUp();
+    return;
+  }
   if (isL || isR) {
     if (state === 'over') { if (T - overAt > 0.9) startGame(); return; }
     press(isL ? -1 : 1);
@@ -2205,9 +2393,20 @@ window.__towerDrop = {
   get data() { return data; }, press, score, buildCode, applyCode, drawChar, skinById,
 };
 
+/* 첫 접속 선물: 너트 100,000개 (기기·계정 합쳐도 한 번만 — seen.gift100k 는 합칠 때 합집합) */
+function welcomeGift() {
+  if (data.seen.gift100k) return;
+  data.seen.gift100k = 1;
+  data.coins += 100000;
+  persist(true);
+  refreshMenus();
+  setTimeout(() => toast('🎁 첫 접속 선물! <b>너트 100,000개</b>를 드려요. 캐릭터를 골라 보세요!'), 600);
+}
+
 /* 시작 */
 layout();
 resetWorld();
+welcomeGift();
 refreshMenus();
 requestAnimationFrame((t) => { lastNow = t; frame(t); });
 if (document.fonts && document.fonts.load) document.fonts.load('20px "Black Han Sans"').catch(() => {});
