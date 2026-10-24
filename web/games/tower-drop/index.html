@@ -245,8 +245,8 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
           폰은 화면 <b>왼쪽/오른쪽</b>을 탭. 누른 쪽으로 옮겨 기둥을 부수고 한 층 내려가요.</div></div>
         <div class="it"><span>⚠️</span><div>튀어나온 <b>철골</b>이 있는 쪽에 있으면 맞고 끝! 바로 <b>아래층 철골의 반대쪽</b>을 치세요.</div></div>
         <div class="it"><span>⏱️</span><div>위의 <b>게이지</b>가 다 떨어지면 추락. 부술 때마다 차오르고, 내려갈수록 빨리 줄어요.</div></div>
-        <div class="it"><span>🧱</span><div>특수 층 — <b>금고</b>(너트 왕창) · <b>시계</b>(게이지 회복) · <b>TNT</b>(4층 한꺼번에) · <b>강철</b>(두 번 쳐야 깨짐)</div></div>
-        <div class="it"><span>🔥</span><div><b>100층마다</b> 건물 전체가 산산조각! 6초 동안 <b>무적 FEVER</b> — 한 번에 2층, 철골도 부숴요.</div></div>
+        <div class="it"><span>🧱</span><div>특수 층 — <b>금고</b>(너트 왕창) · <b>시계</b>(게이지 회복) · <b>강철</b>(두 번 쳐야 깨짐)</div></div>
+        <div class="it"><span>🔥</span><div><b>1000층마다</b> 건물 전체가 산산조각! 6초 동안 <b>무적 FEVER</b> — 한 번에 2층, 철골도 부숴요.</div></div>
         <div class="it"><span>🔩</span><div>5층마다 <b>너트</b> 1개. 모은 너트로 새 캐릭터를 열어요. <kbd>P</kbd> 일시정지</div></div>
       </div>
     </div>
@@ -282,7 +282,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
  *  - 좌/우 두 버튼으로 기둥을 부수며 끝없이 내려가는 액션
  *  - 판정: 누른 쪽으로 옮김 → (지금 층 철골이 그쪽이면 쾅) → 지금 층 파괴 → 한 층 내려감
  *          → (새로 올라온 층 철골이 내 쪽이면 쾅)
- *  - 100층마다 건물 붕괴 + 6초 무적 FEVER
+ *  - 1000층마다 건물 붕괴 + 6초 무적 FEVER (100층마다는 건물 테마만 바뀜)
  * ===================================================================== */
 
 const MUD = window.MudyoguSDK
@@ -310,7 +310,8 @@ function hash(a, b) {
  * ------------------------------------------------------------------- */
 const REFILL = 0.065;          // 한 번 부술 때 차는 게이지
 const FEVER_DUR = 6;           // 피버 시간(초)
-const ZONE_FLOORS = 100;       // 건물 하나 = 100층
+const ZONE_FLOORS = 100;       // 100층마다 건물 테마가 바뀜
+const FEVER_FLOORS = 1000;     // 1000층마다 건물 붕괴 + FEVER (100층마다면 피버가 끝없이 이어짐)
 const COMBO_GAP = 0.45;        // 이 시간 안에 다음 타격 → 콤보 유지
 /** 1초에 몇 번 쳐야 게이지가 유지되는지 (내려갈수록 빨라짐) */
 const needRate = (f) => Math.min(6.6, 1.5 + 5.2 * (1 - Math.exp(-f / 150)));
@@ -448,16 +449,16 @@ function applyCode(code) {
 const ACHS = [
   { id:'f25',  ic:'🔨', name:'몸풀기',        desc:'한 판에 25층',          rw:20,   cur:() => data.best, goal:25 },
   { id:'f50',  ic:'🧱', name:'반쯤 내려왔다', desc:'한 판에 50층',          rw:40,   cur:() => data.best, goal:50 },
-  { id:'f100', ic:'💥', name:'건물 붕괴',     desc:'100층 — 첫 FEVER',      rw:100,  cur:() => data.best, goal:100 },
+  { id:'f100', ic:'💥', name:'100층 돌파',    desc:'한 판에 100층',         rw:100,  cur:() => data.best, goal:100 },
   { id:'f200', ic:'🏙️', name:'연쇄 붕괴',     desc:'한 판에 200층',         rw:200,  cur:() => data.best, goal:200 },
   { id:'f300', ic:'🌆', name:'도시 해체',     desc:'한 판에 300층',         rw:300,  cur:() => data.best, goal:300 },
   { id:'f500', ic:'🌋', name:'마그마까지',    desc:'한 판에 500층',         rw:500,  cur:() => data.best, goal:500 },
   { id:'f700', ic:'🚀', name:'우주로 추락?',  desc:'한 판에 700층',         rw:800,  cur:() => data.best, goal:700 },
+  { id:'f1000', ic:'🔥', name:'천층 붕괴',    desc:'1000층 — 첫 FEVER',     rw:1500, cur:() => data.best, goal:1000 },
   { id:'c50',  ic:'⚡', name:'손이 안 보여',  desc:'50 콤보',               rw:40,   cur:() => data.stats.bestCombo, goal:50 },
   { id:'c150', ic:'🌪️', name:'인간 착암기',   desc:'150 콤보',              rw:150,  cur:() => data.stats.bestCombo, goal:150 },
   { id:'v20',  ic:'💰', name:'금고털이',      desc:'금고 누적 20개',        rw:60,   cur:() => data.stats.vaults, goal:20 },
-  { id:'t10',  ic:'🧨', name:'TNT 애호가',    desc:'TNT 누적 10개',         rw:60,   cur:() => data.stats.tnts, goal:10 },
-  { id:'fv10', ic:'🔥', name:'불꽃 남자',     desc:'FEVER 누적 10번',       rw:150,  cur:() => data.stats.fevers, goal:10 },
+  { id:'fv3',  ic:'☄️', name:'불꽃 남자',     desc:'FEVER 누적 3번',        rw:1000, cur:() => data.stats.fevers, goal:3 },
   { id:'a1k',  ic:'👷', name:'현장 베테랑',   desc:'누적 1,000층',          rw:100,  cur:() => data.stats.floors, goal:1000 },
   { id:'a10k', ic:'👑', name:'철거왕',        desc:'누적 10,000층',         rw:600,  cur:() => data.stats.floors, goal:10000 },
   { id:'p30',  ic:'📅', name:'출근 도장',     desc:'30판 플레이',           rw:50,   cur:() => data.stats.plays, goal:30 },
@@ -529,8 +530,8 @@ const amb = [];
 function makeFloor(n) {
   const f = { n, beam:0, type:'normal', hp:1, flash:0, word: NEON_WORDS[Math.floor(hash(n, 7) * NEON_WORDS.length)] };
   const inZone = ((n - 1) % ZONE_FLOORS) + 1;
-  if (inZone === ZONE_FLOORS) { f.type = 'milestone'; gen.last = 0; return f; }
-  if (n <= 3 || (n > ZONE_FLOORS && inZone <= 2)) { gen.last = 0; return f; }
+  if (n % FEVER_FLOORS === 0) { f.type = 'milestone'; gen.last = 0; return f; }
+  if (n <= 3 || (n > FEVER_FLOORS && n % FEVER_FLOORS <= 2)) { gen.last = 0; return f; }
   if (gen.blank > 0) { gen.blank--; gen.last = 0; return f; }
 
   const diff = Math.min(1, n / 380);
@@ -544,11 +545,9 @@ function makeFloor(n) {
 
   const zone = zoneOf(n);
   const r = Math.random();
-  if (n > 25 && inZone < 94 && r < 0.024) {
-    f.type = 'tnt'; f.beam = 0; gen.last = 0; gen.blank = 4;     // 터지는 3층 + 착지할 1층은 빈 층
-  } else if (r < 0.024 + 0.034) {
+  if (r < 0.034) {
     f.type = 'gold';
-  } else if (r < 0.058 + 0.018 + 0.02 * diff) {
+  } else if (r < 0.034 + 0.018 + 0.02 * diff) {
     f.type = 'clock';
   } else if (zone >= 1 && r < 0.1 + 0.05 * Math.min(1, zone / 3)) {
     f.type = 'steel'; f.hp = 2;
@@ -610,7 +609,6 @@ function hit(dir) {
   for (let i = 0; i < times; i++) {
     const f = floors[0];
     smashTop(dir, false);
-    if (f.type === 'tnt') { for (let k = 0; k < 3; k++) smashTop(dir, true); tntBoom(); }
     if (state !== 'play') return;
     // ④ 새로 올라온 층 철골이 내 쪽이면
     if (floors[0].beam === dir) {
@@ -683,27 +681,9 @@ function smashTop(dir, chained) {
     data.stats.clocks++;
     pop('+TIME', CX, y0, '#7fe9ff', 0.9);
     burst(CX, y0 + SH / 2, 'spark', 10, 0, '#7fe9ff');
-  } else if (f.type === 'tnt') {
-    data.stats.tnts++; run.tnts++;
   }
   if (f.type === 'milestone') startFever();
   liveAchCheck();
-}
-
-function tntBoom() {
-  const y = floorTop(0) - SH * 2;
-  for (let i = 0; i < 26; i++) {
-    const a = rnd(0, TAU), s = rnd(2, 10) * u;
-    addPart({ k:'spark', x: CX, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rnd(0.3, 0.7), col: i % 2 ? '#ffd34d' : '#ff6b3d', g: 6 * u });
-  }
-  for (let i = 0; i < 8; i++) {
-    addPart({ k:'dust', x: CX + rnd(-1, 1) * u, y: y + rnd(-1, 1) * u, vx: rnd(-2, 2) * u, vy: rnd(-2, 0) * u, life: rnd(0.5, 0.9),
-      r: rnd(0.3, 0.6) * u, grow: 2.4 * u, col: 'rgba(80,70,70,' });
-  }
-  addPart({ k:'ring', x: CX, y, life: 0.45, r: u * 0.5, grow: u * 9, col: '#ffb347' });
-  shake(u * 0.4); flash('#ffb347', 0.35); freeze = 0.05;
-  pop('TNT 4층 폭파!', CX, y, '#ff8a3d', 1.05);
-  vib(40);
 }
 
 function breakBeam(i) {
@@ -757,7 +737,7 @@ function startFever() {
   addPart({ k:'ring', x: CX, y: PY, life: 0.8, r: u * 0.5, grow: u * 12, col: '#ffc531' });
   towerOff += H * 0.9;           // 새 건물이 아래에서 솟아오름
   slowT = 0.55; flash('#ffffff', 0.9); shake(u * 0.7); freeze = 0.08;
-  pop(ZONE_FLOORS * zoneOf(floors[0].n) + '층 돌파!', CX, PY - u * 1.4, '#ffffff', 1.4);
+  pop((floors[0].n - 1) + '층 돌파!', CX, PY - u * 1.4, '#ffffff', 1.4);
   pop('FEVER!!', CX, PY - u * 0.3, '#ff8a3d', 1.6);
   if (!demo) { data.stats.fevers++; run.fevers++; }
   vib([40, 40, 80]);
@@ -803,7 +783,7 @@ function startGame() {
   resetWorld();
   state = 'play';
   paused = false;
-  run = { floors:0, coins:0, combo:0, vaults:0, tnts:0, fevers:0, t0: T, newAch: [], firstBest: data.best };
+  run = { floors:0, coins:0, combo:0, vaults:0, fevers:0, t0: T, newAch: [], firstBest: data.best };
   $('btnPause').classList.add('on');
   flash('#ffffff', 0.35);
   try { window.focus(); } catch (e) {}
@@ -919,7 +899,10 @@ function update(dt, rdt) {
 
   // 구역 테마 전환
   const z = zoneOf(floors[0].n) % ZONES.length;
-  if (z !== bgZone) { bgPrev = bgZone; bgZone = z; bgMix = 0; }
+  if (z !== bgZone) {
+    bgPrev = bgZone; bgZone = z; bgMix = 0;
+    if (state === 'play' && fever <= 0) pop('ZONE ' + (zoneOf(floors[0].n) + 1) + ' · ' + ZONES[z].name, CX, PY + u * 0.9, '#ffe066', 0.9);
+  }
   bgMix = Math.min(1, bgMix + dt / 1.2);
 
   if (state === 'play') {
@@ -1145,7 +1128,6 @@ function drawFloor(f, i, y) {
   let base = pal.bldg, shade = pal.shade;
   if (f.type === 'steel') { base = '#8f9bab'; shade = '#687485'; }
   else if (f.type === 'gold') { base = '#ffcf4a'; shade = '#dc9f16'; }
-  else if (f.type === 'tnt') { base = '#d93c3c'; shade = '#a52222'; }
   else if (f.type === 'milestone') { base = '#2a2238'; shade = '#1a1426'; }
 
   c.fillStyle = base;
@@ -1205,18 +1187,6 @@ function drawFloor(f, i, y) {
     c.beginPath(); c.moveTo(sx, y); c.lineTo(sx + u * 0.4, y); c.lineTo(sx - u * 0.3, y + SH); c.lineTo(sx - u * 0.7, y + SH); c.fill();
     c.restore();
     drawNut(c, CX, y + SH * 0.45, u * 0.3, true);
-  } else if (f.type === 'tnt') {
-    for (let k = 0; k < 3; k++) {
-      const bx = x0 + TW * (0.14 + k * 0.26), bw = TW * 0.2, by = y + SH * 0.12, bh = SH * 0.66;
-      c.fillStyle = '#8e1a1a'; rr(c, bx, by, bw, bh, u * 0.06); c.fill();
-      c.fillStyle = '#ff5b4a'; rr(c, bx + 2, by + 2, bw * 0.45, bh - 4, u * 0.05); c.fill();
-      c.fillStyle = '#2a2a2a'; c.fillRect(bx, by + bh * 0.42, bw, bh * 0.16);
-    }
-    c.fillStyle = '#1b1b1b'; rr(c, CX - TW * 0.22, y + SH * 0.3, TW * 0.44, SH * 0.36, u * 0.06); c.fill();
-    c.fillStyle = Math.sin(T * 14) > 0 ? '#ffd34d' : '#ffffff';
-    c.font = Math.round(SH * 0.3) + 'px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText('TNT', CX, y + SH * 0.49);
-    c.textBaseline = 'alphabetic';
   } else if (f.type === 'milestone') {
     // 노랑·검정 공사 띠 + 층수 간판
     c.save(); c.beginPath(); c.rect(x0, y, TW, SH); c.clip();
@@ -1813,7 +1783,7 @@ function drawHUD() {
   }
 
   // 아래 안내 줄
-  const left = ZONE_FLOORS - (sc % ZONE_FLOORS);
+  const left = FEVER_FLOORS - (sc % FEVER_FLOORS);
   const sub = fever > 0 ? '🔥 FEVER 무적! ' + fever.toFixed(1) + '초' : 'FEVER까지 ' + left + '층';
   c.font = Math.round(u * 0.26) + 'px ' + FONT;
   c.fillStyle = fever > 0 ? '#ffd34d' : 'rgba(255,255,255,.85)';
