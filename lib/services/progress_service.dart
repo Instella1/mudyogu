@@ -201,6 +201,16 @@ class ProgressService {
     return next;
   }
 
+  /// 최고 기록만 0 으로 (게임 안 '최고 기록 초기화' 요청). 나머지 진행은 그대로.
+  Future<GameProgress> resetBest(String gameId) async {
+    final GameProgress next = progressFor(
+      gameId,
+    ).copyWith(bestScore: 0, updatedAt: DateTime.now());
+    _cache[gameId] = next;
+    await _put(gameId, next.toMap());
+    return next;
+  }
+
   Future<void> reset(String gameId) async {
     _cache.remove(gameId);
     _mirrorClear(gameId);

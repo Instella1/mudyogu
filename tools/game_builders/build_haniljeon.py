@@ -120,6 +120,28 @@ TAIL_JS = '''
             };
         })();
 
+        /* ===================== 뮤됴구: 14 스테이지 잠금 =====================
+           원본은 12 를 깨면(최고 13) 13·14 가 같이 열린다 → 14 는 13 을 깨야 열리게.
+           원본 줄은 그대로 두고, 메뉴를 그린 뒤 14 버튼만 다시 잠근다.
+           (이미 14 를 깼거나 최고 스테이지가 14 이상인 기록은 그대로 열어 둔다) */
+        (function lockStage14() {
+            const originalRender = renderStageMenu;
+            renderStageMenu = function () {
+                const r = originalRender.apply(this, arguments);
+                const open14 = maxUnlockedStage >= 14 || clearedStages.includes(13) || clearedStages.includes(14);
+                if (!open14) {
+                    const btn = stageContainer.querySelectorAll('.stage-btn')[13];
+                    if (btn) {
+                        btn.classList.remove('unlocked', 'active');
+                        btn.disabled = true;
+                        btn.onclick = function () { alert("13 스테이지를 먼저 깨야 열려요."); };
+                    }
+                }
+                return r;
+            };
+            try { renderStageMenu(); } catch (e) {}
+        })();
+
         /* ===================== 뮤됴구: 화면 맞춤 =====================
            원본은 1000x550 캔버스 기준으로 만들어져 있다. 배치는 건드리지 않고
            현재 화면(메뉴/게임)을 통째로 zoom 해서 창 안에 최대한 크게 넣는다. */

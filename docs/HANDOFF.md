@@ -298,7 +298,8 @@ flutter_app/
 ### postMessage 규약
 
 ```
-게임 → 앱     { mudyogu: <token>, type: 'ready' | 'progress' | 'saveCode' | 'requestCode', ... }
+게임 → 앱     { mudyogu: <token>, type: 'ready' | 'progress' | 'saveCode' | 'requestCode' | 'resetBest', ... }
+              (resetBest: 앱의 최고 기록만 0 으로 — MUD.resetBest(), 타워 크래시 설정에서 씀)
 앱 → 게임     { type: 'init' | 'pause' | 'resume' | 'state' | 'saveCode' }
 ```
 
@@ -376,7 +377,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v24`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v25`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -412,6 +413,7 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 | LIFE: '친구와 시간' 멤버가 탭 오갈 때마다 바뀜 | `rChoice()` 가 그릴 때마다 `ctxNow()` 로 무작위 재선택 | 하루 동안 고정 (`T.mudFr`) |
 | LIFE: MY TEAM 무한 복사 | 엔딩 화면이 뜨자마자 자동 등록 → 저장 안 하고 12/29 로 돌아가 반복 | 엔딩 뒤 슬롯 저장 때만 등록 + `runId` 로 같은 1학년은 한 번만 |
 | **LIFE 아래가 잘림 (스크롤 안 됨)** | iframe 에 `scrolling="no"` | 속성 제거. 스크롤 막기는 게임 CSS 에서 |
+| 한일전: 12 를 깨면 13·14 가 같이 열림 | 원본 `renderStageMenu` 의 `(i === 14 && maxUnlockedStage >= 13)` | 빌더 TAIL_JS `lockStage14` 가 메뉴를 그린 뒤 14 버튼을 다시 잠금 (13 클리어·최고 14 이상·14 클리어 기록이면 열림) |
 | 한일전 기록이 15스테이지에서만 저장됨 | 동기화 호출이 Stage 15 클리어에만 있었음 | `goToMenu` 를 감싸 진행이 바뀌면 항상 저장 |
 | **오프라인에서 앱이 멈춤** | ① 서비스워커 2개 동시 등록 ② 캐너스킷을 CDN 에서 받음 ③ `assets/` 미캐시 | `patch_web.py` 로 SW 통합 + 로컬 canvaskit + 사전 캐시 확장 |
 
@@ -488,6 +490,8 @@ node --check web/service_worker.js   # SW 문법 검사
 - **첫 접속 선물**: 너트 100,000개 한 번 (`seen.gift100k` — 합칠 때 합집합·너트는 큰 쪽이라 두 기기여도 두 번 안 받음)
 - **부활**: 300층 이상에서 죽으면 8초 안에 부활 선택. 한 판 2번, 300 → 500 너트. 부활하면 아래 5층 철골 치우고 게이지 가득,
   첫 타격 전까진 게이지가 안 줄어듦. 부활 안 할 때만 `endRun()` (기록·통계는 판이 진짜 끝날 때 한 번)
+- **최고 기록 초기화**(설정, 3초 안에 두 번): `best=0`, `bestEpoch=지금` + `MUD.resetBest()` 로 앱 쪽 최고 기록도 0.
+  합칠 때 `bestEpoch` 가 더 나중인 쪽의 최고 기록이 이김(옛 기록·옛 코드가 초기화를 되살리지 않게)
 - 판이 끝나도 `isGameOver:false` 로 보냄: 앱의 '기록 저장됨' 알림이 결과 화면과 겹쳐서 (점수·상태·시간 저장은 그대로)
 - 테스트용으로 `window.__towerDrop` 에 상태를 열어 둠 (Playwright 봇이 안전한 쪽을 골라 100층·피버까지 자동 확인 가능)
 

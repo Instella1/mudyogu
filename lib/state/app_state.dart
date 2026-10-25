@@ -162,6 +162,11 @@ class AppState extends ChangeNotifier {
     return p;
   }
 
+  Future<void> resetBestScore(String gameId) async {
+    await _progress.resetBest(gameId);
+    notifyListeners();
+  }
+
   Future<void> resetProgress(String gameId) async {
     await _progress.reset(gameId);
     notifyListeners();

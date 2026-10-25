@@ -87,6 +87,11 @@
       post({ type: 'requestCode' });
     }
 
+    /** 앱에 보관된 최고 기록을 0 으로 (게임 안 '최고 기록 초기화' 용) */
+    function resetBest() {
+      post({ type: 'resetBest' });
+    }
+
     /** 최고 기록 갱신 등 단순 점수 전송 */
     function score(value) {
       save({ score: value });
@@ -166,6 +171,7 @@
       save: save,
       saveCode: saveCode,
       requestCode: requestCode,
+      resetBest: resetBest,
       onCode: onCode,
       score: score,
       onInit: onInit,

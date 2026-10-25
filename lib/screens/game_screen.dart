@@ -62,6 +62,13 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
+    if (event is Map && event['type'] == 'resetBest') {
+      // 게임 안 '최고 기록 초기화' → 앱에 보관된 최고 기록도 0 으로
+      state.resetBestScore(gameId);
+      setState(() => _liveScore = 0);
+      return;
+    }
+
     final ProgressEvent? parsed = ProgressEvent.tryParse(event);
     if (parsed == null) return;
 

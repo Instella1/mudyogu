@@ -280,6 +280,9 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
       <div class="lab">기타</div>
       <label class="tog">진동 (폰)<input type="checkbox" id="setVib"></label>
       <button class="btn" id="btnKeyReset" style="margin-top:4px">조작 키 기본값으로 (← A / → D)</button>
+      <div class="lab">기록</div>
+      <button class="btn" id="btnBestReset">🗑 최고 기록 초기화</button>
+      <div class="mut" style="font-size:12px;margin-top:6px;text-align:center" id="bestMsg">최고 층수만 0 으로 돌아가요. 너트·캐릭터·업적·누적 기록은 그대로예요.</div>
       <div class="mut" style="font-size:11.5px;margin-top:10px;text-align:center">P · Esc 일시정지 / Space · Enter 시작 은 고정이에요. 폰은 화면 왼쪽·오른쪽 탭.</div>
     </div>
   </div>
@@ -421,13 +424,14 @@ const STAT_KEYS = ['plays', 'floors', 'fevers', 'bestCombo', 'vaults', 'tnts', '
 function blankData() {
   const st = {};
   STAT_KEYS.forEach((k) => (st[k] = 0));
-  return { v:1, best:0, coins:0, skin:'worker', owned:['worker'], ach:{}, stats:st, seen:{} };
+  return { v:1, best:0, bestEpoch:0, coins:0, skin:'worker', owned:['worker'], ach:{}, stats:st, seen:{} };
 }
 function sanitize(d) {
   const r = blankData();
   if (!d || typeof d !== 'object') return r;
   const num = (v) => (typeof v === 'number' && isFinite(v) && v >= 0 ? Math.floor(v) : 0);
   r.best = num(d.best);
+  r.bestEpoch = num(d.bestEpoch);
   r.coins = num(d.coins);
   if (Array.isArray(d.owned)) r.owned = Array.from(new Set(['worker'].concat(d.owned.filter((id) => SKINS.some((s) => s.id === id)))));
   r.skin = r.owned.indexOf(d.skin) >= 0 ? d.skin : 'worker';
@@ -439,7 +443,9 @@ function sanitize(d) {
 /** 덮어쓰지 않고 합치기: 숫자는 큰 쪽, 캐릭터·업적은 합집합, 착용 캐릭터는 지금 것 */
 function mergeData(a, b) {
   const r = sanitize(a), o = sanitize(b);
-  r.best = Math.max(r.best, o.best);
+  // 최고 기록: '초기화'를 더 나중에 한 쪽이 이김 (옛 기록이 초기화를 되살리지 않게). 같으면 큰 쪽
+  if (o.bestEpoch > r.bestEpoch) { r.best = o.best; r.bestEpoch = o.bestEpoch; }
+  else if (o.bestEpoch === r.bestEpoch) r.best = Math.max(r.best, o.best);
   r.coins = Math.max(r.coins, o.coins);
   r.owned = Array.from(new Set(r.owned.concat(o.owned)));
   Object.keys(o.ach).forEach((k) => (r.ach[k] = 1));
@@ -2094,7 +2100,7 @@ function openSub(id, from) {
   subOpen = id;
   if (id === 'sSkins') renderSkins();
   if (id === 'sAch') renderAch();
-  if (id === 'sSet') { capture = null; renderSettings('한 칸에 키 하나씩, 쪽마다 2개까지. Esc 는 취소, 비우려면 Backspace.'); }
+  if (id === 'sSet') { bestResetArm = -99; renderBestReset(); $('bestMsg').textContent = '최고 층수만 0 으로 돌아가요. 너트·캐릭터·업적·누적 기록은 그대로예요.'; capture = null; renderSettings('한 칸에 키 하나씩, 쪽마다 2개까지. Esc 는 취소, 비우려면 Backspace.'); }
   if (id === 'sCode') { $('codeOut').value = buildCode(); $('codeIn').value = ''; $('codeMsg').textContent = ''; }
   show(id);
 }
@@ -2296,6 +2302,27 @@ function renderSettings(msg) {
 document.querySelectorAll('.kbtn').forEach((b) => {
   b.onclick = () => { capture = { side: b.dataset.side, i: +b.dataset.i, el: b }; renderSettings('바꿀 키를 누르세요. (Esc 취소 · Backspace 비우기)'); };
 });
+let bestResetArm = -99;
+function renderBestReset() {
+  const armed = T - bestResetArm < 3;
+  $('btnBestReset').textContent = armed ? '정말 초기화할까요? 한 번 더 누르세요' : '🗑 최고 기록 초기화 (지금 ' + data.best + '층)';
+  $('btnBestReset').classList.toggle('pri', armed);
+}
+$('btnBestReset').onclick = () => {
+  if (T - bestResetArm >= 3) {       // 실수 방지: 3초 안에 두 번 눌러야 지워짐
+    bestResetArm = T; renderBestReset();
+    setTimeout(renderBestReset, 3100);
+    return;
+  }
+  bestResetArm = -99;
+  data.best = 0;
+  data.bestEpoch = Date.now();
+  persist(true);
+  if (MUD.resetBest) MUD.resetBest();
+  renderBestReset();
+  refreshMenus();
+  $('bestMsg').textContent = '✅ 최고 기록을 0층으로 초기화했어요.';
+};
 $('setVib').onchange = () => { settings.vib = $('setVib').checked; saveSettings(); };
 $('btnKeyReset').onclick = () => {
   capture = null;
@@ -2376,7 +2403,10 @@ MUD.onInit((p) => {
     data = mergeData(data, p.state);
     changed = JSON.stringify(data) !== before;
   }
-  if (p && typeof p.bestScore === 'number' && p.bestScore > data.best) { data.best = Math.floor(p.bestScore); changed = true; }
+  if (p && typeof p.bestScore === 'number' && p.bestScore > data.best) {
+    if (data.bestEpoch) MUD.resetBest && MUD.resetBest();   // 초기화한 뒤라면 앱 쪽 옛 최고 기록을 맞춰 지움
+    else { data.best = Math.floor(p.bestScore); changed = true; }
+  }
   if (p && p.savedCode) applyCode(p.savedCode);
   if (liveAchCheck()) changed = true;
   if (changed) persist(false);
