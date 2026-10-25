@@ -65,7 +65,27 @@ kbd{font-family:inherit;font-size:.72em;padding:1px 6px;border-radius:6px;backgr
 .stats{display:flex;justify-content:space-around;margin-bottom:10px;font-size:14px}
 .stats b{font-family:var(--hfont);font-weight:400;font-size:22px;color:var(--y);margin:0 3px}
 .hint{text-align:center;font-size:12.5px;color:var(--mut);margin:8px 0 10px}
-.grid4{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.grid4{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media (max-width:520px){.grid4{grid-template-columns:repeat(3,1fr)}}
+/* 랭킹 */
+.namebox{display:flex;gap:7px;margin-bottom:10px}
+.namebox input{flex:1;min-width:0;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:#fff;
+  font:700 15px/1 inherit;padding:10px 12px;-webkit-user-select:text;user-select:text}
+.namebox .btn{width:auto;padding:10px 16px}
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+.tab{flex:1;padding:8px;border-radius:10px;background:rgba(255,255,255,.06);font-weight:800;font-size:14px}
+.tab.on{background:var(--y);color:#2a1a00}
+.rk-list{display:flex;flex-direction:column;gap:4px;max-height:min(46vh,420px);overflow:auto;padding-right:2px}
+.rk{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border-radius:10px;padding:5px 10px}
+.rk.me{background:rgba(255,197,49,.16);border:1px solid rgba(255,197,49,.5)}
+.rk .no{width:34px;text-align:center;font-family:var(--hfont);font-size:17px;color:var(--mut)}
+.rk .no.top{font-size:22px}
+.rk canvas{width:34px;height:34px;flex:none}
+.rk .nm{flex:1;min-width:0;font-weight:800;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk .v{font-family:var(--hfont);font-size:17px;color:var(--y)}
+.rk-me{margin-bottom:8px}
+#ovRankMsg{font-size:13px;margin:4px 0 0;color:var(--mut)}
+#ovRankMsg b{color:var(--y)}
 /* 설정 */
 .keyrow{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border-radius:12px;padding:8px 10px;margin-bottom:7px}
 .keyrow>span{flex:1;font-weight:800;font-size:14px}
@@ -200,6 +220,7 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
         <button class="btn dot" id="btnAch"><i>🏆</i>업적</button>
         <button class="btn" id="btnHelp"><i>❓</i>방법</button>
         <button class="btn" id="btnCode"><i>💾</i>진행 코드</button>
+        <button class="btn" id="btnRank"><i>🌏</i>랭킹</button>
         <button class="btn" id="btnSet"><i>⚙️</i>설정</button>
       </div>
     </div>
@@ -225,11 +246,12 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
       <div class="ov-score"><span id="ovScore">0</span><small>층</small></div>
       <div class="ov-rank" id="ovRank">견습 철거반</div>
       <div class="ov-best" id="ovBest"></div>
+      <div id="ovRankMsg"></div>
       <div class="ov-chips" id="ovChips"></div>
       <div id="ovAch"></div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="btn big pri" id="btnRetry">다시 하기<kbd>Space</kbd></button>
-        <div class="row"><button class="btn" id="btnOverSkins">👷 캐릭터</button><button class="btn" id="btnHome">메인으로</button></div>
+        <div class="row"><button class="btn" id="btnOverSkins">👷 캐릭터</button><button class="btn" id="btnOverRank">🌏 랭킹</button><button class="btn" id="btnHome">메인으로</button></div>
       </div>
     </div>
   </div>
@@ -266,6 +288,18 @@ textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:r
         <div class="it"><span>🔥</span><div><b>1000층마다</b> 건물 전체가 산산조각! 6초 동안 <b>무적 FEVER</b> — 한 번에 2층, 철골도 부숴요.</div></div>
         <div class="it"><span>🔩</span><div>5층마다 <b>너트</b> 1개. 모은 너트로 새 캐릭터를 열어요. <kbd>P</kbd> 일시정지</div></div>
       </div>
+    </div>
+  </div>
+
+  <!-- 전체 랭킹 -->
+  <div class="screen" id="sRank">
+    <div class="card" style="width:min(480px,100%)">
+      <div class="ttl"><div class="h">🌏 전체 랭킹</div><button class="x" data-close>✕</button></div>
+      <div class="namebox"><input id="rkName" maxlength="12" placeholder="내 닉네임 (1~12자)" autocomplete="off"><button class="btn pri" id="btnRkName">저장</button></div>
+      <div class="tabs"><button class="tab on" data-tab="best">🏆 최고 층</button><button class="tab" data-tab="total">🧱 누적 층</button></div>
+      <div class="rk-me" id="rkMe"></div>
+      <div class="rk-list" id="rkList"></div>
+      <div class="msg mut" id="rkMsg"></div>
     </div>
   </div>
 
@@ -424,14 +458,19 @@ const STAT_KEYS = ['plays', 'floors', 'fevers', 'bestCombo', 'vaults', 'tnts', '
 function blankData() {
   const st = {};
   STAT_KEYS.forEach((k) => (st[k] = 0));
-  return { v:1, best:0, bestEpoch:0, coins:0, skin:'worker', owned:['worker'], ach:{}, stats:st, seen:{} };
+  return { v:1, best:0, bestEpoch:0, rank:{ id:'', secret:'', name:'' }, coins:0, skin:'worker', owned:['worker'], ach:{}, stats:st, seen:{} };
 }
+function cleanName(v) { return String(v || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 12); }
 function sanitize(d) {
   const r = blankData();
   if (!d || typeof d !== 'object') return r;
   const num = (v) => (typeof v === 'number' && isFinite(v) && v >= 0 ? Math.floor(v) : 0);
   r.best = num(d.best);
   r.bestEpoch = num(d.bestEpoch);
+  if (d.rank && typeof d.rank === 'object') {
+    if (/^[0-9a-f-]{36}$/.test(d.rank.id) && /^[0-9a-f]{32,}$/.test(d.rank.secret)) { r.rank.id = d.rank.id; r.rank.secret = d.rank.secret; }
+    if (typeof d.rank.name === 'string') r.rank.name = cleanName(d.rank.name);
+  }
   r.coins = num(d.coins);
   if (Array.isArray(d.owned)) r.owned = Array.from(new Set(['worker'].concat(d.owned.filter((id) => SKINS.some((s) => s.id === id)))));
   r.skin = r.owned.indexOf(d.skin) >= 0 ? d.skin : 'worker';
@@ -443,6 +482,9 @@ function sanitize(d) {
 /** 덮어쓰지 않고 합치기: 숫자는 큰 쪽, 캐릭터·업적은 합집합, 착용 캐릭터는 지금 것 */
 function mergeData(a, b) {
   const r = sanitize(a), o = sanitize(b);
+  // 랭킹 신분증: 이 기기에 없으면 가져온 것을 씀 (같은 사람이 두 줄로 올라가지 않게)
+  if (!r.rank.id && o.rank.id) { r.rank.id = o.rank.id; r.rank.secret = o.rank.secret; }
+  if (!r.rank.name && o.rank.name) r.rank.name = o.rank.name;
   // 최고 기록: '초기화'를 더 나중에 한 쪽이 이김 (옛 기록이 초기화를 되살리지 않게). 같으면 큰 쪽
   if (o.bestEpoch > r.bestEpoch) { r.best = o.best; r.bestEpoch = o.bestEpoch; }
   else if (o.bestEpoch === r.bestEpoch) r.best = Math.max(r.best, o.best);
@@ -942,6 +984,7 @@ function endRun() {
   persist(false);
   // isGameOver 는 앱의 '기록 저장됨' 알림만 띄움 → 결과 화면이 따로 있으니 보내지 않음 (기록 저장은 그대로)
   MUD.save({ score: fl, state: data, playSeconds: secs, isGameOver: false });
+  overRankJob = data.rank.name ? submitRank().then(() => myRankOf('best')).catch(() => null) : null;
   $('btnPause').classList.remove('on');
 }
 
@@ -2092,7 +2135,7 @@ function frame(now) {
  * ------------------------------------------------------------------- */
 let subOpen = null;     // 열린 서브 화면 id
 let subReturn = 'sTitle';
-const SCREENS = ['sTitle', 'sPause', 'sOver', 'sSkins', 'sAch', 'sHelp', 'sCode', 'sSet', 'sRevive'];
+const SCREENS = ['sTitle', 'sPause', 'sOver', 'sSkins', 'sAch', 'sHelp', 'sCode', 'sSet', 'sRevive', 'sRank'];
 function show(id) { SCREENS.forEach((s) => $(s).classList.toggle('on', s === id)); }
 function closeAllScreens() { SCREENS.forEach((s) => $(s).classList.remove('on')); subOpen = null; }
 function openSub(id, from) {
@@ -2100,6 +2143,7 @@ function openSub(id, from) {
   subOpen = id;
   if (id === 'sSkins') renderSkins();
   if (id === 'sAch') renderAch();
+  if (id === 'sRank') openRanking();
   if (id === 'sSet') { bestResetArm = -99; renderBestReset(); $('bestMsg').textContent = '최고 층수만 0 으로 돌아가요. 너트·캐릭터·업적·누적 기록은 그대로예요.'; capture = null; renderSettings('한 칸에 키 하나씩, 쪽마다 2개까지. Esc 는 취소, 비우려면 Backspace.'); }
   if (id === 'sCode') { $('codeOut').value = buildCode(); $('codeIn').value = ''; $('codeMsg').textContent = ''; }
   show(id);
@@ -2152,7 +2196,21 @@ function showOver() {
     (run.fevers ? '<div class="chip">FEVER <b>' + run.fevers + '</b></div>' : '') +
     (run.vaults ? '<div class="chip">금고 <b>' + run.vaults + '</b></div>' : '') +
     (run.revives ? '<div class="chip">부활 <b>' + run.revives + '</b></div>' : '');
-  $('ovAch').innerHTML = run.newAch.map((a) => '<div>' + a.ic + ' 업적 <b>' + a.name + '</b> 달성 · 너트 +' + a.rw + '</div>').join('');
+  const rm = $('ovRankMsg');
+  if (!data.rank.name) {
+    rm.innerHTML = '🌏 <b>닉네임</b>을 정하면 전체 랭킹에 올라가요 → 아래 🌏 랭킹';
+  } else if (overRankJob) {
+    rm.textContent = '🌏 랭킹 확인 중…';
+    const job = overRankJob;
+    job.then((r) => {
+      if (state !== 'over' || job !== overRankJob) return;
+      rm.innerHTML = r ? '🌏 전체 <b>' + r.rank.toLocaleString('ko-KR') + '위</b> · 랭킹 최고 ' + r.value.toLocaleString('ko-KR') + '층'
+        : '🌏 랭킹 서버에 연결하지 못했어요 (인터넷 확인)';
+    });
+  }
+  const na = run.newAch;
+  $('ovAch').innerHTML = na.slice(0, 3).map((a) => '<div>' + a.ic + ' 업적 <b>' + a.name + '</b> 달성 · 너트 +' + a.rw + '</div>').join('') +
+    (na.length > 3 ? '<div>🏆 그 밖에 업적 <b>' + (na.length - 3) + '개</b> 더 달성 · 너트 +' + na.slice(3).reduce((t, a) => t + a.rw, 0) + '</div>' : '');
   show('sOver');
   // 점수 올라가는 연출
   const el = $('ovScore');
@@ -2256,6 +2314,8 @@ $('btnAch').onclick = () => openSub('sAch', 'sTitle');
 $('btnHelp').onclick = () => openSub('sHelp', 'sTitle');
 $('btnCode').onclick = () => openSub('sCode', 'sTitle');
 $('btnSet').onclick = () => openSub('sSet', 'sTitle');
+$('btnRank').onclick = () => openSub('sRank', 'sTitle');
+$('btnOverRank').onclick = () => openSub('sRank', 'sOver');
 $('btnPauseSet').onclick = () => openSub('sSet', 'sPause');
 $('btnRevive').onclick = () => doRevive();
 $('btnGiveUp').onclick = () => giveUp();
@@ -2349,6 +2409,133 @@ function captureKey(e) {
   saveSettings();
   renderSettings((cp.side === 'left' ? '왼쪽' : '오른쪽') + ' 치기를 ' + keyName(code) + ' 키로 바꿨어요.');
 }
+
+/* ---------------------------------------------------------------------
+ * 전체 랭킹 (Supabase) — 인터넷이 있을 때만. 게임은 오프라인에서도 그대로.
+ *  - 보기: tower_ranking 표 읽기 (누구나)
+ *  - 올리기: tower_submit 함수만 (내 id + 비밀값이 맞아야 내 줄을 고침, 서버가 큰 기록만 남김)
+ *  anon 키는 원래 웹에 공개하는 키 (표 쓰기 권한 없음, 함수만 호출 가능)
+ * ------------------------------------------------------------------- */
+const RANK_API = 'https://nvpvdkxovknhqglfbhmv.supabase.co/rest/v1';
+const RANK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52cHZka3hvdmtuaHFnbGZiaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODA1NDgsImV4cCI6MjEwODQ1NjU0OH0.sbayovYN3rAJIoqGXcBLzaEMlZ4CCIn7I_PO6pFRHUs';
+let overRankJob = null;
+let rankTab = 'best';
+function rankHeaders(extra) { return Object.assign({ apikey: RANK_KEY, Authorization: 'Bearer ' + RANK_KEY }, extra || {}); }
+async function rankFetch(path, opt) {
+  const ac = typeof AbortController === 'function' ? new AbortController() : null;
+  const tm = setTimeout(() => ac && ac.abort(), 8000);
+  try {
+    const r = await fetch(RANK_API + path, Object.assign({ signal: ac ? ac.signal : undefined, cache: 'no-store' }, opt || {}));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r;
+  } finally { clearTimeout(tm); }
+}
+function randHex(n) {
+  const a = new Uint8Array(n / 2);
+  (window.crypto || window.msCrypto).getRandomValues(a);
+  return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+function newUuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  const h = randHex(32);
+  return h.slice(0, 8) + '-' + h.slice(8, 12) + '-4' + h.slice(13, 16) + '-a' + h.slice(17, 20) + '-' + h.slice(20, 32);
+}
+function ensureRankId() {
+  if (data.rank.id) return;
+  data.rank.id = newUuid();
+  data.rank.secret = randHex(40);
+  persist(true);
+}
+async function submitRank() {
+  if (!data.rank.name) return;
+  ensureRankId();
+  await rankFetch('/rpc/tower_submit', {
+    method: 'POST',
+    headers: rankHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ p_id: data.rank.id, p_secret: data.rank.secret, p_nickname: data.rank.name,
+      p_best: Math.min(100000, data.best), p_total: Math.min(100000000, data.stats.floors), p_skin: data.skin }),
+  });
+}
+/** 서버에 올라간 내 기록과 순위 → { rank, value } (없으면 null) */
+async function myRankOf(col) {
+  if (!data.rank.id) return null;
+  const mine = await (await rankFetch('/tower_ranking?select=best,total&id=eq.' + data.rank.id, { headers: rankHeaders() })).json();
+  if (!mine.length) return null;
+  const value = Number(mine[0][col]) || 0;
+  const r = await rankFetch('/tower_ranking?select=id&limit=1&' + col + '=gt.' + value, { method: 'HEAD', headers: rankHeaders({ Prefer: 'count=exact' }) });
+  const n = parseInt(String(r.headers.get('content-range') || '').split('/')[1], 10);
+  return isFinite(n) ? { rank: n + 1, value } : null;
+}
+function rankRow(no, row, col, me) {
+  const d = document.createElement('div');
+  d.className = 'rk' + (me ? ' me' : '');
+  const nb = document.createElement('div');
+  nb.className = 'no' + (no <= 3 ? ' top' : '');
+  nb.textContent = no === 1 ? '🥇' : no === 2 ? '🥈' : no === 3 ? '🥉' : String(no);
+  const cvs = document.createElement('canvas');
+  cvs.width = 68; cvs.height = 68;
+  const nm = document.createElement('div');
+  nm.className = 'nm';
+  nm.textContent = row.nickname + (me ? ' (나)' : '');     // 닉네임은 글자로만 (HTML 로 넣지 않음)
+  const v = document.createElement('div');
+  v.className = 'v';
+  v.textContent = (Number(row[col]) || 0).toLocaleString('ko-KR') + '층';
+  d.append(nb, cvs, nm, v);
+  const g = cvs.getContext('2d');
+  g.scale(68 / 40, 68 / 40);
+  drawChar(g, skinById(row.skin), 18, 30, 22, 1, 1, 1, { arm: -1.2 });
+  return d;
+}
+async function loadRanking(skipSubmit) {
+  const col = rankTab;
+  const list = $('rkList'), me = $('rkMe'), msg = $('rkMsg');
+  msg.textContent = '불러오는 중…';
+  try {
+    if (data.rank.name && !skipSubmit) await submitRank().catch(() => {});
+    const rows = await (await rankFetch('/tower_ranking?select=id,nickname,best,total,skin&order=' + col + '.desc,updated_at.asc&limit=100',
+      { headers: rankHeaders() })).json();
+    if (col !== rankTab) return;
+    list.innerHTML = ''; me.innerHTML = '';
+    let prev = null, no = 0;
+    rows.forEach((row, i) => {
+      if (row[col] !== prev) { no = i + 1; prev = row[col]; }      // 같은 기록은 같은 순위
+      list.appendChild(rankRow(no, row, col, row.id === data.rank.id));
+    });
+    const inTop = rows.some((r) => r.id === data.rank.id);
+    if (data.rank.name && !inTop) {
+      const mr = await myRankOf(col).catch(() => null);
+      if (mr) { const row = { nickname: data.rank.name, skin: data.skin }; row[col] = mr.value; me.appendChild(rankRow(mr.rank, row, col, true)); }
+    }
+    msg.textContent = rows.length ? '' : '아직 아무도 없어요. 첫 1등이 되어 보세요!';
+    if (!data.rank.name) msg.textContent = (rows.length ? '' : '아직 아무도 없어요. ') + '위에 닉네임을 정하면 내 기록이 올라가요.';
+  } catch (e) {
+    msg.textContent = '랭킹 서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.';
+  }
+}
+function openRanking() {
+  $('rkName').value = data.rank.name;
+  loadRanking();
+}
+async function saveRankName() {
+  const nm = cleanName($('rkName').value);
+  if (!nm) { $('rkMsg').textContent = '닉네임을 1~12자로 적어 주세요.'; return; }
+  data.rank.name = nm;
+  $('rkName').value = nm;
+  persist(true);
+  $('rkMsg').textContent = '저장 중…';
+  let sent = false;
+  try { await submitRank(); sent = true; toast('🌏 닉네임 <b>' + nm.replace(/[&<>"']/g, '') + '</b> 으로 랭킹에 올렸어요!'); } catch (e) { /* loadRanking 이 메시지 */ }
+  loadRanking(sent);
+}
+$('btnRkName').onclick = () => saveRankName();
+$('rkName').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveRankName(); } });
+document.querySelectorAll('.tab').forEach((t) => {
+  t.onclick = () => {
+    rankTab = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === t));
+    loadRanking();
+  };
+});
 
 /* 키보드 */
 window.addEventListener('keydown', (e) => {

@@ -377,7 +377,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v25`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v26`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -492,6 +492,12 @@ node --check web/service_worker.js   # SW 문법 검사
   첫 타격 전까진 게이지가 안 줄어듦. 부활 안 할 때만 `endRun()` (기록·통계는 판이 진짜 끝날 때 한 번)
 - **최고 기록 초기화**(설정, 3초 안에 두 번): `best=0`, `bestEpoch=지금` + `MUD.resetBest()` 로 앱 쪽 최고 기록도 0.
   합칠 때 `bestEpoch` 가 더 나중인 쪽의 최고 기록이 이김(옛 기록·옛 코드가 초기화를 되살리지 않게)
+- **전체 랭킹**(🌏, 타이틀·결과 화면): Supabase 프로젝트 `nvpvdkxovknhqglfbhmv` (사용자 계정). 표/함수 SQL 은 `docs/supabase-ranking.sql`.
+  - 게임엔 anon 키만 있음(웹 공개용). 표는 읽기만 허용, 쓰기는 `tower_submit()` 함수로만 → id + 비밀값(sha256 비교)이 맞아야 내 줄을 고침, 서버가 큰 기록만 남김
+  - 내 신분증 `data.rank {id, secret, name}` 은 진행 코드에 같이 들어가 다른 기기에서도 같은 줄. 닉네임 정하기 전엔 안 올라감
+  - 판이 끝날 때 자동 등록 + 결과 화면에 '전체 N위'. 탭: 최고 층 / 누적 층(stats.floors). TOP 100 + 100위 밖이면 내 줄 따로
+  - 게임 안 '최고 기록 초기화'를 해도 랭킹은 역대 최고(서버 greatest)
+  - 이 작업 환경(클라우드)에선 supabase 주소가 막혀 있어 Playwright 가짜 서버(page.route)로 확인함
 - 판이 끝나도 `isGameOver:false` 로 보냄: 앱의 '기록 저장됨' 알림이 결과 화면과 겹쳐서 (점수·상태·시간 저장은 그대로)
 - 테스트용으로 `window.__towerDrop` 에 상태를 열어 둠 (Playwright 봇이 안전한 쪽을 골라 100층·피버까지 자동 확인 가능)
 
