@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// - `progress_u_*` : 사용자별 게임 진행상황 (계정별 분리)
 /// - `progress_guest`: 게스트 진행상황
 /// - `settings`     : 앱 설정
+/// - `vault`        : 계정별 게임 기록 보관함 (계정 전환 시 localStorage 를 바꿔 끼움)
 class LocalStore {
   LocalStore._();
 
@@ -17,6 +18,7 @@ class LocalStore {
   static const String sessionBox = 'session';
   static const String settingsBox = 'settings';
   static const String guestBox = 'progress_guest';
+  static const String vaultBox = 'vault';
 
   bool _ready = false;
 
@@ -28,6 +30,7 @@ class LocalStore {
       Hive.openBox<dynamic>(sessionBox),
       Hive.openBox<dynamic>(settingsBox),
       Hive.openBox<dynamic>(guestBox),
+      Hive.openBox<dynamic>(vaultBox),
     ]);
     _ready = true;
   }
@@ -36,13 +39,15 @@ class LocalStore {
   Box<dynamic> get session => Hive.box<dynamic>(sessionBox);
   Box<dynamic> get settings => Hive.box<dynamic>(settingsBox);
   Box<dynamic> get guest => Hive.box<dynamic>(guestBox);
+  Box<dynamic> get vault => Hive.box<dynamic>(vaultBox);
 
   /// 사용자별 진행상황 박스 이름
   static String progressBoxName(String? email) {
     if (email == null || email.isEmpty) return guestBox;
-    final String safe = email
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]'), '_');
+    final String safe = email.toLowerCase().replaceAll(
+      RegExp(r'[^a-z0-9]'),
+      '_',
+    );
     return 'progress_u_$safe';
   }
 

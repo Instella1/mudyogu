@@ -18,7 +18,7 @@ Flutter PWA 미니게임 허브. HTML 게임 4개를 iframe 으로 얹어 돌린
 - 화면 맞춤은 배치를 바꾸지 말고 통째로 CSS `zoom` (한일전 `fitToScreen`, LIFE/포케퀴즈는 첫 화면이 창 높이에 맞게)
 - 게임에 외부 URL 금지 (폰트·라이브러리는 로컬). 예외: 포케퀴즈 포켓몬 그림(PokeAPI sprites, 저작권·용량),
   타워 크래시 전체 랭킹(Supabase — 온라인일 때만, 게임은 오프라인 그대로. SQL 은 `docs/supabase-ranking.sql`)
-- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v27`)
+- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v28`)
 - `flutter build web` 만 돌리지 말고 `./build.sh` (patch_web.py 포함)
 
 ## 게임 4개
@@ -29,6 +29,8 @@ Flutter PWA 미니게임 허브. HTML 게임 4개를 iframe 으로 얹어 돌린
 | `pokequiz` | 포케퀴즈 | `PKQ1\|` | 🏅 기록저장실 → 진행 코드 옮기기 |
 | `tower-drop` | 타워 크래시 | `MUDX1\|tower-drop\|` | 첫 화면 💾 진행 코드 → 불러와서 합치기 |
 
+계정은 Supabase 온라인 계정(어느 기기에서든 로그인). 게임 localStorage 는 계정별로 바꿔 끼우고 온라인에 동기화
+(`lib/services/sync_service.dart`, SQL `docs/supabase-accounts.sql`). 게임 기록은 꼭 localStorage 에 쓸 것.
 진행 코드 가져오기는 **덮어쓰지 않고 합치기**. 독립 실행본(파일 하나로 여는 버전)은 `tools/make_standalone.py`.
 
 ## 배포

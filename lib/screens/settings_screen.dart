@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/account.dart';
 import '../models/game_info.dart';
 import '../services/auth_service.dart';
+import '../services/cloud_service.dart';
 import '../services/pwa_service.dart';
 import '../services/settings_service.dart';
 import '../state/app_state.dart';
@@ -149,6 +150,16 @@ class SettingsScreen extends StatelessWidget {
                       onTap: () => _editNickname(context, state),
                     ),
                     _InfoTile(
+                      icon: state.isLocalOnly
+                          ? Icons.cloud_off_rounded
+                          : Icons.cloud_done_rounded,
+                      title: '온라인 저장',
+                      subtitle: state.isLocalOnly
+                          ? '꺼짐 · 다시 로그인하면 켜져요 (지금은 이 기기에만 저장)'
+                          : '켜짐 · 다른 기기에서 로그인해도 기록이 이어져요 (눌러서 지금 저장)',
+                      onTap: () => _syncNow(context, state),
+                    ),
+                    _InfoTile(
                       icon: Icons.logout_rounded,
                       title: '로그아웃',
                       subtitle: '게스트로 계속 플레이합니다',
@@ -157,7 +168,7 @@ class SettingsScreen extends StatelessWidget {
                     _InfoTile(
                       icon: Icons.person_remove_outlined,
                       title: '계정 삭제',
-                      subtitle: '이 기기의 계정과 기록이 삭제됩니다',
+                      subtitle: '온라인과 이 기기의 기록이 모두 삭제됩니다',
                       danger: true,
                       onTap: () => _confirmDelete(context, state),
                     ),
@@ -284,6 +295,31 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _syncNow(BuildContext context, AppState state) async {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    if (state.isLocalOnly) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const AuthScreen(mode: AuthMode.signIn),
+        ),
+      );
+      return;
+    }
+    await state.sync.pushNow();
+    final CloudError? e = state.sync.lastError;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          e == null
+              ? '온라인에 저장했어요.'
+              : e == CloudError.notSetUp
+              ? '온라인 저장소가 아직 준비되지 않았어요 (관리자 설정 필요).'
+              : '지금은 저장하지 못했어요. 인터넷 연결을 확인해 주세요.',
+        ),
+      ),
+    );
+  }
+
   Future<void> _confirmSignOut(BuildContext context, AppState state) async {
     final bool? ok = await showDialog<bool>(
       context: context,
@@ -315,7 +351,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext ctx) => AlertDialog(
         title: const Text('계정 삭제'),
-        content: const Text('이 기기에 저장된 계정과 모든 기록이 완전히 삭제됩니다. 계속할까요?'),
+        content: const Text('온라인과 이 기기에 저장된 이 계정의 모든 기록이 완전히 삭제됩니다. 계속할까요?'),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -445,7 +481,7 @@ class _AccountTile extends StatelessWidget {
           if (account == null)
             const _Pill(text: '게스트')
           else
-            const _Pill(text: '로그인됨'),
+            _Pill(text: state.isLocalOnly ? '이 기기만' : '온라인'),
         ],
       ),
     );

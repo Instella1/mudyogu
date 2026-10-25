@@ -25,7 +25,6 @@ class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
   final TextEditingController _nickname = TextEditingController();
-  final TextEditingController _recovery = TextEditingController();
 
   bool _busy = false;
   bool _obscure = true;
@@ -36,7 +35,6 @@ class _AuthScreenState extends State<AuthScreen> {
     _email.dispose();
     _password.dispose();
     _nickname.dispose();
-    _recovery.dispose();
     super.dispose();
   }
 
@@ -80,11 +78,7 @@ class _AuthScreenState extends State<AuthScreen> {
           );
           break;
         case AuthMode.reset:
-          result = await state.resetPassword(
-            email: _email.text,
-            recoveryCode: _recovery.text,
-            newPassword: _password.text,
-          );
+          result = await state.sendPasswordReset(_email.text);
           break;
       }
     } catch (error) {
@@ -108,12 +102,14 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_mode == AuthMode.reset) {
       setState(() {
         _mode = AuthMode.signIn;
-        _recovery.clear();
         _password.clear();
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('비밀번호를 새로 설정했어요. 로그인해 주세요.')),
+        const SnackBar(
+          content: Text('비밀번호 재설정 메일을 보냈어요. 메일의 링크를 눌러 새 비밀번호를 정해 주세요.'),
+          duration: Duration(seconds: 5),
+        ),
       );
       return;
     }
@@ -173,9 +169,9 @@ class _AuthScreenState extends State<AuthScreen> {
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: code));
                 if (!ctx.mounted) return;
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('복구 코드를 복사했어요')),
-                );
+                ScaffoldMessenger.of(
+                  ctx,
+                ).showSnackBar(const SnackBar(content: Text('복구 코드를 복사했어요')));
               },
               child: const Text('복사'),
             ),
@@ -224,8 +220,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 6),
                       Text(
                         _isReset
-                            ? '복구 코드와 새 비밀번호를 입력해 주세요.'
-                            : '이메일 하나로 기록이 이어져요.',
+                            ? '가입한 이메일로 비밀번호 재설정 링크를 보내 드려요.'
+                            : '이메일과 비밀번호만 있으면 어느 기기에서든 기록이 이어져요.',
                         style: theme.textTheme.bodySmall,
                       ),
                       const SizedBox(height: 26),
@@ -253,7 +249,12 @@ class _AuthScreenState extends State<AuthScreen> {
                         controller: _email,
                         keyboardType: TextInputType.emailAddress,
                         autocorrect: false,
-                        textInputAction: TextInputAction.next,
+                        textInputAction: _isReset
+                            ? TextInputAction.done
+                            : TextInputAction.next,
+                        onFieldSubmitted: (_) {
+                          if (_isReset) _submit();
+                        },
                         decoration: const InputDecoration(
                           hintText: 'hello@mudyogu.app',
                         ),
@@ -270,49 +271,32 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      if (_isReset) ...<Widget>[
-                        _Label('복구 코드'),
+                      if (!_isReset) _Label('비밀번호'),
+                      if (!_isReset)
                         TextFormField(
-                          controller: _recovery,
-                          textCapitalization: TextCapitalization.characters,
-                          decoration: const InputDecoration(
-                            hintText: 'ABCD-EFGH-IJKL',
-                          ),
-                          validator: (String? v) =>
-                              (v == null || v.trim().isEmpty)
-                              ? '복구 코드를 입력해 주세요'
-                              : null,
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      _Label(_isReset ? '새 비밀번호' : '비밀번호'),
-                      TextFormField(
-                        controller: _password,
-                        obscureText: _obscure,
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) => _submit(),
-                        decoration: InputDecoration(
-                          hintText: _isReset
-                              ? '새 비밀번호 (6자 이상)'
-                              : '6자 이상',
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscure
-                                  ? Icons.visibility_off_rounded
-                                  : Icons.visibility_rounded,
-                              size: 19,
+                          controller: _password,
+                          obscureText: _obscure,
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) => _submit(),
+                          decoration: InputDecoration(
+                            hintText: '6자 이상',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscure
+                                    ? Icons.visibility_off_rounded
+                                    : Icons.visibility_rounded,
+                                size: 19,
+                              ),
+                              onPressed: () =>
+                                  setState(() => _obscure = !_obscure),
                             ),
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
                           ),
+                          validator: (String? v) {
+                            if (v == null || v.isEmpty) return '비밀번호를 입력해 주세요';
+                            if (v.length < 6) return '6자 이상 입력해 주세요';
+                            return null;
+                          },
                         ),
-                        validator: (String? v) {
-                          if (v == null || v.isEmpty) return '비밀번호를 입력해 주세요';
-                          if (v.length < 6) return '6자 이상 입력해 주세요';
-                          return null;
-                        },
-                      ),
 
                       if (_error != null) ...<Widget>[
                         const SizedBox(height: 14),
@@ -322,10 +306,14 @@ class _AuthScreenState extends State<AuthScreen> {
                             vertical: 11,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8788A).withValues(alpha: 0.12),
+                            color: const Color(
+                              0xFFE8788A,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: const Color(0xFFE8788A).withValues(alpha: 0.4),
+                              color: const Color(
+                                0xFFE8788A,
+                              ).withValues(alpha: 0.4),
                             ),
                           ),
                           child: Row(
@@ -367,7 +355,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 _isSignUp
                                     ? '계정 만들기'
                                     : _isReset
-                                    ? '비밀번호 변경'
+                                    ? '재설정 메일 보내기'
                                     : '로그인',
                               ),
                       ),
@@ -412,9 +400,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
                       const SizedBox(height: 18),
                       Text(
-                        '계정 정보는 이 브라우저에만 저장되며 서버로 전송되지 않아요.',
+                        '계정과 기록은 온라인에 안전하게 저장돼요. 비밀번호는 암호화되어 아무도 볼 수 없어요.',
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),

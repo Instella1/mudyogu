@@ -25,6 +25,9 @@ dependencies:
   # 해시(로컬 계정 비밀번호)
   crypto: ^3.0.6
 
+  # 온라인 계정 (Supabase REST)
+  http: 1.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

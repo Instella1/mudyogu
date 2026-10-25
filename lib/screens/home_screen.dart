@@ -107,8 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           onDismiss: () =>
                               setState(() => _bannerDismissed = true),
                         ),
-                      if (state.isSignedIn == false)
+                      if (state.isSignedIn == false || state.isLocalOnly)
                         _GuestNotice(
+                          text: state.isLocalOnly
+                              ? '이 기기에만 저장된 계정이에요. 한 번 다시 로그인하면 다른 기기에서도 기록이 이어져요.'
+                              : '게스트로 플레이 중이에요. 로그인하면 기록이 계정에 저장돼요.',
+                          button: state.isLocalOnly ? '다시 로그인' : '로그인',
                           onSignIn: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(
                               builder: (_) =>
@@ -321,9 +325,15 @@ class _Header extends StatelessWidget {
 }
 
 class _GuestNotice extends StatelessWidget {
-  const _GuestNotice({required this.onSignIn});
+  const _GuestNotice({
+    required this.onSignIn,
+    required this.text,
+    required this.button,
+  });
 
   final VoidCallback onSignIn;
+  final String text;
+  final String button;
 
   @override
   Widget build(BuildContext context) {
@@ -344,7 +354,7 @@ class _GuestNotice extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '게스트로 플레이 중이에요. 로그인하면 기록이 계정에 저장돼요.',
+              text,
               style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5),
             ),
           ),
@@ -354,7 +364,7 @@ class _GuestNotice extends StatelessWidget {
               minimumSize: const Size(0, 32),
               padding: const EdgeInsets.symmetric(horizontal: 10),
             ),
-            child: const Text('로그인'),
+            child: Text(button),
           ),
         ],
       ),

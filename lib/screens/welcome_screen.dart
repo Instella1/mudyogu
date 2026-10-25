@@ -104,7 +104,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '계정은 이 기기에만 저장돼요',
+                      '같은 계정으로 어느 기기에서든 이어져요',
                       style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
                     ),
                   ],

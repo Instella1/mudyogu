@@ -12,7 +12,7 @@ Flutter 로 만든 앱 껍데기 안에, **HTML5 게임들을 iframe 으로 얹�
 
 - 게임은 순수 HTML/CSS/JS. Flutter 코드를 몰라도 **게임만 따로 만들 수 있음**
 - 한 번 접속하면 **인터넷 없이** 앱과 게임 전부 실행됨 (Service Worker 사전 캐시)
-- 이메일 로컬 계정으로 진행상황 저장. 게스트도 플레이 가능
+- 이메일 계정(Supabase 온라인)으로 기록 저장 → 어느 기기에서든 로그인하면 이어짐. 게스트도 플레이 가능
 - **1순위 타깃: 크롬북 (1366×768)**, 2순위: 모바일
 
 ```
@@ -208,11 +208,24 @@ flutter_app/
 
 | 박스 이름 | 내용 |
 |---|---|
-| `accounts` | 이메일 → 계정 레코드(비번 해시, salt, 복구코드 해시) |
-| `session` | `{ email, isGuest }` 현재 세션 |
-| `settings` | 테마, 마지막 게임, **`saveCode::<게임id>` 미러** |
+| `accounts` | 이메일 → 계정 캐시(비번 해시, salt) — 인터넷 없을 때 로그인용 |
+| `session` | `{ email, isGuest, cloud }` 현재 세션 (`cloud` = Supabase 토큰) |
+| `settings` | 테마, 마지막 게임, **`saveCode::<계정>::<게임id>` 미러** (계정별!) |
 | `progress_guest` | 게스트 진행상황 |
 | `progress_u_<email>` | 계정별 진행상황 (이메일에서 특수문자 → `_`) |
+| `vault` | 계정별 **게임 localStorage 보관함** (계정 전환 시 바꿔 끼움) |
+
+### 온라인 계정 (Supabase — 타워 크래시 랭킹과 같은 프로젝트)
+
+- 계정: Supabase Auth (이메일/비밀번호). 비밀번호 재설정은 메일 링크 → `web/index.html` 이 새 비밀번호 입력창을 띄움
+- 기록: 테이블 `mud_saves` (계정당 한 줄, RLS 로 내 줄만) → `docs/supabase-accounts.sql`
+- 기록 묶음 = `{ ls: 게임 localStorage 전체('flutter.' 로 시작하지 않는 키), progress: 진행상황 }`
+- 흐름 (`lib/services/sync_service.dart`)
+  - 계정 바꿀 때: 지금 기록 → 그 계정 보관함 + 온라인 → 새 계정 기록(온라인/보관함 중 새 것)으로 교체
+  - 기록이 바뀌면 4초 모아 온라인에 올림, 탭이 숨겨질 때도 올림. 앱을 켤 때 다른 기기의 새 기록을 받아옴
+  - 예전 '이 기기에만' 계정: 로그인하면 같은 이메일/비밀번호로 온라인 계정을 자동 생성 + 기록 업로드
+  - 처음 한 번(`vaultV1`): 계정 구분 없던 시절의 게임 기록은 이 기기에서 가장 먼저 만든 계정 것으로 정리
+- ⚠️ 게임 기록을 localStorage 말고 다른 곳(IndexedDB 등)에 쓰는 게임을 추가하면 계정 분리가 안 된다 → localStorage 를 쓸 것
 
 ### `GameProgress` (`lib/models/account.dart`)
 
@@ -377,7 +390,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v27`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v28`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -411,6 +424,7 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 | **두 손가락 부분 확대(핀치)가 안 되거나, 하면 화면이 하얗게 깨짐** | ① Flutter 가 viewport 메타를 `user-scalable=no` 로 덮어씀 + body `touch-action:none` ② Flutter 가 앱 크기를 `visualViewport` 로 재서 확대하면 보이는 부분 크기로 쪼그라듦 | `web/index.html`: 메타 되돌리기(MutationObserver) + `touch-action: pinch-zoom` + 확대 중엔 `VisualViewport.width/height` 를 확대 전 크기로 |
 | LIFE: 엔딩에서 부상 상태 오버롤 / 마지막 주 부상 | 원본 로직 | 맨 아래 `lifeFixes` 에서 `dayStart`·`rEnd` 감싸기 (12/24~ 부상 금지, 엔딩 때 부상 해제) |
 | LIFE: '친구와 시간' 멤버가 탭 오갈 때마다 바뀜 | `rChoice()` 가 그릴 때마다 `ctxNow()` 로 무작위 재선택 | 하루 동안 고정 (`T.mudFr`) |
+| **새 계정에 원래 계정 게임 기록이 그대로 보임 / 다른 기기에서 로그인 안 됨** | 계정이 이 기기에만 저장 + 게임은 localStorage 하나를 모든 계정이 같이 씀 + 저장 코드 미러도 공용 | Supabase 온라인 계정 + 계정별 localStorage 보관함(vault) + 계정별 미러 |
 | LIFE: MY TEAM 무한 복사 | 엔딩 화면이 뜨자마자 자동 등록 → 저장 안 하고 12/29 로 돌아가 반복 | 엔딩 뒤 슬롯 저장 때만 등록 + `runId` 로 같은 1학년은 한 번만 |
 | **LIFE 아래가 잘림 (스크롤 안 됨)** | iframe 에 `scrolling="no"` | 속성 제거. 스크롤 막기는 게임 CSS 에서 |
 | 한일전: 12 를 깨면 13·14 가 같이 열림 | 원본 `renderStageMenu` 의 `(i === 14 && maxUnlockedStage >= 13)` | 빌더 TAIL_JS `lockStage14` 가 메뉴를 그린 뒤 14 버튼을 다시 잠금 (13 클리어·최고 14 이상·14 클리어 기록이면 열림) |

@@ -6,10 +6,13 @@ import 'screens/home_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/auth_service.dart';
 import 'services/catalog_service.dart';
+import 'services/cloud_service.dart';
+import 'services/game_storage.dart';
 import 'services/local_store.dart';
 import 'services/progress_service.dart';
 import 'services/pwa_service.dart';
 import 'services/settings_service.dart';
+import 'services/sync_service.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
 
@@ -28,12 +31,21 @@ Future<void> main() async {
     debugPrint('[boot] 저장소 초기화 실패: $e');
   }
 
+  final CloudService cloud = CloudService();
+  final AuthService auth = AuthService(store, cloud);
+  final ProgressService progress = ProgressService(store);
+  const GameStorage games = GameStorage();
+  final SyncService sync = SyncService(store, auth, progress, cloud, games);
+  // 탭을 닫거나 다른 앱으로 넘어갈 때 바로 온라인에 올린다
+  games.onHidden(() => sync.pushNow());
+
   final AppState appState = AppState(
     store: store,
-    auth: AuthService(store),
-    progress: ProgressService(store),
+    auth: auth,
+    progress: progress,
     catalog: CatalogService(store),
     settings: SettingsService(store),
+    sync: sync,
   );
 
   // 웹: 서비스워커 등록 + 설치 프롬프트 캡처

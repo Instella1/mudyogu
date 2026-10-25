@@ -7,6 +7,7 @@ import '../services/catalog_service.dart';
 import '../services/local_store.dart';
 import '../services/progress_service.dart';
 import '../services/settings_service.dart';
+import '../services/sync_service.dart';
 
 /// 앱 전역 상태.
 class AppState extends ChangeNotifier {
@@ -16,17 +17,20 @@ class AppState extends ChangeNotifier {
     required ProgressService progress,
     required CatalogService catalog,
     required SettingsService settings,
+    required SyncService sync,
   }) : _store = store,
        _auth = auth,
        _progress = progress,
        _catalog = catalog,
-       _settings = settings;
+       _settings = settings,
+       _sync = sync;
 
   final LocalStore _store;
   final AuthService _auth;
   final ProgressService _progress;
   final CatalogService _catalog;
   final SettingsService _settings;
+  final SyncService _sync;
 
   bool _booting = true;
   String? _lastMergeNotice;
@@ -37,6 +41,10 @@ class AppState extends ChangeNotifier {
   ProgressService get progress => _progress;
   CatalogService get catalogService => _catalog;
   SettingsService get settings => _settings;
+  SyncService get sync => _sync;
+
+  /// 로그인은 됐지만 온라인 계정과 연결이 안 된 상태 (이 기기에만 저장 중)
+  bool get isLocalOnly => _auth.isSignedIn && !_auth.isCloudLinked;
 
   List<GameInfo> get games => _catalog.games;
   Account? get account => _auth.currentAccount;
@@ -63,6 +71,13 @@ class AppState extends ChangeNotifier {
     await _store.init();
     await _catalog.load();
     await _progress.load();
+    await _sync.migrateOnce();
+    // 다른 기기에서 더 새로 저장한 기록이 있으면 받아온다 (너무 오래 걸리면 화면부터 띄움)
+    try {
+      await _sync.pullOnBoot().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('[sync] 시작 동기화 건너뜀: $e');
+    }
     _booting = false;
     notifyListeners();
   }
@@ -73,17 +88,24 @@ class AppState extends ChangeNotifier {
     required String password,
     required String nickname,
   }) async {
+    final bool fromGuest = _progress.owner == null;
+    await _sync.beforeSwitch();
     final AuthResult result = await _auth.signUp(
       email: email,
       password: password,
       nickname: nickname,
     );
     if (result.ok) {
-      final int merged = await _progress.mergeGuestInto(
-        AuthService.normalizeEmail(email),
-      );
-      if (merged > 0) {
-        _lastMergeNotice = '게스트 기록 $merged개를 계정으로 옮겼어요.';
+      final String mail = AuthService.normalizeEmail(email);
+      if (fromGuest) {
+        // 게스트로 하던 기록을 새 계정이 그대로 가져간다
+        final int merged = await _progress.mergeGuestInto(mail);
+        await _sync.afterSwitch(mail, carry: true);
+        if (merged > 0) {
+          _lastMergeNotice = '게스트 기록을 새 계정으로 옮겼어요.';
+        }
+      } else {
+        await _sync.afterSwitch(mail);
       }
       notifyListeners();
     }
@@ -94,41 +116,38 @@ class AppState extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
+    await _sync.beforeSwitch();
     final AuthResult result = await _auth.signIn(
       email: email,
       password: password,
     );
     if (result.ok) {
-      final int merged = await _progress.mergeGuestInto(
+      await _sync.afterSwitch(
         AuthService.normalizeEmail(email),
+        migrated: result.migrated,
       );
-      if (merged > 0) {
-        _lastMergeNotice = '게스트 기록 $merged개를 계정에 합쳤어요.';
+      if (result.migrated) {
+        _lastMergeNotice = '이 기기에만 있던 계정을 온라인 계정으로 옮겼어요. 이제 다른 기기에서도 로그인돼요.';
       }
       notifyListeners();
     }
     return result;
   }
 
-  Future<AuthResult> resetPassword({
-    required String email,
-    required String recoveryCode,
-    required String newPassword,
-  }) => _auth.resetPassword(
-    email: email,
-    recoveryCode: recoveryCode,
-    newPassword: newPassword,
-  );
+  Future<AuthResult> sendPasswordReset(String email) =>
+      _auth.sendPasswordReset(email);
 
   Future<void> continueAsGuest() async {
+    await _sync.beforeSwitch();
     await _auth.continueAsGuest();
-    await _progress.rebind(null);
+    await _sync.afterSwitch(null);
     notifyListeners();
   }
 
   Future<void> signOut() async {
+    await _sync.beforeSwitch();
     await _auth.signOut();
-    await _progress.rebind(null);
+    await _sync.afterSwitch(null);
     notifyListeners();
   }
 
@@ -139,8 +158,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> deleteAccount() async {
+    final String? mail = _auth.currentEmail;
     await _auth.deleteAccount();
-    await _progress.rebind(null);
+    if (mail != null) await _store.vault.delete(mail);
+    await _sync.afterSwitch(null);
     notifyListeners();
   }
 
@@ -158,17 +179,20 @@ class AppState extends ChangeNotifier {
       countAsPlay: countAsPlay,
     );
     await _settings.setLastPlayedGameId(gameId);
+    _sync.schedulePush();
     notifyListeners();
     return p;
   }
 
   Future<void> resetBestScore(String gameId) async {
     await _progress.resetBest(gameId);
+    _sync.schedulePush();
     notifyListeners();
   }
 
   Future<void> resetProgress(String gameId) async {
     await _progress.reset(gameId);
+    _sync.schedulePush();
     notifyListeners();
   }
 
@@ -178,6 +202,7 @@ class AppState extends ChangeNotifier {
     required String code,
   }) async {
     await _progress.storeCode(gameId, code);
+    _sync.schedulePush();
     notifyListeners();
   }
 
@@ -187,10 +212,10 @@ class AppState extends ChangeNotifier {
 
   Future<void> resetAllProgress() async {
     await _progress.resetAll();
+    _sync.schedulePush();
     notifyListeners();
   }
 
   /// 테마 변경을 UI 에 반영
   void notifyThemeChanged() => notifyListeners();
-
 }

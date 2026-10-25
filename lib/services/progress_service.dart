@@ -27,9 +27,37 @@ class ProgressService {
   // 진행 박스(progress_*) 는 웹에서 간혐 열리지 않아 `Box not found` 가 난다.
   // 저장 코드는 사용자가 직접 만든 기록이라 절대 잃으면 안 되므로,
   // 항상 열려 있는 `settings` 박스에도 같이 보관한다.
+  //
+  // ⚠️ 미러는 계정별로 따로 둔다 ('saveCode::<계정>::<게임>').
+  //    예전엔 'saveCode::<게임>' 하나를 모든 계정이 같이 써서, 새 계정에 다른 계정의
+  //    기록 코드가 그대로 들어가 버렸다. 옛 키는 AppState 의 이전 작업이 원래 계정 것으로 옮긴다.
   static const String _mirrorPrefix = 'saveCode::';
 
-  String _mirrorKey(String gameId) => '$_mirrorPrefix$gameId';
+  static String ownerKey(String? owner) =>
+      (owner == null || owner.isEmpty) ? '__guest__' : owner;
+
+  String get _ownerMirrorPrefix => '$_mirrorPrefix${ownerKey(_owner)}::';
+
+  String _mirrorKey(String gameId) => '$_ownerMirrorPrefix$gameId';
+
+  /// 옛 공용 미러 키('saveCode::<게임>')를 [owner] 의 것으로 옮긴다 (한 번만 실행).
+  Future<void> migrateLegacyMirrors(String? owner) async {
+    try {
+      for (final dynamic key in _store.settings.keys.toList()) {
+        if (key is! String || !key.startsWith(_mirrorPrefix)) continue;
+        final String rest = key.substring(_mirrorPrefix.length);
+        if (rest.contains('::')) continue; // 이미 계정별 키
+        final Object? raw = _store.settings.get(key);
+        await _store.settings.put(
+          '$_mirrorPrefix${ownerKey(owner)}::$rest',
+          raw,
+        );
+        await _store.settings.delete(key);
+      }
+    } catch (e) {
+      debugPrint('[progress] 옛 미러 이전 실패: $e');
+    }
+  }
 
   void _mirrorWrite(String gameId, String code, DateTime at) {
     try {
@@ -54,8 +82,8 @@ class ProgressService {
   void _applyMirrors(Map<String, GameProgress> out) {
     try {
       for (final dynamic key in _store.settings.keys) {
-        if (key is! String || !key.startsWith(_mirrorPrefix)) continue;
-        final String gameId = key.substring(_mirrorPrefix.length);
+        if (key is! String || !key.startsWith(_ownerMirrorPrefix)) continue;
+        final String gameId = key.substring(_ownerMirrorPrefix.length);
         final Object? raw = _store.settings.get(key);
         if (raw is! Map) continue;
         final String code = (raw['code'] ?? '').toString();
@@ -301,8 +329,10 @@ class ProgressService {
     _cache[gameId] = next;
     _mirrorWrite(gameId, code, next.saveCodeAt ?? DateTime.now());
     final bool ok = await _put(gameId, next.toMap());
-    debugPrint('[progress] 저장 코드 기록 ${ok ? '성공' : '실패(미러만)'} '
-        '($gameId, ${code.length}자)');
+    debugPrint(
+      '[progress] 저장 코드 기록 ${ok ? '성공' : '실패(미러만)'} '
+      '($gameId, ${code.length}자)',
+    );
     return next;
   }
 
@@ -319,12 +349,37 @@ class ProgressService {
     }
     try {
       for (final dynamic key in _store.settings.keys.toList()) {
-        if (key is String && key.startsWith(_mirrorPrefix)) {
+        if (key is String && key.startsWith(_ownerMirrorPrefix)) {
           await _store.settings.delete(key);
         }
       }
     } catch (e) {
       debugPrint('[progress] 코드 미러 전체 삭제 실패: $e');
+    }
+  }
+
+  // ── 계정 전환 / 클라우드 동기화용 ─────────────────────────────
+  /// 지금 계정의 진행상황 전체 (gameId → map)
+  Map<String, dynamic> exportAll() => <String, dynamic>{
+    for (final GameProgress p in _cache.values) p.gameId: p.toMap(),
+  };
+
+  /// 지금 계정의 진행상황을 [data] 로 통째로 바꾼다 (클라우드에서 받은 기록 적용).
+  Future<void> replaceAll(Map<String, dynamic> data) async {
+    final Map<String, GameProgress> next = <String, GameProgress>{};
+    data.forEach((String k, dynamic v) {
+      if (v is Map) {
+        final GameProgress p = GameProgress.fromMap(v);
+        if (p.gameId.isNotEmpty) next[p.gameId] = p;
+      }
+    });
+    await resetAll();
+    _cache.addAll(next);
+    for (final GameProgress p in next.values) {
+      await _put(p.gameId, p.toMap());
+      if (p.saveCode.isNotEmpty) {
+        _mirrorWrite(p.gameId, p.saveCode, p.saveCodeAt ?? p.updatedAt);
+      }
     }
   }
 
