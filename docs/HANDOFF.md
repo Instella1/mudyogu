@@ -377,7 +377,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v26`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v27`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -496,7 +496,9 @@ node --check web/service_worker.js   # SW 문법 검사
   - 게임엔 anon 키만 있음(웹 공개용). 표는 읽기만 허용, 쓰기는 `tower_submit()` 함수로만 → id + 비밀값(sha256 비교)이 맞아야 내 줄을 고침, 서버가 큰 기록만 남김
   - 내 신분증 `data.rank {id, secret, name}` 은 진행 코드에 같이 들어가 다른 기기에서도 같은 줄. 닉네임 정하기 전엔 안 올라감
   - 판이 끝날 때 자동 등록 + 결과 화면에 '전체 N위'. 탭: 최고 층 / 누적 층(stats.floors). TOP 100 + 100위 밖이면 내 줄 따로
-  - 게임 안 '최고 기록 초기화'를 해도 랭킹은 역대 최고(서버 greatest)
+  - **시즌**: 랭킹엔 게임 최고 기록이 아니라 `data.rank.best/total`(이번 시즌 기록)을 올림. `RANK_SEASON`(지금 2)이 바뀌면 0 부터.
+    랭킹 초기화 = RANK_SEASON +1 배포 + SQL 함수 시즌 숫자 변경 + `delete from tower_ranking` (방법은 sql 파일 끝)
+  - 게임 안 '최고 기록 초기화'와 랭킹은 따로 (랭킹은 시즌 안에서 서버 greatest)
   - 이 작업 환경(클라우드)에선 supabase 주소가 막혀 있어 Playwright 가짜 서버(page.route)로 확인함
 - 판이 끝나도 `isGameOver:false` 로 보냄: 앱의 '기록 저장됨' 알림이 결과 화면과 겹쳐서 (점수·상태·시간 저장은 그대로)
 - 테스트용으로 `window.__towerDrop` 에 상태를 열어 둠 (Playwright 봇이 안전한 쪽을 골라 100층·피버까지 자동 확인 가능)
