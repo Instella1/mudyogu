@@ -2494,9 +2494,63 @@ function rankRow(no, row, col, me) {
   drawChar(g, skinById(row.skin), 18, 30, 22, 1, 1, 1, { arm: -1.2 });
   return d;
 }
+/* 오프라인에서도 랭킹 화면을 볼 수 있게: 마지막으로 받은 순위를 저장해 두고, 연결이 안 되면 그걸 보여준다.
+   내 기록은 이 기기의 최신 기록으로 바꿔서 보여준다 (오프라인에서 세운 기록은 다음 온라인 때 올라감) */
+const RANK_CACHE_KEY = 'towerdrop.rankcache';
+function rankCacheGet() { try { return JSON.parse(localStorage.getItem(RANK_CACHE_KEY)) || {}; } catch (e) { return {}; } }
+function rankCacheSave(col, rows, mine) {
+  const c = rankCacheGet();
+  c.season = RANK_SEASON;
+  c[col] = { at: Date.now(), rows: rows, mine: mine || null };
+  try { localStorage.setItem(RANK_CACHE_KEY, JSON.stringify(c)); } catch (e) {}
+}
+function showCachedRanking(col, serverDown) {
+  const head = serverDown ? '📴 랭킹 서버에 연결하지 못했어요' : '📴 오프라인이에요';
+  const list = $('rkList'), me = $('rkMe'), msg = $('rkMsg');
+  const c = rankCacheGet();
+  const hit = c.season === RANK_SEASON ? c[col] : null;
+  list.innerHTML = ''; me.innerHTML = '';
+  const myVal = col === 'best' ? data.rank.best : data.rank.total;
+  if (hit && hit.rows && hit.rows.length) {
+    const rows = hit.rows.map((r) => {
+      if (r.id !== data.rank.id) return r;
+      const m = Object.assign({}, r); m[col] = Math.max(Number(r[col]) || 0, myVal); m.nickname = data.rank.name || r.nickname; return m;
+    });
+    // 목록에 없던 내가 이 기기 기록으로 목록 안에 들어갈 만하면 끼워 넣는다
+    if (data.rank.name && myVal > 0 && !rows.some((r) => r.id === data.rank.id)) {
+      const last = rows.length ? Number(rows[rows.length - 1][col]) || 0 : 0;
+      if (rows.length < 100 || myVal > last) {
+        const mineRow = { id: data.rank.id, nickname: data.rank.name, skin: data.skin }; mineRow[col] = myVal;
+        rows.push(mineRow);
+      }
+    }
+    rows.sort((a, b) => (Number(b[col]) || 0) - (Number(a[col]) || 0));
+    let prev = null, no = 0;
+    rows.forEach((row, i) => {
+      if (row[col] !== prev) { no = i + 1; prev = row[col]; }
+      list.appendChild(rankRow(no, row, col, row.id === data.rank.id));
+    });
+    const inTop = rows.some((r) => r.id === data.rank.id);
+    if (data.rank.name && !inTop) {
+      const row = { nickname: data.rank.name, skin: data.skin }; row[col] = myVal;
+      me.appendChild(rankRow(hit.mine && hit.mine.rank ? hit.mine.rank : '-', row, col, true));
+    }
+    const d = new Date(hit.at);
+    msg.textContent = head + ' · ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' +
+      String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') +
+      ' 기준 순위예요. 내 새 기록은 인터넷이 연결되면 올라가요.';
+  } else {
+    if (data.rank.name) {
+      const row = { nickname: data.rank.name, skin: data.skin }; row[col] = myVal;
+      me.appendChild(rankRow('-', row, col, true));
+    }
+    msg.textContent = head + '. 인터넷에 한 번 연결해서 랭킹을 열면, 그 뒤로는 오프라인에서도 마지막 순위를 볼 수 있어요.';
+  }
+}
 async function loadRanking(skipSubmit) {
   const col = rankTab;
   const list = $('rkList'), me = $('rkMe'), msg = $('rkMsg');
+  if (navigator.onLine === false) { showCachedRanking(col); return; }
   msg.textContent = '불러오는 중…';
   try {
     if (data.rank.name && !skipSubmit) await submitRank().catch(() => {});
@@ -2510,14 +2564,17 @@ async function loadRanking(skipSubmit) {
       list.appendChild(rankRow(no, row, col, row.id === data.rank.id));
     });
     const inTop = rows.some((r) => r.id === data.rank.id);
+    let mine = null;
     if (data.rank.name && !inTop) {
       const mr = await myRankOf(col).catch(() => null);
-      if (mr) { const row = { nickname: data.rank.name, skin: data.skin }; row[col] = mr.value; me.appendChild(rankRow(mr.rank, row, col, true)); }
+      if (mr) { mine = mr; const row = { nickname: data.rank.name, skin: data.skin }; row[col] = mr.value; me.appendChild(rankRow(mr.rank, row, col, true)); }
     }
+    rankCacheSave(col, rows, mine);
     msg.textContent = rows.length ? '' : '아직 아무도 없어요. 첫 1등이 되어 보세요!';
     if (!data.rank.name) msg.textContent = (rows.length ? '' : '아직 아무도 없어요. ') + '위에 닉네임을 정하면 내 기록이 올라가요.';
   } catch (e) {
-    msg.textContent = '랭킹 서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.';
+    if (col !== rankTab) return;
+    showCachedRanking(col, navigator.onLine !== false);
   }
 }
 function openRanking() {
