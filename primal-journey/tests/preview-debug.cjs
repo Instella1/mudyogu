@@ -1,0 +1,1 @@
+const fs=require('fs'),h=fs.readFileSync(__dirname+'/../primal-journey.html','utf8');fs.writeFileSync(__dirname+'/debug-preview.html',h.replace('requestAnimationFrame(frame);\n})();',`startStage(2);toggleDebug();debugPhase(3);render();\n})();`));

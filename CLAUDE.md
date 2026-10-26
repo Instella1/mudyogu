@@ -46,3 +46,7 @@ Flutter PWA 미니게임 허브. HTML 게임 4개를 iframe 으로 얹어 돌린
 - 사용자가 지시를 하면 군말 없이 바로 대답하고 실행한다. 이미 한 작업을 처음 듣는 것처럼 되묻지 말 것 —
   모르면 먼저 `git log` 와 이 파일을 확인.
 - 2026-10-23 젠스파크 → 일반 Claude 대화 → Claude Code 로 이전 완료. 이후 작업은 이 저장소가 기준.
+
+## 별도 게임: 원시인록 여행기
+`primal-journey/` — 허브와 별개인 단일 HTML 게임. 작업 전 `primal-journey/HANDOFF.md` 필독,
+수정 후 `primal-journey/run-tests.sh` 실행. 사이트에는 아직 올리지 않음.

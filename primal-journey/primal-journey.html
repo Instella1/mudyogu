@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101d26">
+<title>원시인록 여행기 — 하늘 절벽</title>
+<style>
+:root{--night:#101d26;--mist:#b9d7d5;--bone:#efe5c9;--amber:#e8aa60;--line:#587476}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#081218;color:var(--bone);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#203740,#081218 80%)}
+#shell{width:min(100vw,calc(100dvh * 1.77778));aspect-ratio:16/9;position:relative;overflow:hidden;box-shadow:0 20px 100px #0008;background:var(--night);touch-action:none}
+canvas{display:block;width:100%;height:100%;outline:none}
+.layer{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#07131b9c;backdrop-filter:blur(5px);z-index:5}.layer.open{display:flex}
+#title{background:linear-gradient(90deg,#07131bf5 0%,#0b1b26c9 44%,#0b1b2600 78%);backdrop-filter:none;justify-content:flex-start;padding:6%}
+.intro{width:55%;max-width:650px}.eyebrow{font-size:clamp(8px,1.05vw,14px);letter-spacing:.24em;color:var(--amber);margin:0 0 18px}
+h1{font-family:"Batang","AppleMyungjo",serif;font-size:clamp(24px,5.3vw,72px);letter-spacing:-.055em;line-height:1.15;font-weight:700;margin:0 0 19px;text-shadow:0 3px 28px #0009}h1 span{display:block;color:var(--mist)}
+.intro p.desc{font-size:clamp(9px,1.25vw,17px);line-height:1.8;color:#b5c9c8;max-width:31em;margin:0 0 25px;word-break:keep-all}
+button{font:inherit;cursor:pointer;color:var(--bone);touch-action:manipulation}button:focus-visible{outline:2px solid var(--amber);outline-offset:5px}
+.primary{border:1px solid #d4ac75;background:#c38c4430;padding:13px 26px;min-width:190px;text-align:left;font-size:clamp(11px,1.25vw,17px);letter-spacing:.05em;transition:background .15s}.primary:hover{background:#c38c4460}.primary b{float:right;margin-left:32px;font-weight:400}
+.controls{font-size:clamp(8px,.9vw,13px);color:#a3bdbd;line-height:2.2;margin-top:23px}.controls kbd{font-family:inherit;color:var(--bone);border:1px solid #829d9d66;padding:2px 5px;border-radius:3px;background:#14293380;margin-right:4px}.controls .sep{margin:0 8px;color:#577276}
+.note{font-size:clamp(7px,.8vw,11px);color:#789596;margin-top:15px}
+.panel{text-align:center;max-width:80%;padding:25px}.panel h2{font-family:Batang,serif;font-size:clamp(25px,4.6vw,62px);font-weight:400;letter-spacing:.05em;margin:12px 0 16px}.panel p{color:var(--mist);font-size:clamp(10px,1.15vw,16px);line-height:1.8}.panel .primary{text-align:center;margin-top:16px}.sub{border:0;background:none;color:#98b6b7;display:block;margin:18px auto 0;font-size:clamp(10px,1vw,14px)}
+#utility{position:absolute;top:15px;right:16px;display:flex;gap:7px;z-index:8}#utility button{background:#0b1b26ae;border:1px solid #59757877;font-size:11px;padding:7px 10px;color:#b9cfce;border-radius:3px}
+#touch{position:absolute;inset:0;pointer-events:none;display:none;z-index:3}#touch button{pointer-events:auto;width:54px;height:54px;border:1px solid #d1e4d344;background:#0b1b2680;border-radius:50%;color:#e8e5d6;font-size:13px;user-select:none;-webkit-user-select:none}.pad{position:absolute;bottom:18px;display:flex;align-items:flex-end;gap:10px}.pad.left{left:18px}.pad.right{right:18px}#touch button:active{background:#d1ac6977}.pad.right button:nth-child(2){margin-bottom:28px}
+#rotate{display:none;position:fixed;bottom:10px;font-size:11px;color:#8da6a6;pointer-events:none}
+.intro{max-height:100%;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#587476 transparent;padding-right:8px}.record-card{margin-top:15px;border-top:1px solid #78998a66;padding-top:12px;max-width:460px}.record-card h2{font-size:12px;color:#b5c9c8;letter-spacing:.08em;font-weight:400;margin:0 0 7px}.record-card .best-stars{color:#e8bb70;font-size:22px;letter-spacing:.13em;line-height:1.2}.record-card p{font-size:11px;color:#a3bdbd;line-height:1.6;margin:5px 0}.record-card details{font-size:11px;color:#a3bdbd;margin-top:7px}.record-card summary{cursor:pointer;color:#d3c6a5}.record-card ol{padding-left:20px;line-height:1.9;margin:7px 0}.record-card .save-note{color:#799391;font-size:10px}
+#title{padding:3% 6%}#title h1{font-size:clamp(24px,4.6vw,61px);margin-bottom:12px}#title .eyebrow{margin-bottom:10px}#title .intro p.desc{margin-bottom:15px}#title .controls{margin-top:12px}#title .note{margin-top:9px}#title .record-card{margin-top:10px;padding-top:9px}
+.clear-stars{display:flex;justify-content:center;gap:12px;margin:15px 0 8px}.clear-stars svg{width:clamp(24px,3.8vw,48px);height:clamp(24px,3.8vw,48px);fill:#263d44;stroke:#6c8585;stroke-width:1.5}.clear-stars svg.earned{fill:#e8bb70;stroke:#fff0b9;filter:drop-shadow(0 0 7px #e8aa6044)}#clearRating{color:#e5c58a;font-size:clamp(11px,1.2vw,16px);margin:6px 0}
+#skipIntro{display:none;position:absolute;right:24px;bottom:34px;z-index:4;border:1px solid #9fb5ab77;background:#10232baa;padding:9px 15px;font-size:12px;color:#e6dfc5}#shell.cinematic #skipIntro{display:block}#shell.cinematic #touch{display:none}
+#settings{z-index:12}.settings-panel{width:470px;max-width:88%;max-height:94%;overflow:auto;background:#10232bee;border:1px solid #587476;padding:22px 28px;text-align:left}.settings-panel h2{font-size:26px;margin:0 0 9px;font-family:Batang,serif}.settings-panel p{font-size:12px;line-height:1.7;color:var(--mist);margin:8px 0}.bind-row{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #58747655;padding:7px 0;font-size:13px}.bind-row button{min-width:130px;padding:6px 10px;background:#203b43;border:1px solid #68878a;color:var(--bone)}.bind-row button.wait{border-color:var(--amber);color:var(--amber)}.settings-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}.settings-actions button{font-size:12px;min-width:0;padding:9px 13px}.home-settings{display:inline-block;margin:12px 0 0;text-align:left}.home-warning{border:1px solid #a87b59;background:#281f1a;padding:15px;margin-top:12px}.home-warning button{margin-right:10px}
+@media(max-height:500px){.settings-panel{padding:12px 20px}.settings-panel h2{font-size:19px}.bind-row{padding:3px 0;font-size:11px}.bind-row button{padding:3px 8px}.settings-panel p{font-size:10px;margin:5px 0}.settings-actions{margin-top:8px}}
+@media(pointer:coarse){#touch{display:block}.controls{display:none}.note{margin-top:12px}.primary{min-width:145px;padding:10px 18px}#utility{top:7px;right:8px}#utility button{font-size:9px;padding:5px 7px}}
+@media(orientation:portrait){#rotate{display:block}.intro{width:65%}.eyebrow{margin-bottom:8px}.intro p.desc{margin-bottom:12px}h1{margin-bottom:10px}.note{display:none}.primary{padding:8px 12px;min-width:140px}.controls{margin-top:12px}#touch button{width:37px;height:37px;font-size:10px}.pad{bottom:9px;gap:6px}.pad.left{left:10px}.pad.right{right:10px}}
+[hidden]{display:none!important}
+#shell{container-type:size}
+#title{padding:0;justify-content:center;background:radial-gradient(ellipse at center,#08192318,#06131c65);text-align:center}
+#title .intro{width:100%;max-width:none;overflow:visible;padding:0;max-height:none}
+#title h1{font-family:"Nanum Myeongjo","Batang","AppleMyungjo",serif;font-weight:400;font-size:clamp(19px,4.4cqw,60px);letter-spacing:.18em;line-height:1.5;margin:0 0 clamp(8px,3cqh,26px);padding-left:.18em;color:#e2e4d4;text-shadow:0 2px 26px #071b24}
+#title h1 span{font-size:.56em;letter-spacing:.55em;padding-left:.55em;color:#b4c9c6}
+.title-menu{display:flex;flex-direction:column;align-items:center;gap:clamp(1px,.6cqh,7px)}
+.title-menu button{border:0;background:transparent;color:#afc6c3;font-size:clamp(10px,1.25cqw,17px);line-height:1.35;letter-spacing:.14em;padding:clamp(2px,1cqh,7px) 22px;transition:color .25s,text-shadow .25s}
+.title-menu button:hover,.title-menu button:focus-visible{color:#f0e4c4;text-shadow:0 0 16px #a9d0bc88}
+#journeyStatus{font-size:10px;color:#a6bbb4;position:absolute;bottom:7%;left:10%;right:10%;margin:0}
+#shell.at-title #touch,#shell:not(.in-play) #touch,#shell.at-title #homeBtn,#shell.at-title #settingsBtn,#shell.at-title #pauseBtn{display:none!important}
+#shell.at-title #utility{top:auto;bottom:12px;right:15px;opacity:.65}#shell.at-title #utility button{border:0;background:none}
+#shell.at-title~#rotate{display:none}
+#debugPanel{position:absolute;right:16px;top:55px;z-index:9;width:min(270px,48%);max-height:calc(100% - 150px);overflow:auto;padding:12px;background:#10232bf5;border:1px solid #a78255;border-radius:4px;font-size:12px;box-shadow:0 8px 24px #0006}#debugPanel h2{font-size:14px;margin:0 0 7px}#debugPanel p{margin:6px 0;color:var(--mist);line-height:1.5}#debugPanel .debug-actions{display:flex;gap:6px;flex-wrap:wrap}#debugPanel button{padding:7px 9px;background:#203b43;border:1px solid #68878a;border-radius:3px;font-size:12px}#debugPanel #closeDebug{margin-top:8px;width:100%}#debugPanel button:disabled{opacity:.45;cursor:default}#debugStatus{color:var(--amber)!important}#shell.at-title #debugBtn{display:none!important}
+@media(max-height:500px){#debugPanel{top:38px;right:8px;padding:8px;font-size:10px}#debugPanel h2{font-size:12px}#debugPanel button{padding:5px 7px;font-size:11px}}
+#records .settings-panel{background:#10232bf5}#records h3{font-family:Batang,serif;font-size:17px;font-weight:400;color:var(--bone)}#records .record-card{max-width:none}#records ol{font-size:11px;line-height:1.9;color:var(--mist)}
+@media(prefers-reduced-motion:reduce){.title-menu button{transition:none}}
+</style>
+</head>
+<body>
+<div id="shell" class="at-title">
+<canvas id="game" width="1280" height="720" tabindex="0" aria-label="원시인록 여행기. A D 이동, W 더블점프, S 아래로, J 공격, F 투척, Shift 회피."></canvas>
+<div id="title" class="layer open"><div class="intro">
+<h1>원시인록<span>여행기</span></h1>
+<nav class="title-menu" aria-label="여행 메뉴"><button id="start">여행 시작</button><button id="continue" hidden>이어하기</button><button id="titleSettings">설정</button><button id="openRecords">여행 기록</button></nav>
+<p id="journeyStatus" role="status"></p>
+</div></div>
+<div id="records" class="layer" role="dialog" aria-modal="true" aria-labelledby="recordsHeading"><div class="settings-panel"><h2 id="recordsHeading">여행 기록</h2><section class="record-card"><h3 id="valleyRecordName">???</h3><div id="titleBest" class="best-stars"></div><p id="titleRecord"></p><details id="recordDetails"><summary>최근 발자취</summary><ol id="recordList"></ol></details></section><section id="caveRecords" class="record-card"></section><section id="skyRecords" class="record-card"></section><p id="recordSaveNote" class="save-note">기록은 현재 브라우저에 저장됩니다.</p><button id="closeRecords" class="sub">돌아가기</button></div></div>
+<div id="dead" class="layer"><div class="panel"><p class="eyebrow">불씨는 아직 남아 있다</p><h2>다시, 일어서라.</h2><p id="deathHint">뿔이 낮아지는 순간, 두 번째 도약을 준비하라.</p><button id="retry" class="primary">모닥불에서 재도전 ↻</button><p class="note" id="retryHelp">R 또는 Enter로 즉시 재도전</p></div></div>
+<div id="pause" class="layer"><div class="panel"><p class="eyebrow">잠시 숨을 고르다</p><h2>멈춘 계곡</h2><p id="pauseControls"></p><button id="resume" class="primary">여행 계속하기 →</button><button id="returnTitle" class="sub">홈으로 돌아가기</button></div></div>
+<div id="win" class="layer"><div class="panel"><p class="eyebrow" id="winHeading">잊힌 뿔의 계곡 · 돌파</p><h2 id="winName">거인의 침묵</h2><p id="winDescription">강철의 뿔이 부서졌다.<br>당신의 창은, 아직 꺾이지 않았다.</p><div id="clearStars" class="clear-stars" role="img" aria-label="클리어 별점"></div><p id="clearRating"></p><p id="winStats"></p><button id="continueJourney" class="primary">여행 계속하기</button><button id="winHome" class="sub">처음 화면으로</button><p class="note" id="winNote">오른편의 문이 열렸습니다.</p></div></div>
+<div id="settings" class="layer"><div class="settings-panel"><p class="eyebrow">여행 준비</p><h2>설정 · 조작키</h2><p>버튼을 누른 뒤 사용할 키를 누르세요. 중복 키는 서로 교환됩니다.<br>Esc는 일시정지·설정 닫기용으로 고정됩니다.</p><div id="bindings"></div><p id="settingsStatus" role="status" aria-live="polite">변경한 키는 이 브라우저에 자동 저장됩니다.</p><div class="settings-actions"><button id="resetKeys" class="primary">기본키 복원</button><button id="closeSettings" class="primary">설정 닫기</button></div></div></div>
+<div id="homeConfirm" class="layer" style="z-index:15" role="dialog" aria-modal="true" aria-labelledby="homeQuestion"><div class="panel"><h2 id="homeQuestion">홈으로 돌아갈까요?</h2><p>진행은 마지막 체크포인트 기준으로 저장됩니다.<br>진행 중인 보스 전투는 이어하기 시 처음부터 시작합니다.</p><button id="confirmHome" class="primary">홈으로 돌아가기</button><button id="cancelHome" class="sub">취소</button></div></div>
+<div id="utility"><button id="homeBtn">홈</button><button id="settingsBtn">설정</button><button id="debugBtn" hidden aria-controls="debugPanel" aria-expanded="false">디버그</button><button id="sound">소리 꺼짐</button><button id="pauseBtn">일시정지</button><button id="full">전체화면</button></div>
+<section id="debugPanel" hidden role="dialog" aria-labelledby="debugHeading"><h2 id="debugHeading">디버그 · 지역 / 보스 단계</h2><p>패널을 연 동안 전투가 멈춥니다.<br>지역·단계를 변경한 여행은 기록·진행이 저장되지 않습니다.</p><p>지역 바로 이동</p><div class="debug-actions"><button id="debugStage1">1 · 트리케라톱스</button><button id="debugStage2">2 · 랩터</button><button id="debugStage3">3 · 프테라노돈</button></div><p id="debugBoss"></p><div class="debug-actions"><button id="debugPhase1">1단계</button><button id="debugPhase2">2단계</button><button id="debugPhase3">3단계</button></div><p id="debugStatus" role="status" aria-live="polite"></p><button id="closeDebug">닫기 · F2 / Esc</button></section>
+<button id="skipIntro">도입부 건너뛰기 · Enter</button>
+<div id="touch"><div class="pad left"><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button><button data-key="drop" aria-label="발판 아래로">▼</button></div><div class="pad right"><button data-key="throw">투척</button><button data-key="dash">회피</button><button data-key="jump">도약</button><button data-key="attack">창</button></div></div>
+</div><div id="rotate">가로 화면으로 돌리면 전투를 더 넓게 볼 수 있습니다.</div>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('game'),g=canvas.getContext('2d'),W=1280,H=720,FLOOR=602;
+const $=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
+const C={bg:'#101d26',deep:'#0a1720',rock:'#1a3038',mist:'#8baeb0',teal:'#34575b',leaf:'#38534e',gold:'#edb66d',bone:'#eee4c9',rust:'#9a6550',red:'#d07658'};
+let mode='title',time=0,last=0,cam=0,shake=0,flash=0,hitstop=0,arena=false,checkpoint=false,kills=0,attempt=1,runTime=0,damageTaken=0;
+let particles=[],texts=[],afterimages=[],player,boss,keys={},press={},audio=null,sound=false,seed=7731;
+let introTime=0,introLanded=false,introPicked=false,pausedFrom='playing',spear=null;
+let debugReturn='playing',debugUsed=false,debugJourney=false,debugSnapshot=null;
+let meteorEvent=null,meteors=[];
+function clearMeteors(){meteorEvent=null;meteors=[]}
+const copyProgress=p=>p?JSON.parse(JSON.stringify(p)):null;
+function discardDebugJourney(){if(debugJourney)progress=copyProgress(debugSnapshot);debugUsed=false;debugJourney=false;debugSnapshot=null}
+const PLAYER_HP=6,BOSS_HP=1080,DIVE_INTERVAL=7;
+ const RECORD_KEY='primalJourney.records.v1';
+ const STAGE_RECORD_KEY='primalJourney.records.v2',STAGE_NAMES={1:'잊힌 뿔의 계곡',2:'울림의 동굴',3:'바람의 하늘 절벽'};
+  let stage=1,raptors=[],raptorPhase=1,summoned=false,stageCleared=false,clearTimer=0,howlRemaining=0;
+  const JOURNEY_KEY='primalJourney.progress.v1';
+  // 전투 기록과 독립된 여정. 위치는 검증된 모닥불/지역 경계로만 복원한다.
+   function validProgress(p){return !!p&&p.version===1&&[1,2,3].includes(p.stage)&&['entry','camp','cleared','passage','ending'].includes(p.checkpoint)&&p.cleared&&[1,2,3].every(n=>typeof p.cleared[n]==='boolean')&&(!p.cleared[2]||p.cleared[1])&&(!p.cleared[3]||p.cleared[2])&&(p.stage<2||p.cleared[1])&&(p.stage<3||p.cleared[2])&&(!['cleared','passage','ending'].includes(p.checkpoint)||p.cleared[p.stage])&&(p.checkpoint!=='passage'||p.stage<3)&&(p.checkpoint!=='ending'||p.stage===3)&&(!p.cleared[p.stage]||!['entry','camp'].includes(p.checkpoint))}
+   function loadProgress(){try{const p=JSON.parse(localStorage.getItem(JOURNEY_KEY)||'null');if(p?.cleared&&p.cleared[3]===undefined)p.cleared[3]=false;if(p?.stage===2&&p.checkpoint==='ending')p.checkpoint='passage';return validProgress(p)?{version:1,stage:p.stage,checkpoint:p.checkpoint,cleared:{1:p.cleared[1],2:p.cleared[2],3:p.cleared[3]}}:null}catch(e){return null}}
+  let progress=loadProgress(),clearDismissed=false;
+   function saveProgress(){if(debugJourney||!progress)return;try{localStorage.setItem(JOURNEY_KEY,JSON.stringify(progress));$('journeyStatus').textContent=''}catch(e){$('journeyStatus').textContent='저장 공간을 사용할 수 없어 이번 여행은 이 창에서만 이어집니다.'}refreshContinue()}
+  function refreshContinue(){$('continue').hidden=!progress}
+ function loadRecords(which=1){const empty={clears:0,bestStars:0,bestTime:null,recent:[]};try{const saved=JSON.parse(localStorage.getItem(STAGE_RECORD_KEY)||'null');const r=(which===1?JSON.parse(localStorage.getItem(RECORD_KEY)||'null'):null)||saved?.stages?.[which];if(!r||!Number.isInteger(r.clears)||r.clears<0||!Number.isInteger(r.bestStars)||r.bestStars<0||r.bestStars>5||!(r.bestTime===null||Number.isFinite(r.bestTime)&&r.bestTime>=0)||!Array.isArray(r.recent))return empty;return{clears:r.clears,bestStars:r.bestStars,bestTime:r.bestTime,recent:r.recent.filter(e=>Number.isFinite(e.seconds)&&e.seconds>=0&&Number.isInteger(e.hp)&&e.hp>=1&&e.hp<=6&&Number.isInteger(e.stars)&&e.stars>=1&&e.stars<=5&&Number.isFinite(e.at)&&e.at>0).slice(0,10)}}catch(e){return empty}}
+ const stageRecords={1:loadRecords(1),2:loadRecords(2),3:loadRecords(3)};
+ let records=stageRecords[1];
+function durationLabel(seconds){return `${Math.floor(seconds/60)}분 ${Math.floor(seconds%60)}초`}
+function recentHTML(r){return r.recent.map(e=>`<li>${new Date(e.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})} · ${'★'.repeat(e.stars)} · 체력 ${e.hp}칸 · ${durationLabel(e.seconds)}</li>`).join('')}
+function recordSummary(r){return r.clears?`총 ${r.clears}회 클리어 · 최고 ${r.bestStars} / 5 · 최단 ${durationLabel(r.bestTime)}`:'???'}
+function renderSkyRecords(){const r=stageRecords[3];$('skyRecords').innerHTML=r.clears?`<h3>${STAGE_NAMES[3]}</h3><div class="best-stars">${'★'.repeat(r.bestStars)}${'☆'.repeat(5-r.bestStars)}</div><p>${recordSummary(r)}</p>${r.recent.length?`<details><summary>최근 발자취</summary><ol>${recentHTML(r)}</ol></details>`:''}`:'<h3>???</h3><div class="best-stars">???</div><p>???</p>'}
+function renderRecords(){const r=stageRecords[1],c=stageRecords[2],known=r.clears>0;$('valleyRecordName').textContent=known?STAGE_NAMES[1]:'???';$('titleBest').textContent=known?'★'.repeat(r.bestStars)+'☆'.repeat(5-r.bestStars):'???';$('titleBest').setAttribute('aria-label',known?`최고 별점 ${r.bestStars}개`:'???');$('titleRecord').textContent=recordSummary(r);$('recordDetails').hidden=!known||!r.recent.length;$('recordList').innerHTML=known?recentHTML(r):'';$('caveRecords').innerHTML=c.clears?`<h3>${STAGE_NAMES[2]}</h3><div class="best-stars">${'★'.repeat(c.bestStars)}${'☆'.repeat(5-c.bestStars)}</div><p>${recordSummary(c)}</p>${c.recent.length?`<details><summary>최근 발자취</summary><ol>${recentHTML(c)}</ol></details>`:''}`:'<h3>???</h3><div class="best-stars">???</div><p>???</p>'}
+function recordClear(){if(debugUsed||debugJourney){$('clearRating').textContent+=' · 디버그 테스트 · 기록 제외';return}records=stageRecords[stage];const entry={at:Date.now(),hp:player.hp,stars:clearStarsFor(player.hp),seconds:Math.round(runTime*100)/100};records.clears++;records.bestStars=Math.max(records.bestStars,entry.stars);records.bestTime=records.bestTime===null?entry.seconds:Math.min(records.bestTime,entry.seconds);records.recent.unshift(entry);records.recent=records.recent.slice(0,10);try{if(stage===1)localStorage.setItem(RECORD_KEY,JSON.stringify(records));localStorage.setItem(STAGE_RECORD_KEY,JSON.stringify({stages:stageRecords,unlockedStage2:stageRecords[1].clears>0}));$('recordSaveNote').textContent='기록은 현재 브라우저에 저장됩니다.'}catch(e){$('recordSaveNote').textContent='저장 공간을 사용할 수 없어 기록이 이번 실행에만 유지됩니다.';$('clearRating').textContent+=' · 영구 저장 불가'}renderRecords()}
+// Keep the legacy record renderer intact; append the third independent record card.
+const renderLegacyRecords=renderRecords;
+renderRecords=function(){renderLegacyRecords();renderSkyRecords()};
+renderRecords();
+ const defaults={left:'KeyA',right:'KeyD',jump:'KeyW',drop:'KeyS',attack:'KeyJ',dash:'KeyK',retry:'KeyR',throw:'KeyL'};
+ const actionNames={left:'왼쪽 이동',right:'오른쪽 이동',jump:'점프 / 더블점프',drop:'발판 아래로',attack:'창 공격',dash:'무적 회피',retry:'재도전',throw:'창 던지기'};
+let bindings={...defaults},waitingKey=null,settingsReturn='title',settingsLayer='title';
+ try{const saved=JSON.parse(localStorage.getItem('primalJourney.keys.v2')||'null');if(saved){const legacy=!saved.drop,old={...defaults,jump:'Space',dash:'ShiftLeft',throw:'KeyF'};delete old.drop;const untouched=legacy&&Object.keys(old).every(a=>saved[a]===old[a]||a==='throw'&&!saved[a]);const previous={...defaults,dash:'ShiftLeft',throw:'KeyF'};const previousDefault=Object.keys(previous).every(a=>saved[a]===previous[a]);if(untouched||previousDefault){Object.assign(saved,defaults)}if(!saved.throw)saved.throw=['KeyL','KeyF','KeyG','KeyV','KeyB','KeyT','KeyY','KeyU'].find(c=>!Object.values(saved).includes(c));if(!saved.drop)saved.drop=['KeyS','ArrowDown',...'XCZQERTYUIOPASDFGHJKLBNMVW'.split('').map(c=>'Key'+c)].find(c=>!Object.values(saved).includes(c));const used=new Set();for(const a of Object.keys(defaults)){if(typeof saved[a]!=='string'||!validKey(saved[a])||used.has(saved[a]))throw Error('invalid');used.add(saved[a])}bindings={...saved};if(legacy||previousDefault)localStorage.setItem('primalJourney.keys.v2',JSON.stringify(bindings))}}catch(e){}
+function validKey(c){return /^(Key[A-Z]|Digit[0-9]|Arrow(Left|Right|Up|Down)|Space|Shift(Left|Right)|Control(Left|Right)|Alt(Left|Right)|Enter|Tab|Backspace|Comma|Period|Slash|Semicolon|Quote|BracketLeft|BracketRight|Minus|Equal)$/.test(c)}
+function keyName(c){const names={Space:'스페이스',ShiftLeft:'왼쪽 Shift',ShiftRight:'오른쪽 Shift',ControlLeft:'왼쪽 Ctrl',ControlRight:'오른쪽 Ctrl',AltLeft:'왼쪽 Alt',AltRight:'오른쪽 Alt',ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',Enter:'Enter',Tab:'Tab',Backspace:'Backspace'};return names[c]||c.replace(/^Key|^Digit/,'')}
+ function controlText(){return `${keyName(bindings.left)} / ${keyName(bindings.right)} 이동 · ${keyName(bindings.jump)} 더블점프 · ${keyName(bindings.drop)} 아래로 · ${keyName(bindings.attack)} 창 공격 · ${keyName(bindings.throw)} 투척 · ${keyName(bindings.dash)} 회피`}
+function refreshControls(){const t=controlText();$('pauseControls').textContent=t+` · ${keyName(bindings.retry)} 모닥불로 · Esc 일시정지`;$('retryHelp').textContent=keyName(bindings.retry)+' 또는 Enter로 즉시 재도전';canvas.setAttribute('aria-label','원시인록 여행기. '+t);$('bindings').innerHTML=Object.keys(defaults).map(a=>`<div class="bind-row"><span>${actionNames[a]}</span><button data-bind="${a}" class="${waitingKey===a?'wait':''}">${waitingKey===a?'새 키를 누르세요':keyName(bindings[a])}</button></div>`).join('')}
+function saveKeys(){try{localStorage.setItem('primalJourney.keys.v2',JSON.stringify(bindings));$('settingsStatus').textContent='키 설정을 저장했습니다.'}catch(e){$('settingsStatus').textContent='저장 공간을 사용할 수 없어 이번 실행에만 적용됩니다.'}refreshControls()}
+function assignKey(action,code){if(!validKey(code)){$('settingsStatus').textContent='문자·숫자·방향키 또는 Shift, Ctrl 등 다른 키를 선택하세요.';return false}const other=Object.keys(bindings).find(a=>a!==action&&bindings[a]===code);if(other)bindings[other]=bindings[action];bindings[action]=code;waitingKey=null;keys={};press={};saveKeys();return true}
+function openSettings(){if(mode==='settings')return;if(mode==='debug')closeDebug();settingsReturn=mode;settingsLayer=mode==='title'?'title':mode==='paused'?'pause':mode==='dead'?'dead':mode==='won'?'win':'';mode='settings';keys={};press={};waitingKey=null;$('homeConfirm').hidden=true;layers('settings');refreshControls()}
+function closeSettings(){waitingKey=null;keys={};press={};mode=settingsReturn;layers(settingsLayer);refreshControls();if(mode==='playing')canvas.focus()}
+function goHome(){if(debugJourney)discardDebugJourney();else saveProgress();clearMeteors();mode='title';keys={};press={};cam=0;refreshContinue();renderRecords();layers('title');$('homeConfirm').hidden=true}
+let homeReturn='playing',homeLayer='';
+function requestHome(){if(mode==='title'||mode==='home')return;if(mode==='debug')closeDebug();homeReturn=mode;homeLayer=({settings:'settings',paused:'pause',dead:'dead',won:'win',records:'records'})[mode]||'';mode='home';keys={};press={};$('homeConfirm').hidden=false;layers('homeConfirm');$('cancelHome').focus()}
+function cancelHome(){mode=homeReturn;keys={};press={};layers(homeLayer);if(mode==='playing'||mode==='cutscene')canvas.focus()}
+const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+const decor=Array.from({length:100},()=>({x:rand()*3100,y:rand()*530,r:rand()*3+.5,s:rand()*2+1}));
+const plats=[{x:390,y:505,w:170},{x:625,y:420,w:150},{x:895,y:488,w:180},{x:1125,y:401,w:150}];
+const pteraPlats=[{x:1850,y:440,w:190},{x:2520,y:440,w:190}];
+function activePlatforms(){return stage===3?[...plats,...pteraPlats].filter(p=>!arena||p.x>1500):arena?[]:plats}
+function tone(f,d=.1,type='sine',vol=.06,delay=0){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();const a=audio.currentTime+delay,o=audio.createOscillator(),v=audio.createGain();o.type=type;o.frequency.setValueAtTime(f,a);o.frequency.exponentialRampToValueAtTime(Math.max(30,f*.5),a+d);v.gain.setValueAtTime(vol,a);v.gain.exponentialRampToValueAtTime(.001,a+d);o.connect(v).connect(audio.destination);o.start(a);o.stop(a+d)}catch(e){}}
+function noise(d=.12,vol=.08){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const b=audio.createBuffer(1,Math.ceil(audio.sampleRate*d),audio.sampleRate),v=b.getChannelData(0);for(let i=0;i<v.length;i++)v[i]=(Math.random()*2-1)*(1-i/v.length);const n=audio.createBufferSource(),gain=audio.createGain();n.buffer=b;gain.gain.value=vol;n.connect(gain).connect(audio.destination);n.start()}catch(e){}}
+function burst(x,y,n,color=C.gold,power=190){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=Math.random()*power;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-60,life:.3+Math.random()*.5,max:.8,r:1+Math.random()*4,c:color})}}
+function message(t,sub='',duration=2.6){texts.push({t,sub,life:duration,max:duration})}
+function layers(id){['title','dead','pause','win','settings','records','homeConfirm'].forEach(x=>$(x).classList.toggle('open',x===id));$('shell').classList.toggle('cinematic',mode==='cutscene');$('shell').classList.toggle('at-title',mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title');$('shell').classList.toggle('in-play',mode==='playing');$('debugPanel').hidden=mode!=='debug';$('debugBtn').hidden=!['playing','paused','debug'].includes(mode);$('debugBtn').setAttribute('aria-expanded',String(mode==='debug'))}
+function reset(toBoss=false){spear=null;player={x:toBoss?1660:150,y:FLOOR,vx:0,vy:0,dir:1,hp:PLAYER_HP,max:PLAYER_HP,jumps:0,ground:true,coyote:.1,jumpBuffer:0,atk:0,atkCD:0,attackHit:false,attackHits:new Set(),inv:0,dash:0,dashCD:0,hurt:0};boss={x:2450,y:FLOOR,hp:BOSS_HP,max:BOSS_HP,phase:1,state:'idle',timer:1.6,dir:-1,vx:0,elapsed:0,guardAt:9,diveAt:DIVE_INTERVAL,chargeCD:1.8,hit:0,transform:0,dead:false,kick:0,laserDelay:-1,laserTime:0,laserAngle:0,laserWarm:0};particles=[];afterimages=[];texts=[];shake=0;flash=0;hitstop=0;arena=toBoss;checkpoint=toBoss;cam=toBoss?1500:0;runTime=0;damageTaken=0;keys={};press={};time=0;
+  clearMeteors();
+  raptors=[];raptorPhase=1;summoned=false;stageCleared=false;clearDismissed=false;clearTimer=0;howlRemaining=0;
+  if(stage===2){raptors=[makeRaptor('main',800,2400)];boss=raptors[0];if(toBoss)player.x=1750}
+  if(stage===3){boss=makePtera();if(toBoss)player.x=1750}
+  player.dropTime=0;
+}
+reset();
+function start(){discardDebugJourney();progress={version:1,stage:1,checkpoint:'entry',cleared:{1:false,2:false,3:false}};enterRegion(1,true);saveProgress()}
+function enterRegion(which,cinematic=false){stage=which;records=stageRecords[stage];attempt=1;reset(false);introTime=0;introLanded=false;introPicked=false;mode=cinematic?'cutscene':'playing';layers('');canvas.focus();if(stage===2)message('울림의 동굴','물방울 소리를 따라, 안쪽으로',3)}
+// 개발 미리보기 전용. 타이틀에는 지역 선택 경로가 없다.
+function startStage(which=1){if(![1,2,3].includes(which))return false;progress={version:1,stage:which,checkpoint:'entry',cleared:{1:which>=2,2:which>=3,3:false}};enterRegion(which,which===1);saveProgress();return true}
+function startStage3(){return startStage(3)}
+function restoreProgress(){const p=progress;if(!p)return false;stage=p.stage;records=stageRecords[stage];reset(false);if(p.checkpoint==='camp'){checkpoint=true;player.x=1430;cam=1020}if(p.cleared[stage]){stageCleared=true;clearDismissed=true;arena=checkpoint=true;player.x=p.checkpoint==='passage'?2920:p.checkpoint==='ending'?3200:2530;boss.hp=0;boss.dead=true;boss.state='dead';boss.timer=0;for(const r of raptors){r.hp=0;r.dead=true;r.state='dead'}summoned=stage===2;cam=clamp(player.x-410,0,worldEnd()-W)}mode='playing';layers('');canvas.focus();return true}
+function continueJourney(){if(mode==='won'){clearDismissed=true;mode='playing';keys={};press={};saveProgress();layers('');canvas.focus();message('길이 열렸다',stage===1?'오른편 문 너머로 물소리가 들린다.':'고요한 빛을 향해 걸어가자.',3)}}
+function continueSaved(){discardDebugJourney();refreshContinue();return restoreProgress()}
+function worldEnd(){return stageCleared?stage<3?3650:3500:2780}
+function markCleared(){stageCleared=true;progress=progress||{version:1,stage,checkpoint:'entry',cleared:{1:stage>=2,2:stage>=3,3:false}};progress.stage=stage;progress.cleared[stage]=true;progress.checkpoint='cleared';saveProgress()}
+function finishIntro(){if(mode!=='cutscene')return;reset(false);mode='playing';layers('');canvas.focus();message('잊힌 뿔의 계곡','인록의 생존이 시작된다.',3)}
+function updateIntro(dt){introTime+=dt;if(introTime>=2.7&&!introLanded){introLanded=true;burst(560,FLOOR,36,C.mist,230);shake=10;noise(.3,.1);tone(75,.3,'triangle',.06)}if(introTime>=9.5&&!introPicked){introPicked=true;burst(738,FLOOR-28,18,C.gold,100);tone(440,.3,'triangle',.05);tone(660,.5,'triangle',.04,.14)}if(introTime>=13.5)finishIntro()}
+function retry(){if(stageCleared){if(mode==='won')continueJourney();else restoreProgress();return}attempt++;const atCamp=checkpoint;reset(false);if(atCamp){checkpoint=true;player.x=1430;cam=1020}mode='playing';layers('');canvas.focus();if(atCamp)message('모닥불에서','문 너머의 울림은 아직 남아 있다',2)}
+function pause(){if(mode==='playing'||mode==='cutscene'){pausedFrom=mode;mode='paused';keys={};press={};layers('pause')}else if(mode==='paused'){mode=pausedFrom;layers('');canvas.focus()}}
+function refreshDebug(){
+ $('debugBoss').textContent=STAGE_NAMES[stage]+' · 현재 '+(stage===2?raptorPhase:boss.phase)+'단계';
+ $('debugStatus').textContent=debugJourney?'디버그 테스트 · 기록·진행 저장 제외 (홈에서 종료)':'단계를 선택할 때만 테스트 실행으로 전환됩니다.';
+ for(const n of [1,2,3]){$('debugPhase'+n).disabled=stageCleared||boss.dead;$('debugStage'+n).setAttribute('aria-pressed',String(stage===n))}
+}
+function toggleDebug(){
+ if(mode==='debug'){closeDebug();return true}
+ if(!['playing','paused'].includes(mode)||mode==='paused'&&pausedFrom!=='playing')return false;
+ debugReturn=mode;mode='debug';keys={};press={};layers('');refreshDebug();$('closeDebug').focus();return true;
+}
+function closeDebug(){if(mode!=='debug')return false;mode=debugReturn;keys={};press={};layers(mode==='paused'?'pause':'');if(mode==='playing')canvas.focus();else $('resume').focus();return true}
+function debugStage(which){
+ if(mode!=='debug'||![1,2,3].includes(which))return false;
+ if(!debugJourney){debugSnapshot=copyProgress(progress);debugJourney=true}debugUsed=true;
+ const returnTo=debugReturn;
+ progress={version:1,stage:which,checkpoint:'camp',cleared:{1:which>=2,2:which>=3,3:false}};
+ stage=which;records=stageRecords[which];attempt=1;reset(true);mode='debug';debugReturn=returnTo;debugUsed=true;
+ debugPhase(1);layers('');refreshDebug();return true;
+}
+function debugPhase(n){
+ if(mode!=='debug'||![1,2,3].includes(n)||stageCleared||boss.dead)return false;
+ // 절대로 reset()으로 테스트 표시를 지우지 않는다. 원본 여정은 별도 복제본으로 보존한다.
+ if(!debugJourney){debugSnapshot=copyProgress(progress);debugJourney=true}debugUsed=true;
+  arena=checkpoint=true;cam=1500;clearTimer=0;clearDismissed=false;howlRemaining=0;
+  clearMeteors();
+ spear=null;particles=[];texts=[];afterimages=[];shake=flash=hitstop=0;keys={};press={};
+ Object.assign(player,{x:1750,y:FLOOR,vx:0,vy:0,dir:1,jumps:0,ground:true,coyote:.1,jumpBuffer:0,atk:0,atkCD:0,attackHit:false,attackHits:new Set(),inv:0,dash:0,dashCD:0,hurt:0});
+ if(stage===2){
+  raptorPhase=n;summoned=n>=2;
+  raptors=[makeRaptor('main',RAPTOR.mainHP,2400)];
+  if(n>=2)raptors.push(makeRaptor('ally',RAPTOR.allyHP,2640));
+  raptors.forEach((r,i)=>{r.hp=i===0?(n===1?800:n===2?500:150):500;r.robot=n===3;r.rollAt=5+i*2.5;r.hudReveal=1});
+  boss=raptors[0];
+  }else if(stage===3){
+   boss=makePtera();boss.hp=[0,PTERA.hp,PTERA.robotHP,PTERA.laserHP][n];boss.phase=n;boss.robot=n>=2;
+  }else{
+  Object.assign(boss,{x:2450,y:FLOOR,hp:[0,1080,720,360][n],max:BOSS_HP,phase:n,state:'walk',timer:0,dir:-1,vx:0,elapsed:0,guardAt:9,diveAt:DIVE_INTERVAL,chargeCD:1.8,hit:0,transform:0,dead:false,kick:0,laserDelay:-1,laserTime:0,laserAngle:0,laserWarm:0});
+ }
+  player.dropTime=0;refreshDebug();return true;
+}
+function die(){if(mode!=='playing')return;mode='dead';keys={};burst(player.x,player.y-25,38,C.bone,270);shake=10;noise(.45,.13);$('deathHint').textContent=boss.phase===1?'돌진 전 1초. 뿔이 낮아지면 두 번 도약하라.':boss.phase===2?'몸을 낮추면 도약하라. 방어태세가 끝난 순간을 노려라.':'더 빠른 발걸음. 무적 회피로 파고들어 창을 찔러라.';layers('dead')}
+function clearStarsFor(hp){return hp>=6?5:hp===5?4:hp===4?3:hp===3?2:1}
+function showClearRating(hp){const stars=clearStarsFor(hp);$('clearStars').innerHTML=Array.from({length:5},(_,i)=>`<svg viewBox="0 0 32 32" aria-hidden="true" class="${i<stars?'earned':''}"><path d="M16 2 20.2 10.5 29.6 11.9 22.8 18.5 24.4 27.9 16 23.5 7.6 27.9 9.2 18.5 2.4 11.9 11.8 10.5Z"/></svg>`).join('');$('clearStars').setAttribute('aria-label',`별 5개 중 ${stars}개`);$('clearRating').textContent=`남은 체력 ${hp}칸 · 별 ${stars} / 5`}
+function configureWin(){const second=stage===2;$('winHeading').textContent=STAGE_NAMES[stage]+' · 돌파';$('winName').textContent=stage===3?'날개 너머의 고요':second?'울림의 끝':'거인의 침묵';$('winDescription').innerHTML=stage===3?'강철 날개가 내려앉았다.<br>절벽에는 바람만이 남았다.':second?'두 발톱의 강철이 멈췄다.<br>동굴에 다시 고요가 찾아왔다.':'강철의 뿔이 부서졌다.<br>당신의 창은, 아직 꺾이지 않았다.';$('winNote').textContent=stage===3?'오른편 길에서 잠시 숨을 고릅니다.':second?'오른편 길이 하늘 절벽으로 이어집니다.':'오른편의 문이 열렸습니다.'}
+function victory(){if(stage===2){if(stageCleared||!summoned||raptors.some(r=>!r.dead))return;markCleared();clearTimer=2.3;configureWin();showClearRating(player.hp);recordClear();shake=18;burst(player.x,FLOOR-60,65,C.gold,340);return}if(boss.dead)return;clearMeteors();markCleared();configureWin();showClearRating(player.hp);recordClear();boss.laserTime=0;boss.laserDelay=-1;boss.dead=true;boss.state='dead';boss.timer=2.3;shake=18;flash=.5;burst(boss.x,FLOOR-100,85,C.gold,440);noise(.7,.18);[220,330,440,660].forEach((f,i)=>tone(f,.7,'triangle',.08,i*.16));}
+function actionFor(code){return Object.keys(bindings).find(a=>bindings[a]===code)}
+window.addEventListener('keydown',e=>{
+ if(e.code==='F2'){if(['playing','paused','debug'].includes(mode)){e.preventDefault();if(!e.repeat)toggleDebug()}return}
+ if(mode==='debug'){if(e.code==='Escape'){e.preventDefault();if(!e.repeat)closeDebug()}else if(actionFor(e.code)&&!['Enter','Space'].includes(e.code))e.preventDefault();return}
+ if(mode==='home'){if(e.code==='Escape'){e.preventDefault();cancelHome()}return}if(mode==='settings'){e.preventDefault();if(e.repeat)return;if(e.code==='Escape'){if(waitingKey){waitingKey=null;refreshControls()}else closeSettings();return}if(waitingKey)assignKey(waitingKey,e.code);return}if(mode==='records'){if(e.code==='Escape')$('closeRecords').onclick();return}if(mode==='title'){if(e.code==='Enter'&&e.target===canvas){e.preventDefault();start()}return}const k=actionFor(e.code);if(k||['Escape','Enter'].includes(e.code))e.preventDefault();if(e.repeat)return;if(e.code==='Escape'){pause();return}if(mode==='cutscene'){if(e.code==='Enter')finishIntro();return}if(mode==='won'&&(k==='retry'||e.code==='Enter')){continueJourney();return}if(mode==='dead'&&(k==='retry'||e.code==='Enter')){retry();return}if(mode==='playing'&&k==='retry'){retry();return}if(k&&mode==='playing'){keys[k]=true;press[k]=true}});
+window.addEventListener('keyup',e=>{const k=actionFor(e.code);if(k)keys[k]=false});window.addEventListener('blur',()=>{keys={};press={};if(mode==='playing'||mode==='cutscene')pause()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(mode==='playing'||mode==='cutscene'))pause()});
+document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();if(mode!=='playing')return;b.setPointerCapture(e.pointerId);keys[b.dataset.key]=true;press[b.dataset.key]=true});for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>keys[b.dataset.key]=false)});
+canvas.addEventListener('pointerdown',()=>{if(mode==='playing'){keys.attack=true;press.attack=true;canvas.focus()}});window.addEventListener('pointerup',()=>{if(!matchMedia('(pointer:coarse)').matches)keys.attack=false});
+  $('start').onclick=start;$('continue').onclick=continueSaved;$('retry').onclick=retry;$('continueJourney').onclick=continueJourney;$('resume').onclick=pause;$('pauseBtn').onclick=pause;
+  $('skipIntro').onclick=finishIntro;
+ $('debugBtn').onclick=toggleDebug;$('closeDebug').onclick=closeDebug;for(const n of [1,2,3]){$('debugPhase'+n).onclick=()=>debugPhase(n);$('debugStage'+n).onclick=()=>debugStage(n)}
+  $('winHome').onclick=goHome;$('openRecords').onclick=()=>{mode='records';renderRecords();layers('records');$('closeRecords').focus()};$('closeRecords').onclick=()=>{mode='title';layers('title');$('openRecords').focus()};refreshContinue();
+ $('returnTitle').onclick=requestHome;$('homeBtn').onclick=requestHome;$('settingsBtn').onclick=()=>{if(mode!=='home')openSettings()};$('titleSettings').onclick=openSettings;$('closeSettings').onclick=closeSettings;$('confirmHome').onclick=goHome;$('cancelHome').onclick=cancelHome;$('resetKeys').onclick=()=>{bindings={...defaults};waitingKey=null;saveKeys()};$('bindings').addEventListener('click',e=>{const b=e.target.closest('[data-bind]');if(b){waitingKey=b.dataset.bind;$('settingsStatus').textContent=actionNames[waitingKey]+'에 사용할 키를 누르세요. Esc로 취소합니다.';refreshControls()}});refreshControls();$('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'소리 켜짐':'소리 꺼짐';if(sound)tone(440,.15)};
+$('full').onclick=()=>{const s=$('shell');if(document.fullscreenElement){document.exitFullscreen?.().catch(()=>{})}else if(s.requestFullscreen)s.requestFullscreen().catch(()=>message('전체화면을 사용할 수 없습니다','브라우저의 전체화면 기능을 이용하세요'));};
+function bossSize(){if(stage===3)return{w:260,h:145};if(boss.phase===1)return{w:174,h:98};if(['diveTell','dive'].includes(boss.state))return{w:184,h:78};return{w:116,h:196}}
+function bossRect(){const s=bossSize();return{x:boss.x-s.w/2,y:boss.y-s.h,w:s.w,h:s.h}}
+function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function hurt(source='contact'){if(player.inv>0||player.dash>0||boss.state==='transform'||boss.dead)return false;const kick=source==='contact'&&boss.phase>=2;const damage=kick?2:1;player.hp=Math.max(0,player.hp-damage);damageTaken+=damage;player.inv=1.05;player.hurt=kick?.62:.25;player.vx=(player.x<boss.x?-1:1)*(kick?1000:350);player.vy=kick?-480:-240;player.ground=false;player.jumps=Math.max(1,player.jumps);player.coyote=0;player.atk=0;if(kick){boss.kick=.38;boss.dir=player.x<boss.x?-1:1;burst(player.x,player.y-20,26,C.gold,310)}shake=kick?16:10;flash=.13;burst(player.x,player.y-30,16,C.red);noise(.18,.1);tone(100,.2,'sawtooth');if(player.hp<=0)die();return true}
+function eyePosition(){const prone=['diveTell','dive'].includes(boss.state);return{x:boss.x+boss.dir*(prone?71:51),y:FLOOR-(prone?73:196)}}
+function updateLaser(dt){if(!arena||boss.dead||boss.phase<2||boss.state==='transform')return;boss.kick=Math.max(0,boss.kick-dt);if(boss.laserDelay>=0){boss.laserDelay-=dt;if(boss.laserDelay<=0){boss.laserDelay=-1;boss.laserTime=2.2;boss.laserWarm=.45;const e=eyePosition();boss.laserAngle=Math.atan2(player.y-24-e.y,player.x-e.x);tone(840,.4,'sawtooth',.025)}}if(boss.laserTime>0){boss.laserTime=Math.max(0,boss.laserTime-dt);boss.laserWarm=Math.max(0,boss.laserWarm-dt);const e=eyePosition(),target=Math.atan2(player.y-24-e.y,player.x-e.x),diff=Math.atan2(Math.sin(target-boss.laserAngle),Math.cos(target-boss.laserAngle));boss.laserAngle+=clamp(diff,-.28*dt,.28*dt)}}
+function laserHitsPlayer(){if(boss.laserTime<=0||boss.laserWarm>0)return false;const e=eyePosition(),dx=Math.cos(boss.laserAngle),dy=Math.sin(boss.laserAngle),rx=player.x-e.x,ry=player.y-23-e.y,along=rx*dx+ry*dy,side=Math.abs(rx*dy-ry*dx);return along>0&&along<1450&&side<22}
+function setState(s,t){boss.state=s;boss.timer=t}
+ // 스테이지 2는 계곡 보스의 수치·패턴과 완전히 분리한다.
+ const RAPTOR={mainHP:800,allyHP:500,summonHP:500,robotHP:150,speeds:[0,140,190,240],jumpEvery:10,rollEvery:5,rollSpeed:320,rollDuration:2.5,howlDuration:1.6};
+ function makeRaptor(id,hp,x){return{id,x,y:FLOOR,hp,max:hp,phase:raptorPhase,speed:RAPTOR.speeds[raptorPhase],state:'walk',timer:0,dir:-1,vx:0,vy:0,elapsed:0,jumpAt:10,rollAt:5,robot:false,hit:0,dead:false,spin:0,hudReveal:id==='ally'?0:1}}
+ function raptorRect(r){const ball=r.state==='roll';return{x:r.x-(ball?29:38),y:r.y-(ball?58:64),w:ball?58:76,h:ball?58:64}}
+ function raptorState(r,state,seconds=0){r.state=state;r.timer=seconds;r.vx=0}
+ function checkRaptorPhases(){
+  const main=raptors[0];
+  if(raptorPhase===1&&main.hp<=RAPTOR.summonHP){raptorPhase=2;howlRemaining=RAPTOR.howlDuration;for(const r of raptors){r.phase=2;r.speed=RAPTOR.speeds[2]}if(!main.dead){main.y=FLOOR;main.vy=0;raptorState(main,'howl',howlRemaining)}message('초음파의 부름','벽 너머에서 발톱 소리가 들린다',2.2);tone(1200,1.5,'sine',.035)}
+  if(summoned&&raptorPhase<3&&raptors.some(r=>!r.dead&&r.hp>0&&r.hp<=RAPTOR.robotHP)){raptorPhase=3;let offset=0;for(const r of raptors)if(!r.dead){r.phase=3;r.robot=true;r.speed=RAPTOR.speeds[3];r.elapsed=0;r.rollAt=5+offset;offset+=2.5;r.y=FLOOR;r.vy=0;raptorState(r,'upgrade',1.2);burst(r.x,r.y-35,25,'#9fe9df',180)}message('강철 발톱의 공명','엇갈리는 도약, 뒤쫓는 강철',2.4);shake=10}
+ }
+ function damageRaptor(r,amount){if(r.dead||stageCleared)return;const armored=r.state==='roll';r.hp=Math.max(0,r.hp-amount*(armored?.5:1));r.hit=.16;hitstop=.035;shake=4;burst(r.x,r.y-35,14,armored?'#b3f4e6':C.gold,180);if(armored)tone(840,.07,'triangle',.025);if(r.hp===0){r.dead=true;r.state='dead';r.vx=r.vy=0;burst(r.x,r.y-30,25,C.mist,220)}checkRaptorPhases();victory()}
+ function hurtRaptor(r){if(player.inv>0||player.dash>0||stageCleared)return false;player.hp=Math.max(0,player.hp-1);damageTaken++;player.inv=1.05;player.hurt=.25;player.vx=(player.x<r.x?-1:1)*350;player.vy=-240;player.ground=false;player.jumps=Math.max(1,player.jumps);player.coyote=0;player.atk=0;shake=10;flash=.13;burst(player.x,player.y-30,16,C.red);noise(.18,.1);if(player.hp<=0){die();$('deathHint').textContent='울음에는 벽을 살피고, 강철 구체에는 두 번 도약하라.'}return true}
+ function updateRaptors(dt){
+   if(!arena)return;
+   if(stageCleared){clearTimer-=dt;if(!clearDismissed&&clearTimer<=0&&mode==='playing'){mode='won';$('winStats').textContent=`${attempt}번째 도전 · ${durationLabel(runTime)} · 받은 피해 ${damageTaken}회`;layers('win')}return}
+  checkRaptorPhases();
+  if(howlRemaining>0){howlRemaining=Math.max(0,howlRemaining-dt);if(howlRemaining===0&&!summoned){summoned=true;const ally=makeRaptor('ally',500,2730);raptorState(ally,'emerge',.9);raptors.push(ally);burst(2770,FLOOR-40,40,C.mist,260);shake=12;if(!boss.dead&&boss.state==='howl')raptorState(boss,'walk');checkRaptorPhases()}}
+  for(const r of raptors){r.hudReveal=Math.min(1,r.hudReveal+dt/.7);r.hit=Math.max(0,r.hit-dt);if(r.dead)continue;
+   if(r.state==='howl')continue;
+   if(['emerge','upgrade'].includes(r.state)){const duration=r.state==='emerge'?.9:1.2,used=Math.min(dt,r.timer);if(r.state==='emerge')r.x-=100/duration*used;r.timer-=dt;if(r.timer<=0)raptorState(r,'walk');continue}
+   r.elapsed+=dt;r.timer-=dt;
+   if(r.state==='jumpTell'||r.state==='rollTell'){r.dir=player.x<r.x?-1:1;const gap=Math.abs(player.x-r.x);r.vx=gap>12?r.dir*r.speed:0;r.x=clamp(r.x+r.dir*Math.min(r.speed*dt,Math.max(0,gap-12)),1575,2710);if(r.timer<=0){const rolling=r.state==='rollTell';r.dir=player.x<r.x?-1:1;r.vy=-1550;raptorState(r,rolling?'rollJump':'jump');r.vx=r.dir*r.speed;tone(rolling?380:260,.18,'triangle')}continue}
+   if(r.state==='jump'||r.state==='rollJump'){r.vy+=(r.vy<0?6500:11000)*dt;r.x=clamp(r.x+r.vx*dt,1575,2710);r.y+=r.vy*dt;if(r.y>=FLOOR){r.y=FLOOR;r.vy=0;burst(r.x,FLOOR-3,16,C.mist,180);shake=Math.max(shake,4);noise(.1,.04);if(r.state==='rollJump'){raptorState(r,'roll',RAPTOR.rollDuration);r.vx=r.dir*RAPTOR.rollSpeed;noise(.2,.07)}else raptorState(r,'walk')}continue}
+   if(r.state==='roll'){const travel=Math.min(dt,Math.max(0,r.timer+dt)),delta=player.x-r.x;r.dir=delta<0?-1:delta>0?1:r.dir;r.vx=delta===0?0:r.dir*RAPTOR.rollSpeed;const before=r.x;r.x=clamp(r.x+r.dir*Math.min(RAPTOR.rollSpeed*travel,Math.abs(delta)),1575,2710);r.spin+=(r.x-before)/29;if(r.timer<=0)raptorState(r,'walk');continue}
+   if(r.robot&&r.elapsed+1e-8>=r.rollAt){r.rollAt+=RAPTOR.rollEvery;r.dir=player.x<r.x?-1:1;raptorState(r,'rollTell',.65);tone(700,.25,'sawtooth',.025);continue}
+   if(!r.robot&&r.elapsed+1e-8>=r.jumpAt){r.jumpAt+=RAPTOR.jumpEvery;r.dir=player.x<r.x?-1:1;raptorState(r,'jumpTell',.55);continue}
+   r.dir=player.x<r.x?-1:1;const distance=Math.abs(player.x-r.x);r.vx=distance>24?r.dir*r.speed:0;r.x=clamp(r.x+r.dir*Math.min(r.speed*dt,Math.max(0,distance-24)),1575,2710);
+  }
+  victory();
+ }
+ // Stage 3 owns its clocks, geometry and damage; no raptor/triceratops rules leak in.
+  const PTERA={hp:1100,robotHP:700,laserHP:400,flight:4,tell:.6,stuck:2,walk:7.5,walkSpeed:220,lungeDistance:150,lungeDuration:.2,swoopDuration:.5,roar:.75,laserTell:1,laser:6,flyMinX:1745,flyMaxX:2540,accel:520};
+  function makePtera(){return{x:2400,y:245,hp:PTERA.hp,max:PTERA.hp,phase:1,robot:false,state:'fly',timer:4,stateTime:0,dir:-1,vx:0,vy:0,bank:0,face:-1,huntSide:-1,huntClock:0,turnClock:0,aimX:0,aimY:245,hit:0,dead:false,elapsed:0,cycle:0,laserSide:-1,targetX:0,targetY:0,startX:2400,startY:245,endX:2400,endY:245,travelDuration:0,flyY:245,diveProgress:0,groundTime:0,lungeClock:0,lungeTarget:0,lungeStart:0,lungeEnd:0,lungeHit:false,jawOffset:67,laserY:FLOOR-35,laserTime:0,laserDelay:-1}}
+ function pteraState(state,timer){boss.state=state;boss.timer=timer;boss.stateTime=0;/* Positions and velocities belong to the motion, not the state label. */}
+ function pteraTravel(state,x,y,seconds){const b=boss;b.startX=b.x;b.startY=b.y;b.endX=x;b.endY=y;b.travelDuration=seconds;pteraState(state,seconds)}
+ function pteraHuntHeight(){return clamp(player.y-45-(235+35*Math.sin(boss.elapsed*.85))+80,215,330)}
+ function pteraTakeoff(){const b=boss;b.huntSide=player.x>b.x?1:-1;b.huntClock=.7;pteraTravel('takeoff',clamp(player.x+clamp(player.vx*.35,-100,100)+b.huntSide*210,PTERA.flyMinX,PTERA.flyMaxX),pteraHuntHeight(),2)}
+ function pteraFlight(dt){
+  const b=boss,steps=Math.max(1,Math.ceil(dt/.008));
+  for(let i=0;i<steps;i++){
+   const h=dt/steps;b.huntClock=Math.max(0,b.huntClock-h);b.turnClock=Math.max(0,b.turnClock-h);
+   const lead=clamp(player.vx*.4,-115,115),offset=225+25*Math.sin(b.elapsed*.7),delta=player.x-b.x;
+   let target=clamp(player.x+lead+b.huntSide*offset,PTERA.flyMinX+65,PTERA.flyMaxX-65);
+   // Cross the prey's overhead lane, then bank into another pass. Never settle at a waypoint.
+   if(b.huntClock===0&&((target-b.x)*b.huntSide<55||b.x>PTERA.flyMaxX-105&&b.vx>0||b.x<PTERA.flyMinX+105&&b.vx<0)){
+    b.huntSide=Math.abs(delta)>340?Math.sign(delta):-b.huntSide;b.huntClock=.8;
+    target=clamp(player.x+lead+b.huntSide*offset,PTERA.flyMinX+65,PTERA.flyMaxX-65);
+   }
+   b.aimX=target;b.aimY=pteraHuntHeight();
+   const heading=Math.abs(delta)>340?Math.sign(delta):Math.abs(target-b.x)>35?Math.sign(target-b.x):b.huntSide;
+   const cruise=285+30*Math.sin(b.elapsed*.9),desired=heading*cruise;
+   // Braking distance turns the large body before the boundary; mouth reach is NOT clamped here.
+   const lo=-Math.sqrt(2*PTERA.accel*Math.max(0,b.x-PTERA.flyMinX)),hi=Math.sqrt(2*PTERA.accel*Math.max(0,PTERA.flyMaxX-b.x));
+   const oldVX=b.vx;b.vx+=clamp(clamp(desired,lo,hi)-b.vx,-PTERA.accel*h,PTERA.accel*h);
+   const oldVY=b.vy;b.vy+=clamp(clamp((b.aimY-b.y)*2.5,-105,105)-b.vy,-240*h,240*h);
+   b.x=clamp(b.x+(oldVX+b.vx)*.5*h,PTERA.flyMinX,PTERA.flyMaxX);b.y=clamp(b.y+(oldVY+b.vy)*.5*h,215,330);
+   if(Math.abs(b.vx)>90&&Math.sign(b.vx)!==b.dir&&b.turnClock===0){b.dir=Math.sign(b.vx);b.turnClock=.65}
+   b.face+=(b.dir-b.face)*(1-Math.exp(-h*9));
+   const lean=clamp(b.vx/3600+(b.vx-oldVX)/Math.max(h,.00001)/6500,-.13,.13);
+   b.bank+=(lean-b.bank)*(1-Math.exp(-h*5));
+  }
+ }
+ function pteraWalk(){boss.groundTime=0;boss.lungeClock=0;boss.lungeHit=false;pteraState('walk',7.5)}
+ function checkPteraPhases(){const next=boss.hp<=PTERA.laserHP?3:boss.hp<=PTERA.robotHP?2:1;if(next>boss.phase){boss.phase=next;boss.robot=next>=2;burst(boss.x,boss.y-70,36,'#9bdfff',220);message(next===2?'강철 날개의 각성':'푸른 숨결','날개 아래의 안전한 길을 찾아라',2)}}
+  function pteraLaserPose(){return ['laserTravel','laserTell','laser'].includes(boss.state)}
+  function pteraPose(){const b=boss,air=b.state==='fly'||b.state==='diveTell',a=air?b.bank:0;return{a,face:air?b.face:b.dir}}
+   function pteraMouth(){const b=boss,p=pteraPose(),roar=b.state==='meteorRoar',a=roar?-1.55:0,hx=roar?35+102*Math.cos(a)-(85-b.jawOffset)*Math.sin(a):137,hy=roar?-85+102*Math.sin(a)+(85-b.jawOffset)*Math.cos(a):-b.jawOffset,x=p.face*hx,y=68+hy;return{x:b.x+x*Math.cos(p.a)-y*Math.sin(p.a),y:b.y-68+x*Math.sin(p.a)+y*Math.cos(p.a)}}
+  // Keep the full-size torso inside the arena; the lowered jaw threatens grounded players.
+  function beginPteraLaser(dir){boss.dir=dir;pteraTravel('laserTravel',dir>0?1760:2525,FLOOR,2)}
+ function pteraMouthRect(){const m=pteraMouth();return{x:m.x-35,y:m.y-36,w:70,h:72}}
+ function pteraBodyRect(){return{x:boss.x-77,y:boss.y-125,w:144,h:114}}
+ function playerRect(){return{x:player.x-13,y:player.y-45,w:26,h:45}}
+ function hurtPtera(kind='body'){
+  if(player.inv>0||player.dash>0||boss.dead||stageCleared)return false;
+  const damage=kind==='swallow'?player.hp:1;player.hp=Math.max(0,player.hp-damage);damageTaken+=damage;player.inv=1.05;player.hurt=.25;player.vx=(player.x<boss.x?-1:1)*350;player.vy=-240;player.ground=false;player.jumps=Math.max(1,player.jumps);player.coyote=0;player.atk=0;flash=.13;shake=10;burst(player.x,player.y-25,18,C.red,190);
+  if(!player.hp){die();$('deathHint').textContent='벌어진 입은 삼켜 버린다. 예고 뒤 옆으로 피하고, 내려꽂힌 날개를 노려라.'}return true;
+ }
+  // Independent event clock: 18 predictive lanes + 12 stratified arena lanes.
+  // No Math.random dependency, no boss damage path, no changes to the boss cadence.
+  function beginMeteorEvent(){
+   if(stage!==3||boss.phase<2||boss.dead||stageCleared||meteorEvent?.active||meteors.length)return false;
+   meteorEvent={active:true,elapsed:0,duration:10,interval:1/3,total:30,spawned:0,targeted:0,coverage:0};return true;
+  }
+  function spawnMeteor(){
+   const e=meteorEvent,i=e.spawned++,targeted=i%5<3,k=Math.floor(i/5)*2+(i%5-3);
+   const offsets=[-82,38,106,-35,73,-112];
+   let x=targeted?player.x+clamp(player.vx*(.32+(i%3)*.09),-190,190)+offsets[i%6]:1555+((k*7)%12+.5)*1180/12;
+   x=clamp(x,1555,2730);let impactY=FLOOR;
+   for(const p of activePlatforms())if(x>=p.x&&x<=p.x+p.w)impactY=Math.min(impactY,p.y);
+   const warning=.16+(i%3)*.02,fall=.22+(i%4)*.02;
+   meteors.push({id:i,x,y:-40,impactY,age:0,warning,fall,impactAt:warning+fall,life:.15,hit:false,targeted});
+   e[targeted?'targeted':'coverage']++;
+  }
+  function advanceMeteors(dt){
+   for(const m of meteors){
+    const before=m.age;m.age+=dt;const oldY=m.y;m.y=lerp(-40,m.impactY,clamp((m.age-m.warning)/m.fall,0,1));
+    if(!m.hit&&m.age>=m.warning&&before<m.impactAt&&segmentRect(m.x,oldY,m.x,m.y,playerRect())){if(hurtPtera('meteor'))m.hit=true}
+    if(!m.hit&&m.age>=m.impactAt&&before<m.impactAt+m.life){const r=playerRect(),dx=m.x-clamp(m.x,r.x,r.x+r.w),dy=m.impactY-clamp(m.impactY,r.y,r.y+r.h);if(dx*dx+dy*dy<=40*40&&hurtPtera('meteor'))m.hit=true}
+    if(before<m.impactAt&&m.age>=m.impactAt){burst(m.x,m.impactY,10,'#ff7948',150);shake=Math.max(shake,3)}
+    if(mode!=='playing')break;
+   }
+   meteors=meteors.filter(m=>m.age<m.impactAt+m.life-1e-9);
+  }
+  function updateMeteors(dt){
+   if(stage!==3||!arena||boss.dead||stageCleared){clearMeteors();return}
+   if(mode!=='playing'||!meteorEvent)return;
+   const e=meteorEvent,end=Math.min(10,e.elapsed+dt);let cursor=e.elapsed;
+   // Advance to each scheduled instant before spawning; coarse and fine ticks agree.
+   while(e.spawned<30&&e.spawned/3<=end+1e-9){const due=e.spawned/3;advanceMeteors(Math.max(0,due-cursor));cursor=due;if(mode!=='playing')return;spawnMeteor()}
+   advanceMeteors(Math.max(0,dt-(cursor-e.elapsed)));e.elapsed=end;e.active=end<10-1e-9;
+  }
+ function pteraLaserRect(){const m=pteraMouth();return{x:boss.dir>0?m.x:1535,y:m.y-6,w:boss.dir>0?2750-m.x:m.x-1535,h:12}}
+ function pteraLaserHits(){return boss.state==='laser'&&overlap(playerRect(),pteraLaserRect())}
+  function pteraContacts(){if(!arena||boss.dead||mode!=='playing')return;const r=playerRect(),strike=boss.state==='walk'&&boss.lungeClock>=.45&&boss.lungeClock<.45+PTERA.lungeDuration;if(boss.state==='swoop'&&overlap(r,pteraMouthRect()))hurtPtera('swallow');if(mode!=='playing')return;if(strike&&!boss.lungeHit&&(overlap(r,pteraMouthRect())||overlap(r,pteraBodyRect()))){if(hurtPtera('beak'))boss.lungeHit=true}if(pteraLaserHits())hurtPtera('laser');if(!strike&&!['takeoff','laserTravel'].includes(boss.state)&&overlap(r,pteraBodyRect()))hurtPtera('body')}
+ function beginPteraDive(){
+  boss.dir=player.x<boss.x?-1:1;boss.targetX=clamp(player.x,1570,2720);boss.targetY=clamp(player.y-23,90,FLOOR-23);
+  boss.startX=boss.x;boss.startY=boss.y;boss.endX=boss.targetX-boss.dir*137;boss.diveProgress=0;boss.tellFace=boss.face;boss.tellBank=boss.bank;pteraState('diveTell',.6);tone(160,.4,'sawtooth',.04);
+ }
+ function pteraSpecial(){
+  const b=boss;
+   if(b.phase>=3&&b.cycle%2===0){b.laserSide*=-1;beginPteraLaser(b.laserSide===1?-1:1)}
+   else if(beginMeteorEvent())pteraState('meteorRoar',PTERA.roar);
+   else pteraTakeoff();
+ }
+ function updatePtera(dt){
+  const b=boss;if(!arena)return;if(b.dead){b.timer-=dt;if(!clearDismissed&&b.timer<=0&&mode==='playing'){mode='won';$('winStats').textContent=`${attempt}번째 도전 · ${durationLabel(runTime)} · 받은 피해 ${damageTaken}회`;layers('win')}return}
+   checkPteraPhases();updateMeteors(dt);if(mode!=='playing')return;b.hit=Math.max(0,b.hit-dt);b.elapsed+=dt;
+  if(b.state==='swoop'){
+   // Substeps sweep the actual mouth, not the wings; a fast dive cannot tunnel through a player.
+   const travel=Math.min(dt,Math.max(0,b.timer)),steps=Math.max(1,Math.ceil(travel/.008));
+   for(let i=0;i<steps;i++){b.diveProgress=clamp(b.diveProgress+travel/steps/PTERA.swoopDuration,0,1);const q=b.diveProgress;b.x=q<=.72?lerp(b.startX,b.endX,q/.72):b.endX+b.dir*90*(q-.72)/.28;const mouthY=q<=.72?lerp(b.startY-67,b.targetY,q/.72):lerp(b.targetY,FLOOR-67,(q-.72)/.28);b.y=mouthY+67;pteraContacts();if(mode!=='playing')break}
+   b.timer-=dt;if(b.timer<=1e-8){b.y=FLOOR;pteraState('stuck',2);burst(b.x,FLOOR,35,C.mist,220);shake=10}return;
+  }
+  const used=Math.min(dt,Math.max(0,b.timer));b.timer-=dt;b.stateTime+=used;
+  b.jawOffset+=clamp((pteraLaserPose()?35:67)-b.jawOffset,-64*used,64*used);
+   if(['takeoff','laserTravel'].includes(b.state)){const q=clamp(b.stateTime/b.travelDuration,0,1),s=q*q*(3-2*q),rate=6*q*(1-q)/b.travelDuration;b.x=lerp(b.startX,b.endX,s);b.y=lerp(b.startY,b.endY,s);b.vx=(b.endX-b.startX)*rate;b.vy=(b.endY-b.startY)*rate;b.face=b.dir;b.bank*=Math.exp(-used*5);b.laserY=pteraMouth().y;if(b.timer<=1e-8){if(b.state==='takeoff'){b.flyY=b.y;pteraState('fly',4)}else pteraState('laserTell',1)}return}
+  if(b.state==='fly'){pteraFlight(used);if(b.timer<=1e-8)beginPteraDive();return}
+  if(b.state==='diveTell'){const q=clamp(b.stateTime/.6,0,1),s=q*q*(3-2*q);b.face=lerp(b.tellFace??b.dir,b.dir,s);b.bank=(b.tellBank||0)*(1-s);if(b.timer<=1e-8)pteraState('swoop',PTERA.swoopDuration);return}
+  if(b.state==='stuck'){if(b.timer<=1e-8)pteraWalk();return}
+  if(b.state==='walk'){
+   // Each two-second beat locks the beak aim: .45 tell, .20 strike, .7 recovery, .65 pursuit.
+   let remaining=used;while(remaining>1e-9){const c=b.lungeClock;if(c<1e-9){b.dir=player.x<b.x?-1:1;b.lungeTarget=player.x;b.lungeStart=b.x;b.lungeEnd=b.x+b.dir*Math.min(PTERA.lungeDistance,Math.max(0,Math.abs(player.x-b.x)-137));b.lungeHit=false}
+    const strikeEnd=.45+PTERA.lungeDuration,boundary=c<.45?.45:c<strikeEnd?strikeEnd:c<1.35?1.35:2,h=Math.min(remaining,boundary-c);b.lungeClock=c+h;b.groundTime+=h;
+    if(c<.45){/* Hold the locked aim visibly before committing. */}
+    else if(c<strikeEnd){b.x=lerp(b.lungeStart,b.lungeEnd,clamp((b.lungeClock-.45)/PTERA.lungeDuration,0,1));pteraContacts()}
+    else{b.dir=player.x<b.x?-1:1;b.x+=b.dir*Math.min(PTERA.walkSpeed*h,Math.abs(player.x-b.x))}
+    if(b.lungeClock>=2-1e-9)b.lungeClock=0;remaining-=h;
+   }if(b.timer<=1e-8){b.cycle++;if(b.phase>=2)pteraSpecial();else pteraTakeoff()}return}
+   if(b.state==='meteorRoar'){if(b.timer<=1e-8)pteraTakeoff();return}
+  if(b.state==='laserTell'){b.laserY=pteraMouth().y;if(b.timer<=1e-8){b.laserTime=0;pteraState('laser',6)}return}
+   if(b.state==='laser'){b.laserTime=b.stateTime;const q=clamp(b.laserTime/6,0,1);b.y=FLOOR-(FLOOR-120)*Math.sin(Math.PI*q)**2;b.laserY=pteraMouth().y;if(b.timer<=1e-8)pteraTakeoff()}
+ }
+ function updateBoss(dt){
+  if(stage===3){updatePtera(dt);return}
+ if(stage===2){updateRaptors(dt);return}
+  if(!arena||boss.dead){if(boss.dead){boss.timer-=dt;if(!clearDismissed&&boss.timer<=0&&mode==='playing'){mode='won';$('winStats').textContent=`${attempt}번째 도전 · ${Math.floor(runTime/60)}분 ${Math.floor(runTime%60)}초 · 받은 피해 ${damageTaken}회`;layers('win')}}return}
+ boss.hit=Math.max(0,boss.hit-dt);
+ const next=boss.hp<=boss.max/3?3:boss.hp<=boss.max*2/3?2:1;
+ if(next>boss.phase&&boss.state!=='transform'){boss.phase=next;boss.vx=0;boss.laserTime=0;boss.laserDelay=-1;boss.kick=0;boss.transform=1.9;setState('transform',1.9);boss.elapsed=0;boss.guardAt=9;boss.diveAt=DIVE_INTERVAL;shake=12;burst(boss.x,FLOOR-70,45,C.gold,320);noise(.5,.12);message(next===2?'강철의 각성':'폭주하는 거인',next===2?'두 발로 일어선 뿔':'방어를 버린 포식자',2.3);return}
+ boss.timer-=dt;
+ if(boss.state==='transform'){boss.transform=Math.max(0,boss.timer);if(boss.timer<=0)setState('walk',.6);return}
+ boss.elapsed+=dt;
+ updateLaser(dt);
+ // 방어는 각 단계 시작 후 9초 주기. 3단계에는 발동하지 않는다.
+ if(boss.phase<3&&boss.elapsed>=boss.guardAt){boss.guardAt+=9;boss.vx=0;setState('guard',1);tone(240,.3,'triangle');burst(boss.x,FLOOR-50,10,'#a8e2df',90);return}
+ if(boss.state==='guard'){if(boss.timer<=0)setState('recover',.25);return}
+ if(boss.state==='tell'){
+  if(boss.timer<=0){boss.dir=player.x<boss.x?-1:1;boss.vx=boss.dir*1080;setState('charge',.9);shake=5;noise(.16,.1)}return;
+ }
+ if(boss.state==='diveTell'){
+  if(boss.timer<=0){boss.dir=player.x<boss.x?-1:1;boss.vx=boss.dir*(boss.phase===3?1200:940);setState('dive',.95);shake=5;noise(.2,.13)}return;
+ }
+ if(boss.state==='charge'||boss.state==='dive'){
+  boss.x+=boss.vx*dt;
+  if(Math.random()<.7)burst(boss.x-boss.dir*60,FLOOR-5,2,C.mist,120);
+  if(boss.x<1595||boss.x>2675||boss.timer<=0){const wasDive=boss.state==='dive';boss.x=clamp(boss.x,1595,2675);boss.vx=0;setState('recover',boss.phase===1?1.05:1.25);if(wasDive&&boss.phase>=2)boss.laserDelay=2;shake=9;burst(boss.x,FLOOR-35,16,C.gold,220);noise(.24,.1);boss.chargeCD=2.2}return;
+ }
+ if(boss.state==='recover'){if(boss.timer<=0)setState('walk',0);return}
+ if(boss.phase>=2&&boss.elapsed>=boss.diveAt){boss.diveAt+=DIVE_INTERVAL;boss.dir=player.x<boss.x?-1:1;setState('diveTell',.75);tone(170,.3,'sawtooth',.035);return}
+ boss.dir=player.x<boss.x?-1:1;
+ if(boss.phase===1){boss.chargeCD-=dt;if(boss.chargeCD<=0){setState('tell',1);tone(160,.35,'triangle');return}}
+ const dist=Math.abs(player.x-boss.x),speed=boss.phase===3?158:boss.phase===2?82:62;
+ // 접촉 판정 안까지 추격한다. 양끝에서도 플레이어에게 발차기가 닿아야 한다.
+ if(dist>36)boss.x+=boss.dir*Math.min(speed*dt,dist-36);
+ boss.x=clamp(boss.x,1560,2725);
+}
+function throwSpear(){if(spear||player.dash>0||player.hurt>0)return false;const p=player;spear={x:p.x+p.dir*26,y:p.y-34,vx:p.dir*760,vy:-330,angle:p.dir>0?-.4:Math.PI+.4,state:'flying',age:0,wallTime:0,hit:false,hits:new Set()};p.atk=0;p.atkCD=Math.max(.2,p.atkCD);noise(.1,.03);tone(400,.1,'triangle',.04);return true}
+function segmentRect(x,y,ex,ey,r){let lo=0,hi=1;for(const [start,delta,min,max]of [[x,ex-x,r.x-9,r.x+r.w+9],[y,ey-y,r.y-9,r.y+r.h+9]]){if(Math.abs(delta)<.00001){if(start<min||start>max)return false}else{let a=(min-start)/delta,b=(max-start)/delta;if(a>b)[a,b]=[b,a];lo=Math.max(lo,a);hi=Math.min(hi,b);if(lo>hi)return false}}return true}
+function updateSpear(dt){if(!spear)return;const s=spear;s.age+=dt;
+ if(s.state==='stuck'){s.wallTime-=dt;if(s.wallTime<=0){s.state='falling';s.vx=0;s.vy=0}}
+ if(s.state==='flying'||s.state==='falling'){const ox=s.x,oy=s.y;s.vy+=650*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;if(s.state==='flying')s.angle=Math.atan2(s.vy,s.vx);else s.angle=lerp(s.angle,Math.PI/2,Math.min(1,dt*5));
+   if(stage===2&&arena){for(const r of raptors)if(!r.dead&&!s.hits.has(r.id)&&segmentRect(ox,oy,s.x,s.y,raptorRect(r))){s.hits.add(r.id);damageRaptor(r,60)}}
+  else if(!s.hit&&arena&&!boss.dead&&segmentRect(ox,oy,s.x,s.y,bossRect())){s.hit=true;if(boss.state==='guard'||boss.state==='transform'){burst(s.x,s.y,14,'#b4ecec',160);tone(830,.17,'triangle')}else{boss.hp=Math.max(0,boss.hp-60);boss.hit=.16;hitstop=.05;shake=8;burst(s.x,s.y,26,C.gold,270);noise(.15,.08);if(boss.hp<=0)victory()}}
+  const left=arena?1535:35,right=2750;if(s.state==='flying'&&(s.x<=left||s.x>=right)){s.x=clamp(s.x,left+7,right-7);s.vx=0;s.vy=0;s.state='stuck';s.wallTime=3;burst(s.x,s.y,12,C.gold,120);noise(.12,.04)}
+   let floor=FLOOR-7;for(const p of activePlatforms())if(s.vy>=0&&oy<=p.y-5&&s.y>=p.y-5&&s.x>=p.x&&s.x<=p.x+p.w)floor=Math.min(floor,p.y-7);
+  if(s.y>=floor){s.y=floor;s.vx=0;s.vy=0;s.state='ground';s.angle=-.1}}
+ if((s.state==='ground'||s.state==='stuck')&&s.age>.35&&Math.hypot(player.x-s.x,player.y-23-s.y)<48){burst(s.x,s.y,9,C.gold,85);tone(660,.13,'triangle',.04);spear=null}
+}
+function updatePlayer(dt){
+  const p=player;
+  p.dropTime=Math.max(0,(p.dropTime||0)-dt);
+  if(press.drop&&p.ground&&p.y<FLOOR){p.dropTime=.24;p.y+=5;p.vy=80;p.ground=false;p.coyote=0;p.jumps=Math.max(1,p.jumps)}
+ p.inv=Math.max(0,p.inv-dt);p.hurt=Math.max(0,p.hurt-dt);p.atk=Math.max(0,p.atk-dt);p.atkCD=Math.max(0,p.atkCD-dt);p.dashCD=Math.max(0,p.dashCD-dt);
+ if(press.jump)p.jumpBuffer=.13;else p.jumpBuffer=Math.max(0,p.jumpBuffer-dt);
+ if(p.ground)p.coyote=.1;else p.coyote=Math.max(0,p.coyote-dt);
+ if(p.jumpBuffer>0&&(p.coyote>0||p.jumps<2)&&p.dash<=0&&p.hurt<=0){if(p.coyote<=0&&p.jumps===0)p.jumps=1;p.vy=p.jumps===0?-600:-550;p.jumps++;p.ground=false;p.coyote=0;p.jumpBuffer=0;tone(p.jumps===2?580:360,.12,'triangle',.035);burst(p.x,p.y,10,p.jumps===2?C.gold:C.mist,100)}
+ if(press.dash&&p.dashCD<=0&&p.hurt<=0){p.dash=.17;p.dashCD=.7;p.inv=Math.max(p.inv,.22);p.vy=0;tone(180,.15,'triangle',.05);noise(.08,.025)}
+ const axis=(keys.right?1:0)-(keys.left?1:0);
+ if(p.dash>0){p.dash-=dt;p.vx=p.dir*850;p.vy=0;afterimages.push({x:p.x,y:p.y,dir:p.dir,life:.2})}
+ else{if(p.hurt<=0){p.vx=lerp(p.vx,axis*290,Math.min(1,dt*(axis?24:19)));if(axis)p.dir=axis}p.vy=Math.min(920,p.vy+1650*dt)}
+ const prev=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.ground=false;
+ if(p.y>=FLOOR){p.y=FLOOR;p.vy=0;p.ground=true;p.jumps=0}
+  if(p.dropTime<=0)for(const f of activePlatforms()){if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0}}
+  p.x=clamp(p.x,arena?1535:35,stageCleared?worldEnd()-30:2750);
+  if(!checkpoint&&p.x>1400){checkpoint=true;message('불씨를 기억했다','체력이 회복되었습니다',2.3);p.hp=p.max;if(progress){progress.checkpoint='camp';saveProgress()}tone(660,.4,'triangle')}
+   if(!arena&&p.x>1660){arena=true;checkpoint=true;boss.elapsed=0;boss.guardAt=9;boss.chargeCD=1.5;p.hp=p.max;message(stage===3?'프테라노돈':stage===2?'울림의 동굴':'트리케라톱스',stage===3?'큰 입이 열리면, 옆으로 피하라':stage===2?'어둠 속 발톱이 깨어난다':'계곡의 문지기',3);tone(90,.8,'sawtooth',.07)}
+   if(stageCleared&&clearDismissed){if(stage<3&&p.x>2890&&progress.checkpoint!=='passage'){progress.checkpoint='passage';saveProgress();message(stage===1?'물소리가 흐르는 길':'하늘로 열린 길',stage===1?'고사리 사이로 동굴의 숨결이 닿는다':'절벽 너머로 구름과 바람이 흐른다',3)}if(stage<3&&p.x>3600){const next=stage+1;progress.stage=next;progress.checkpoint='entry';enterRegion(next);saveProgress();return}if(stage===3&&p.x>3170&&progress.checkpoint!=='ending'){progress.checkpoint='ending';saveProgress();message('잠시, 고요 속에서','날개 소리가 멎고, 바람만이 길을 어루만진다.',6)}}
+ if(press.throw)throwSpear();
+ if(!spear&&(keys.attack||press.attack)&&p.atkCD<=0&&p.dash<=0&&p.hurt<=0){p.atk=.18;p.atkCD=.3;p.attackHit=false;p.attackHits=new Set();tone(530,.07,'triangle',.022);noise(.055,.018)}
+  if(stage===2){if(arena&&!spear&&p.atk>0){const rect={x:p.dir>0?p.x+4:p.x-139,y:p.y-55,w:135,h:48};for(const r of raptors)if(!r.dead&&!p.attackHits.has(r.id)&&overlap(rect,raptorRect(r))){p.attackHits.add(r.id);damageRaptor(r,10)}}for(const r of raptors)if(arena&&mode==='playing'&&!r.dead&&!['upgrade','emerge'].includes(r.state)&&overlap({x:p.x-13,y:p.y-45,w:26,h:45},raptorRect(r)))hurtRaptor(r)}
+ else{
+ if(!spear&&p.atk>0&&!p.attackHit&&arena&&!boss.dead){const rect={x:p.dir>0?p.x+4:p.x-139,y:p.y-55,w:135,h:48};if(overlap(rect,bossRect())){p.attackHit=true;if(boss.state==='guard'||boss.state==='transform'){burst(p.x+p.dir*100,p.y-35,12,'#b4ecec',180);tone(830,.17,'triangle');shake=3}else{boss.hp=Math.max(0,boss.hp-10);boss.hit=.12;hitstop=.035;shake=4;burst(clamp(p.x+p.dir*110,boss.x-65,boss.x+65),p.y-30,14,C.gold,220);noise(.09,.055);if(boss.hp<=0)victory()}}}
+  if(stage===3)pteraContacts();
+  else{if(arena&&!boss.dead&&boss.state!=='transform'&&overlap({x:p.x-13,y:p.y-45,w:26,h:45},bossRect()))hurt();
+  if(mode==='playing'&&arena&&!boss.dead&&laserHitsPlayer())hurt('laser');}}
+}
+function update(dt){if(!['playing','cutscene','title'].includes(mode))return;time+=dt;shake=Math.max(0,shake-dt*24);flash=Math.max(0,flash-dt);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=520*dt}particles=particles.filter(p=>p.life>0);for(const a of afterimages)a.life-=dt;afterimages=afterimages.filter(a=>a.life>0);for(const t of texts)t.life-=dt;texts=texts.filter(t=>t.life>0);
+ if(mode==='cutscene'){updateIntro(dt);return}
+ if(mode!=='playing')return;
+ runTime+=dt;if(hitstop>0){hitstop-=dt;return}updateBoss(dt);if(mode==='playing'){updatePlayer(dt);if(mode==='playing')updateSpear(dt)}
+  const target=arena&&!stageCleared?1500:clamp(player.x-410,0,worldEnd()-W);cam=lerp(cam,target,Math.min(1,dt*6));press={};}
+// ── 绘制：自绘矢量，不依赖外部素材 ──
+function path(points,fill,stroke=null,lw=1){g.beginPath();points.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw;g.stroke()}}
+function ellipse(x,y,rx,ry,color){g.fillStyle=color;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()}
+function line(points,color,width=2){g.strokeStyle=color;g.lineWidth=width;g.beginPath();points.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke()}
+function glow(x,y,r,color){const grad=g.createRadialGradient(x,y,0,x,y,r);grad.addColorStop(0,color);grad.addColorStop(1,'transparent');g.fillStyle=grad;g.fillRect(x-r,y-r,r*2,r*2)}
+function fern(x,y,s,flip=1,col=C.leaf){g.save();g.translate(x,y);g.scale(s*flip,s);line([[0,0],[-5,-37],[9,-89]],col,3);for(let i=0;i<6;i++){const yy=-12-i*11,xx=-4+i*1.8;path([[xx,yy],[xx-30+i*2,yy-13],[xx-8,yy-5]],col);path([[xx,yy],[xx+29-i*2,yy-17],[xx+7,yy-7]],col)}g.restore()}
+function background(){
+ if(stage===3){const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#24475e');sky.addColorStop(.65,'#87aeb7');sky.addColorStop(1,'#d1d6ba');g.fillStyle=sky;g.fillRect(0,0,W,H);glow(980-cam*.05,130,250,'#f3e5b855');for(let i=-1;i<9;i++){const x=i*310-cam*.22;path([[x,720],[x+45,260+(i%3)*80],[x+100,210+(i%3)*80],[x+175,720]],'#496b7c');path([[x+45,260+(i%3)*80],[x+100,210+(i%3)*80],[x+92,720],[x+65,720]],'#73909a')}for(let i=0;i<7;i++){const x=((i*260-cam*.12+time*9)%1700+1700)%1700-240;ellipse(x,180+i%3*80,160,17,'#e2ebe548')}return}
+ let sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#0b1723');sky.addColorStop(.5,'#28434b');sky.addColorStop(1,'#18363b');g.fillStyle=sky;g.fillRect(0,0,W,H);
+ glow(830-cam*.07,180,410,'#99c3be26');
+ // 古老岩柱与断层。
+ for(let i=-1;i<9;i++){let x=i*270-cam*.17;path([[x,0],[x+100,0],[x+84,174],[x+116,280],[x+74,530],[x-15,610],[x+14,300],[x-5,160]],'#142b35');line([[x+38,0],[x+27,270],[x+40,402]],'#34525855',3)}
+ for(let i=0;i<7;i++){let x=i*345-cam*.33;path([[x-70,602],[x+5,354],[x+88,295],[x+128,357],[x+208,602]],'#203b43');path([[x+88,295],[x+128,357],[x+160,510],[x+110,413]],'#2b4950');fern(x+75,378,1.2,1,'#294b4c')}
+ // 骨架轮廓。
+ g.save();g.translate(795-cam*.43,444);g.globalAlpha=.18;for(let i=0;i<9;i++){g.strokeStyle=C.mist;g.lineWidth=7;g.beginPath();g.ellipse(i*29,25,32,68,0,Math.PI,Math.PI*2);g.stroke()}line([[-40,14],[270,14]],C.mist,9);g.restore();
+ for(const d of decor){let x=((d.x-cam*.26)%1400+1400)%1400-60;ellipse(x,d.y+Math.sin(time*d.s+d.x)*9,d.r*.6,d.r*.6,'#cae3d53a')}
+ const fog=g.createLinearGradient(0,360,0,630);fog.addColorStop(0,'#9ecac300');fog.addColorStop(1,'#82b9af12');g.fillStyle=fog;g.fillRect(0,360,W,270);
+}
+function ground(){
+ g.fillStyle='#101f27';g.fillRect(-100,FLOOR,3900,180);path([[-80,FLOOR],[3800,FLOOR],[3800,FLOOR+15],[-80,FLOOR+26]],'#61716a');
+ for(let i=0;i<66;i++){const x=i*46;path([[x,FLOOR+8],[x+24,FLOOR+5],[x+38,FLOOR+34],[x+19,FLOOR+70],[x-5,FLOOR+45]],i%3===0?'#24383a':'#1b2d33');line([[x+22,FLOOR+7],[x+14,FLOOR+23]],'#7b87734c')}
+ for(let i=0;i<40;i++){const x=i*78+20;path([[x,FLOOR],[x+4,FLOOR-9],[x+8,FLOOR-3],[x+13,FLOOR-12],[x+14,FLOOR]],'#67836b')}
+  for(const p of activePlatforms()){path([[p.x,p.y],[p.x+p.w,p.y],[p.x+p.w-13,p.y+22],[p.x+p.w*.66,p.y+34],[p.x+13,p.y+23]],stage===3?'#55737f':'#263e40');line([[p.x,p.y],[p.x+p.w,p.y]],stage===3?'#d1dbc7':'#8a977b',4);fern(p.x+30,p.y, .52,1,'#66846a')}
+ for(const x of [45,327,589,1030,1330,1780,2735])fern(x,FLOOR, .65+(x%7)/10,x%2?-1:1);
+ // 竞技场石门。
+ for(const x of [1505,2770]){path([[x-30,FLOOR],[x-25,286],[x+10,263],[x+30,365],[x+24,FLOOR]],'#152a31');line([[x-10,305],[x-6,550]],'#43616a',3);if(arena&&(stage===2?!stageCleared:!boss.dead)){glow(x,460,95,'#e6a35f22');for(let j=0;j<7;j++){let yy=328+j*38;line([[x-11,yy],[x+7,yy+11],[x-6,yy+25]],'#d2b98e88',2)}}}
+  if(stage===2){for(let i=0;i<18;i++){const x=90+i*160;path([[x,120+(i%3)*30],[x+65,130],[x+28,260+(i%3)*39]],'#132c36');if(x<1450){fern(x+70,FLOOR,.7,-1,'#44675d');glow(x+35,FLOOR-12,70,'#7baca217');ellipse(x+30,FLOOR-4,48,4,'#8cb3b522')}}if(howlRemaining>0){glow(2760,490,160,'#9fe9df55');line([[2755,360],[2740,420],[2763,460],[2742,520],[2756,600]],'#c2f5e1',3)}}
+   if(stageCleared){for(let i=0;i<9;i++){const x=2830+i*94;fern(x,FLOOR,1+(i%3)*.2,i%2?1:-1,'#355a52');ellipse(x+28,FLOOR+4,42,3,'#89b1ac44')}glow(stage<3?3600:3340,400,240,'#8cbfb42c');if(stage<3){line([[3060,170],[3065,578]],'#abcfc31f',10);line([[3070,175],[3075,579]],'#abcfc327',2)}else{g.fillStyle='#e1e8d7';g.font='18px Batang, serif';g.textAlign='center';g.fillText('이곳에서, 잠시 숨을 고른다.',3270,435);g.font='12px sans-serif';g.fillText('날개 소리가 멎고, 바람만이 남았다.',3270,466)}}
+  if(stage===3&&!arena){g.fillStyle='#d8e5da';g.font='17px Batang, serif';g.textAlign='center';g.fillText('바람의 하늘 절벽',820,320);g.font='12px sans-serif';g.fillText('절벽의 불씨 너머, 거대한 날개가 기다린다.',820,347)}
+  drawFire(1430,FLOOR);if(!arena&&player.x>1040){g.fillStyle='#a9c8bc';g.font='13px sans-serif';g.textAlign='center';g.fillText('모닥불 · 다시 일어설 자리',1430,522)}
+ // 地面刻痕。
+ g.strokeStyle='#68858533';g.lineWidth=1;g.beginPath();g.ellipse(2150,FLOOR+17,370,19,0,0,Math.PI*2);g.stroke();
+}
+function drawFire(x,y){glow(x,y-25,100,'#f9aa4736');line([[x-20,y-2],[x+20,y-9]],'#665041',8);line([[x-15,y-10],[x+16,y]],'#8b674c',6);for(let i=0;i<4;i++){const t=time*7+i;path([[x-12+i*5,y-6],[x-9+i*6+Math.sin(t)*5,y-35-Math.sin(t+1)*10],[x+8+i*2,y-7]],i%2?'#ffe6a0':'#dd9953')}for(let i=0;i<5;i++){let q=(time*.5+i*.2)%1;ellipse(x+Math.sin(i*4+time)*14,y-20-q*65,1.3*(1-q),2*(1-q),'#f6c47e')}}
+function drawPlayer(p,alpha=1){g.save();g.translate(p.x,p.y);g.scale(p.dir,1);g.globalAlpha=alpha*(p.inv>0&&Math.sin(time*65)<-.2?.35:1);
+ ellipse(0,2,22,5,'#0005');
+ let stride=p.ground&&Math.abs(p.vx)>30?Math.sin(time*17)*8:0;
+ line([[-6,-17],[-8+stride,-3]],'#b98a63',7);line([[6,-17],[9-stride,-3]],'#e4bc8b',7);
+ path([[-13,-32],[9,-34],[16,-15],[-15,-15]],'#ad7b47','#3b2e2d',2);path([[-12,-31],[-3,-33],[7,-16],[-3,-19],[-8,-14]],'#dec38d');
+ ellipse(0,-42,12,13,'#e9c191');ellipse(9,-42,5,5,'#e5b887');
+ ellipse(-2,-48,10,8,'#efcca1');ellipse(-5,-51,4,2,'#fae1bc');
+ ellipse(8,-44,1.5,1.8,'#152a32');
+ const atk=p.atk>0,extension=atk?37:0;
+ line([[-5,-29],[10,-27],[20+extension,-31]],'#e3b686',6);
+ if(!p.unarmed&&!spear){g.save();g.translate(19+extension,-30);g.rotate(atk?0:-.22);
+ line([[-28,0],[64,0]],'#9f8156',4);line([[15,-2],[57,-2]],'#ddbd83',1);
+ path([[60,-7],[80,0],[60,6],[64,0]],'#def2e7','#517d7e',1);
+ for(let j=0;j<4;j++)line([[51+j*2,-3],[53+j*2,3]],'#d9d2ad',1);g.restore()}
+ if(atk){g.strokeStyle='#e7f5dfaa';g.lineWidth=3;g.beginPath();g.ellipse(81,-31,63,26,0,-.7,.7);g.stroke();line([[72,-31],[134,-31]],'#e6f5dfaa',2)}
+ g.restore()}
+function drawMeteors(){
+ for(const m of meteors){g.save();
+  if(m.age<m.impactAt){
+   // A short sky lane, not an opaque full-height column; marker sits on the actual first surface.
+   g.setLineDash([5,6]);line([[m.x,14],[m.x,96]],'#ff8247',3);g.setLineDash([]);
+   path([[m.x-7,17],[m.x+7,17],[m.x,29]],'#ffe0a4');
+   ellipse(m.x,m.impactY-2,40,6,'#451f27');g.strokeStyle='#ffb360';g.lineWidth=3;g.beginPath();g.ellipse(m.x,m.impactY-3,40,7,0,0,Math.PI*2);g.stroke();
+   const q=clamp(m.age/m.impactAt,0,1);line([[m.x-36,m.impactY-3],[m.x-36+72*q,m.impactY-3]],'#ffe0a4',3);
+   if(m.age>=m.warning){line([[m.x,m.y-88],[m.x,m.y]],'#e5443066',22);line([[m.x,m.y-60],[m.x,m.y]],'#ff713c',10);ellipse(m.x,m.y,12,16,'#59292b');path([[m.x-9,m.y-9],[m.x+5,m.y-14],[m.x+11,m.y+4],[m.x-1,m.y+13]],'#ffbb69','#ff6038',2)}
+  }else{g.globalAlpha=clamp(1-(m.age-m.impactAt)/m.life,0,1);ellipse(m.x,m.impactY-4,40,17,'#ff683b88');line([[m.x-28,m.impactY],[m.x-16,m.impactY-24],[m.x,m.impactY-10],[m.x+18,m.impactY-27],[m.x+32,m.impactY]],'#ffd095',3)}
+  g.restore();
+ }
+}
+function drawPtera(){
+  const b=boss;if(!arena&&!stageCleared)return;const m=pteraMouth(),beak=b.state==='walk'&&b.lungeClock<.45+PTERA.lungeDuration,open=beak||['diveTell','swoop','laserTell','laser','meteorRoar'].includes(b.state),robot=b.robot;
+  const pose=pteraPose(),air=['fly','takeoff','laserTravel','laser','diveTell','swoop'].includes(b.state),altitude=clamp((FLOOR-b.y)/410,0,1),wash=air?1-altitude:0;
+ // The shadow stays on the floor, spreading and fading with altitude, not following the sprite in midair.
+ g.save();g.globalAlpha=b.dead?.1:1;ellipse(b.x,FLOOR+3,110+altitude*100,8+altitude*10,`rgba(13,25,35,${.42-altitude*.14})`);ellipse(b.x,FLOOR+1,70+altitude*75,5+altitude*6,`rgba(13,25,35,${.2-altitude*.08})`);
+ if(wash>.12){for(let i=0;i<5;i++){const q=(time*1.4+i*.2)%1,side=i%2?1:-1;ellipse(b.x+side*(40+q*160),FLOOR-5-q*13,18+q*30,3+q*3,`rgba(196,202,184,${wash*(1-q)*.16})`)}}g.restore();
+ g.save();g.translate(b.x,b.y-68);g.rotate(pose.a);g.translate(0,68);g.scale(pose.face,1);if(b.dead)g.globalAlpha=.25;
+  const laserPose=pteraLaserPose(),stroke=air?Math.sin(time*7.6):0,skin=robot?'#829cae':'#bc936d',membrane=robot?'#355f7c':'#695c72';
+ // Featherless patagium: bent arm, elongated fourth finger, tension folds and wrist claws.
+ // Modest span, but a full shoulder/elbow/wrist/finger stroke with lagging membrane tension.
+ g.save();g.translate(0,-67);g.scale(.82,.82);g.translate(0,67);
+ for(const side of [-1,1]){const asym=side*b.bank*100,wrist=laserPose?85:127+stroke*15,ceiling=Math.min(160,Math.max(65,(b.y-140)/.82)),wy=laserPose?-82:Math.max(-ceiling,-117-stroke*36+asym),tip=laserPose?190:310+Math.cos(time*7.6-.5)*25,ty=laserPose?-45:Math.max(-ceiling,-62-Math.sin(time*7.6-.6)*68+asym),heel=laserPose?130:184+stroke*13,elbowY=laserPose?-90:-91-stroke*17;
+  g.beginPath();g.moveTo(0,-78);g.bezierCurveTo(side*34,-90,side*73,elbowY,side*wrist,wy);g.bezierCurveTo(side*(wrist+40),wy-5,side*(tip-42),ty-9,side*tip,ty);g.bezierCurveTo(side*(tip-56),ty+16,side*(heel+34),-19+stroke*18,side*heel,-32+stroke*10);g.quadraticCurveTo(side*98,-68,side*40,-42);g.quadraticCurveTo(side*12,-32,0,-48);g.closePath();g.fillStyle=membrane;g.fill();g.strokeStyle='#233e51';g.lineWidth=4;g.stroke();
+  g.beginPath();g.moveTo(0,-67);g.quadraticCurveTo(side*59,elbowY,side*wrist,wy);g.quadraticCurveTo(side*(tip-65),ty-9,side*tip,ty);g.strokeStyle=skin;g.lineWidth=7;g.stroke();ellipse(side*wrist,wy,7,7,skin);
+  for(const [x,y]of [[heel,-32],[85,-51],[40,-42]]){g.beginPath();g.moveTo(side*wrist,wy);g.quadraticCurveTo(side*((wrist+x)/2),y-28,side*x,y);g.strokeStyle=robot?'#b6dae588':'#c6aa8b66';g.lineWidth=2;g.stroke()}
+  for(let i=0;i<3;i++)line([[side*wrist,wy],[side*(wrist+8+i*6),wy-12+i*3],[side*(wrist+4+i*6),wy-16+i*3]],'#dbc7a1',2);
+  if(robot){line([[side*45,-70],[side*wrist,wy+14],[side*(tip-45),ty+5]],'#80dcff',3);ellipse(side*wrist,wy,5,5,'#b2f4ff')}
+ }g.restore();
+  const breath=air?Math.sin(time*7.6-.3)*1.6:Math.sin(time*2)*1.2;
+  ellipse(-5,-68+breath,72,57,skin);ellipse(16,-62+breath,44,38,robot?'#9bb3bd':'#cda27a');path(laserPose?[[12,-80],[-70,-85],[62,-87],[91,-65]]:air?[[12,-100],[-79,-130],[62,-119],[91,-97]]:[[12,-100],[-79,-176],[62,-127],[98,-97]],robot?'#acc3cd':'#d4b18a','#233e51',3);
+ line([[-26,-40],[-40,-13],[-16,-2]],skin,10);line([[21,-38],[38,-14],[64,-2]],skin,10);
+  // Enlarge only the head around its mouth anchor; attack geometry keeps the same visible throat center.
+   g.save();if(b.state==='meteorRoar'){g.translate(35,-85);g.rotate(-1.55);g.translate(-35,85)}g.translate(137,-b.jawOffset);g.scale(1.18,1.18);g.translate(-137,67);
+  g.beginPath();g.moveTo(2,-61);g.bezierCurveTo(22,-66,20,-106,54,-108);g.quadraticCurveTo(80,-101,69,-80);g.quadraticCurveTo(41,-64,28,-42);g.fillStyle=skin;g.fill();g.strokeStyle='#233e51';g.lineWidth=3;g.stroke();
+  path([[30,-103],[82,-112],[176,-86],[112,-70],[45,-60]],skin,'#233e51',3);
+ if(open){path([[72,-78],[172,-86],[143,-32],[68,-32]],'#151e31','#dbc7a1',3);path([[68,-32],[143,-32],[167,-21],[72,-19]],skin,'#233e51',3)}else line([[84,-65],[170,-84]],'#26384a',4);
+ ellipse(72,-94,7,6,'#142637');ellipse(74,-95,3,3,robot?'#8ce9ff':'#ffe1a0');
+  if(robot)line([[92,-104],[151,-89]],'#8ce9ff',4);g.restore();
+  if(robot){path([[-40,-91],[3,laserPose?-96:-112],[37,-85],[30,-40],[-26,-35]],'#486b86','#c8d9d8',3);ellipse(0,-69,15,15,'#152d45');ellipse(0,-69,8,8,'#8fe8ff')}
+ if(b.state==='stuck'){line([[105,-6],[140,0],[158,-8]],C.gold,3);ellipse(145,-15,20,7,'#e9c88b55')}
+ if(b.hit>0)glow(0,-70,90,'#fff3cd88');g.restore();
+  if(b.state==='diveTell'){g.save();g.setLineDash([10,12]);line([[m.x,m.y],[b.targetX,b.targetY]],'#ffc77c',3);g.setLineDash([]);ellipse(b.targetX,b.targetY,37,8,'#ffbe6c77');g.restore();worldText('큰 입 · 옆으로 피하라',b.x,b.y-205,15)}
+  if(beak){g.save();g.setLineDash([7,7]);line([[m.x,m.y],[b.lungeTarget,FLOOR-23]],b.lungeClock<.45?'#ffc77c':'#ff806b',3);g.restore();if(b.lungeClock<.45)worldText('부리 · 뒤로 피하라',b.x,b.y-205,15)}
+  if(b.state==='meteorRoar'){g.save();for(let i=0;i<5;i++){const q=(b.stateTime*2+i*.2)%1;g.globalAlpha=1-q;g.strokeStyle='#ffe0a4';g.lineWidth=3;g.beginPath();g.ellipse(m.x,m.y-12-q*170,12+q*53,5+q*13,0,0,Math.PI*2);g.stroke()}g.restore()}
+ if(['laserTell','laser'].includes(b.state)){const r=pteraLaserRect();g.save();if(b.state==='laserTell'){g.setLineDash([12,12]);line([[r.x,b.laserY],[r.x+r.w,b.laserY]],'#93ddff99',2)}else{g.shadowColor='#62c9ff';g.shadowBlur=22;line([[r.x,b.laserY],[r.x+r.w,b.laserY]],'#419eff66',24);line([[r.x,b.laserY],[r.x+r.w,b.laserY]],'#70d9ff',12);line([[r.x,b.laserY],[r.x+r.w,b.laserY]],'#e2faff',3)}g.restore();glow(m.x,m.y,45,'#8bdeff88')}
+}
+function drawRaptor(r){
+ g.save();g.translate(r.x,r.y);if(r.dead){g.globalAlpha=.25;g.scale(1,.35)}
+ ellipse(0,3,42,6,'#0006');const mech=r.robot,ball=r.state==='roll',curl=r.state==='rollJump',tell=['jumpTell','rollTell'].includes(r.state),howl=r.state==='howl',upgrade=r.state==='upgrade';
+ if(ball||curl){g.save();g.translate(0,-29);g.rotate(r.spin+(curl?time*8:0));ellipse(0,0,29,29,'#273d47');g.strokeStyle='#c8dacd';g.lineWidth=5;g.beginPath();g.arc(0,0,25,0,Math.PI*2);g.stroke();for(let i=0;i<6;i++){g.save();g.rotate(i*Math.PI/3);path([[12,-6],[27,-9],[32,1],[23,7],[12,5]],'#7c9699','#172e3a',2);line([[19,-3],[26,-2]],'#9fffe3',2);g.restore()}ellipse(0,0,13,13,'#132b35');ellipse(0,0,7,7,'#a8ffe0');line([[-10,0],[10,0]],'#e9f8d2',2);g.restore();if(ball){line([[r.dir*-40,-12],[r.dir*-66,-12]],'#a0e3d688',3);line([[r.dir*-44,-25],[r.dir*-79,-25]],'#a0e3d655',2)}}
+ else{g.scale(r.dir,1);const gait=['walk','emerge'].includes(r.state)?Math.sin(time*14+r.x*.01)*9:0,crouch=tell?9:0;g.translate(0,crouch);
+ const skin=mech?'#7a959b':r.id==='ally'?'#ae9170':'#729b82',dark=mech?'#354e60':'#3e655c';
+ path([[-22,-37],[-87,-29],[-56,-44],[-23,-51]],dark,'#132b35',2);ellipse(-4,-40,29,17,skin);path([[-26,-48],[-5,-62],[21,-46],[9,-37]],skin,'#18343a',2);
+ for(const side of [-1,1]){const shift=side*gait;line([[side*10,-31],[-14+shift,-18],[shift,-5]],side===1?skin:dark,9);path([[shift-4,-9],[shift+15,-5],[shift+19,-1],[shift-7,-1]],mech?'#afc4bf':'#b9bc91');path([[shift+7,-8],[shift+8,-18],[shift+14,-8]],'#ecdfba');if(mech){ellipse(-14+shift,-18,5,5,'#b3f6dc');line([[side*10,-32],[-14+shift,-18]],'#c0d2c5',2)}}
+ line([[8,-44],[23,-29],[32,-33]],dark,5);path([[29,-34],[38,-34],[31,-28]],'#ece5c7');
+ g.save();g.translate(18,-48);if(howl)g.rotate(-1.1);path([[-8,1],[0,-20],[22,-22],[45,-13],[44,-1],[18,5]],skin,'#132b35',2);path([[17,0],[43,-2],[38,7],[20,7]],dark);line([[21,1],[39,0]],'#e4e7c7',2);ellipse(16,-13,5,4,'#163039');ellipse(18,-14,2,2,mech?'#a2ffe5':'#ffdb8b');if(mech){path([[-5,-8],[0,-20],[23,-22],[20,-16],[4,-13]],'#c0d0bc');line([[24,-14],[40,-10]],'#9fffe3',2)}g.restore();
+ if(mech){path([[-24,-46],[-5,-56],[12,-46],[1,-32],[-19,-34]],'#526f82','#b6c9b5',2);ellipse(-4,-43,5,5,'#a6ffe3');for(let i=0;i<3;i++)line([[-40-i*10,-40],[-46-i*10,-35]],'#bbd4c6',2)}
+ if(howl){for(let i=0;i<4;i++){const q=(time*1.8+i*.25)%1;g.globalAlpha=1-q;g.strokeStyle='#c4fff1';g.lineWidth=2;g.beginPath();g.ellipse(20,-90-q*135,12+q*50,5+q*15,0,0,Math.PI*2);g.stroke()}g.globalAlpha=1}
+ }
+ if(r.hit>0)glow(0,-35,55,'#fff4cc88');
+ if(upgrade){glow(0,-40,85,'#aaffdf44');for(let i=0;i<3;i++){g.strokeStyle='#aaffdf';g.lineWidth=2;g.beginPath();g.ellipse(0,-36,48+i*10,15+i*13,time*3+i,0,Math.PI*1.6);g.stroke()}}
+ g.restore();
+ if(tell){const span=r.state==='rollTell'?.65:.55,q=clamp(1-r.timer/span,0,1);g.fillStyle='#dfae6655';g.fillRect(r.x-42,FLOOR+7,84,5);g.fillStyle=r.state==='rollTell'?'#afffe1':C.gold;g.fillRect(r.x-42,FLOOR+7,84*q,5);line([[r.x,FLOOR-87],[r.x+r.dir*50,FLOOR-105],[r.x+r.dir*90,FLOOR-85]],'#e6dab388',2)}
+}
+function drawDinosaur(){const b=boss,s=bossSize(),trans=b.state==='transform';g.save();g.translate(b.x,FLOOR);g.scale(b.dir,1);ellipse(0,3,100,12,'#0005');
+ if(b.dead){g.globalAlpha=Math.max(0,b.timer/2.3);g.rotate(-.15);g.translate(0,14)}
+ const mech=b.phase>=2,prone=['diveTell','dive'].includes(b.state),charging=['charge','dive'].includes(b.state),tell=['tell','diveTell'].includes(b.state),guard=b.state==='guard';
+ let bob=Math.sin(time*(charging?40:8))*(charging?3:1.6);if(tell)bob+=Math.sin(time*48)*1.3;
+ if(mech&&!prone){
+  const gait=b.state==='walk'?Math.sin(time*(b.phase===3?14:8))*15:0;
+  // 机械化双腿，顶点保持地面坐标。
+   for(const side of [-1,1]){let hip=side*24,ankle=hip+side*gait,kneeX=hip+side*12,kneeY=-48,footY=-8;if(side===1&&b.kick>0){const extension=Math.sin(Math.min(1,b.kick/.38)*Math.PI*.75);kneeX=52;kneeY=-62;ankle=65+extension*70;footY=-45}line([[hip,-95],[kneeX,kneeY],[ankle,footY]],'#12252e',26);line([[hip,-95],[kneeX,kneeY],[ankle,footY]],side===1?'#8e9384':'#4d6868',18);ellipse(kneeX,kneeY,13,13,'#b8ad87');ellipse(kneeX,kneeY,6,6,b.phase===3?'#f2ab6a':'#99d4ce');path([[ankle-19,footY-4],[ankle+17,footY-4],[ankle+29,footY+8],[ankle-24,footY+8]],'#516a69','#10252c',3)}
+  g.translate(0,-99+bob);path([[-40,-68],[17,-88],[50,-51],[37,5],[-32,9],[-52,-30]],'#667d77','#11252d',4);path([[-29,-65],[8,-77],[32,-44],[18,-2],[-18,0]],'#9c9d7f');
+  line([[-28,-37],[24,-37]],'#2e4e54',5);glow(0,-38,36,b.phase===3?'#ffb06344':'#aff0e144');ellipse(0,-38,12,12,'#16363d');ellipse(0,-38,7,7,b.phase===3?'#ffbc75':'#b1e7d9');
+  line([[29,-59],[58,-23],[45,5]],'#3b575b',17);ellipse(58,-23,10,10,'#bdad83');path([[36,0],[50,-8],[56,8],[47,17],[37,12]],'#8a9c90');
+  // 肩部角盾和头部。
+  g.save();g.translate(24,-66);drawHead(true,tell,guard);g.restore();
+  path([[-40,-41],[-93,-12],[-68,-48],[-44,-57]],'#4b6665','#17313a',3);
+ }else{
+  const base=mech?'#70837b':'#64827a',dark=mech?'#344f57':'#3e605f';
+  g.translate(0,bob+(tell?5:0));
+  path([[-60,-47],[-130,-28],[-98,-65],[-63,-75]],dark,'#142c34',3);
+  ellipse(-15,-52,79,41,base);path([[-74,-63],[-33,-89],[7,-84],[39,-64],[15,-51],[-37,-58]],mech?'#a29e83':'#86a18b');
+  for(let i=0;i<4;i++){let xx=-63+i*36,step=charging?Math.sin(time*35+i)*11:b.state==='walk'?Math.sin(time*9+i)*6:0;path([[xx-10,-38],[xx+10,-38],[xx+15+step,-3],[xx-10+step,-3]],i%2?base:dark,'#17313a',2);if(mech)ellipse(xx+step,-17,5,5,'#b4ddd1')}
+  g.save();g.translate(44,mech?-42:-51);g.rotate(tell?.16:0);drawHead(mech,tell,guard);g.restore();
+  if(mech){line([[-60,-58],[-20,-75],[15,-58]],'#d9bb83',3);ellipse(-18,-51,8,8,b.phase===3?'#ffbc75':'#9fe9df')}
+ }
+ if(b.hit>0){g.globalAlpha=.7;g.fillStyle='#fff3d1';g.beginPath();g.arc(22,-(mech&&!prone?120:60),37,0,Math.PI*2);g.fill()}
+ if(guard){g.save();g.globalAlpha=.7+Math.sin(time*40)*.2;g.strokeStyle='#b5eeeb';g.lineWidth=3;g.beginPath();g.ellipse(13,-s.h*.5,s.w*.65,s.h*.62,0,0,Math.PI*2);g.stroke();g.lineWidth=1;g.beginPath();g.ellipse(13,-s.h*.5,s.w*.72,s.h*.69,0,0,Math.PI*2);g.stroke();g.restore()}
+ if(trans){for(let i=0;i<6;i++){g.strokeStyle=i%2?'#f1d29c99':'#c1f0ed88';g.lineWidth=2;g.beginPath();g.ellipse(0,-95,130-i*12,45+i*15,time*2+i*.4,0,Math.PI*1.4);g.stroke()}glow(0,-90,150,'#efd2a955')}
+ g.restore();
+ // 显眼的蓄力视觉，不用数字解释攻击。
+ if(tell){g.save();g.translate(b.x,FLOOR+4);const span=b.state==='tell'?1:.75,progress=clamp(1-b.timer/span,0,1);g.fillStyle='#e4ad7255';g.fillRect(-70,-2,140,4);g.fillStyle=C.gold;g.fillRect(-70,-2,140*progress,4);g.restore()}
+}
+function drawHead(mech,tell,guard){
+ // 三角冠、两支眉角和鼻角，轮廓为原创。
+ path([[-17,-35],[-44,-69],[-38,-86],[-19,-83],[-8,-96],[7,-83],[23,-85],[29,-67],[21,-36]],mech?'#a0a38c':'#849b82','#243e43',3);
+ path([[-16,-42],[-30,-73],[-11,-79],[4,-72],[15,-74],[16,-48]],mech?'#57777a':'#3c6865');
+ for(const a of [[-33,-78],[-10,-88],[20,-78]])ellipse(a[0],a[1],3,3,mech?'#e2c992':'#d3c89d');
+ path([[-10,-49],[22,-48],[44,-33],[48,-14],[35,-6],[1,-12],[-14,-26]],mech?'#83978c':'#6d9082','#18323a',3);
+ path([[10,-46],[26,-71],[22,-43]],C.bone,'#687a70',1);path([[25,-39],[43,-60],[37,-30]],'#d7d1ad','#687a70',1);path([[43,-23],[64,-43],[51,-15]],'#e7dfbf','#687a70',1);
+ ellipse(25,-30,5,4,'#122d35');ellipse(27,-31,2.5,2.5,tell?'#fff1ba':mech?'#ffb678':'#dceab9');line([[37,-13],[48,-16]],'#19353a',2);if(mech)line([[-4,-31],[6,-20],[27,-20]],'#c6c4a2',2)
+}
+function hud(){
+  if(stage===3&&arena&&!boss.dead){g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('프테라노돈 · '+(boss.robot?'강철 날개':'절벽의 포식자'),640,31);g.fillStyle='#193349';g.fillRect(350,49,580,9);g.strokeStyle='#c2d7d4';g.strokeRect(348,47,584,13);g.fillStyle=boss.robot?'#8dd9f5':'#d7b28b';g.fillRect(350,49,580*boss.hp/boss.max,9);g.font='12px sans-serif';g.fillStyle='#e5ede0';g.fillText(boss.state==='stuck'?'내려꽂힌 날개 · 공격 기회':boss.state==='diveTell'?'입이 열렸다 · 옆으로 피하라':boss.state==='laserTell'?'푸른 숨결 · 도약을 준비하라':boss.state==='meteorRoar'?'하늘의 울음 · 붉은 낙하 지점을 피하라':'양쪽 발판과 두 번의 도약을 활용하라',640,83)}
+ if(debugUsed||debugJourney){g.textAlign='left';g.font='12px sans-serif';g.fillStyle=C.gold;g.fillText('디버그 테스트 · 기록·진행 저장 제외',38,132)}
+ g.textAlign='left';g.font='12px sans-serif';g.fillStyle='#90afb0';g.fillText('원시인록 여행기',38,31);g.fillStyle='#e4d8ba';g.font='15px sans-serif';g.fillText('불씨',38,61);
+ for(let i=0;i<player.max;i++){g.save();g.translate(96+(i%6)*25,50+Math.floor(i/6)*23);path([[0,-9],[7,-3],[5,5],[0,9],[-5,5],[-7,-3]],i<player.hp?'#e0bb79':'#28414a',i<player.hp?'#fff0c2':'#55747a',1);if(i<player.hp)line([[0,-6],[-2,1],[1,5]],'#fff1bf',1);g.restore()}
+  const d=1-clamp(player.dashCD/.7,0,1);g.fillStyle='#334e55';g.fillRect(38,80,86,3);g.fillStyle=d===1?'#c6dfd2':'#a8bdba';g.fillRect(38,80,86*d,3);g.fillStyle='#8ba7a7';g.font='10px sans-serif';g.fillText('회피',132,85);
+ g.fillStyle=spear?'#e8b379':'#bcd6c4';g.font='11px sans-serif';g.fillText(spear?'창 없음 · 창 근처로 가서 회수':`${keyName(bindings.throw)} 창 던지기`,38,107);if(spear){g.textAlign='center';g.fillStyle='#f2cd83';g.font='17px sans-serif';g.fillText('⌄',clamp(spear.x-cam,25,1255),clamp(spear.y-24,130,570))}
+  if(stage===2&&arena&&!stageCleared){g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('울림의 동굴 · 랩터 무리',640,29);for(let i=0;i<2;i++){const r=raptors[i];if(!r)continue;const x=370+i*290,y=57,w=250,reveal=r.hudReveal;g.save();g.globalAlpha=reveal;g.translate(0,-8*(1-reveal));g.font='11px sans-serif';g.fillStyle=r.robot?'#b4ffe1':'#e2d5b3';g.fillText(i===0?'울림의 발톱':'벽의 추격자',x+w/2,47);g.fillStyle='#142831';g.fillRect(x-2,y-2,w+4,12);g.strokeStyle='#81998a';g.strokeRect(x-2,y-2,w+4,12);g.fillStyle=r.robot?'#9ce8d1':'#d8ba85';g.fillRect(x,y,w*r.hp/r.max*reveal,8);g.restore()}g.font='12px sans-serif';g.fillStyle='#adcac5';g.fillText(howlRemaining>0?'초음파 울음 · 오른쪽 벽을 주의하라':raptorPhase===3?'강철 도약 → 구체 돌진 · 구르는 동안 피해 감소':summoned?'두 마리를 모두 쓰러뜨려라':'도약 전 몸을 낮추는 순간을 살펴라',640,92)}
+ if(stage===1&&arena&&!boss.dead){let x=350,y=49,w=580;g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('트리케라톱스',W/2,32);g.fillStyle='#07131b';g.fillRect(x-3,y-3,w+6,14);g.strokeStyle='#83968a88';g.strokeRect(x-3,y-3,w+6,14);g.fillStyle='#334343';g.fillRect(x,y,w,8);let grad=g.createLinearGradient(x,0,x+w,0);grad.addColorStop(0,'#8f7458');grad.addColorStop(1,boss.phase===3?'#edb177':'#d9cb99');g.fillStyle=grad;g.fillRect(x,y,w*Math.max(0,boss.hp/boss.max),8);
+  path([[x-12,y+4],[x-6,y-3],[x-1,y+4],[x-6,y+11]],C.bone);path([[x+w+12,y+4],[x+w+6,y-3],[x+w+1,y+4],[x+w+6,y+11]],C.bone);
+  if(boss.state==='guard'){g.font='12px sans-serif';g.fillStyle='#b3e5df';g.fillText('방어태세',640,80)}
+ }
+ g.textAlign='left';g.font='11px sans-serif';g.fillStyle='#8fa8a6';g.fillText(arena?`모닥불 기록됨 · ${keyName(bindings.retry)} 재도전`:controlText(),38,690);
+  if(!arena){g.textAlign='center';if(stage===2){worldText('물소리가 깊어지는 곳',820,350);worldText('문 앞의 불씨에 잠시 머물자.',1400,390,12)}else{if(player.x<360){worldText('두 번 뛰어, 더 높이.',480,350);worldText(`${keyName(bindings.jump)} · ${keyName(bindings.jump)}`,480,374,12)}if(player.x>500&&player.x<1250){worldText('창을 뻗어라. 빈틈을 꿰뚫어라.',1015,320);worldText(`${keyName(bindings.attack)} 공격 · ${keyName(bindings.dash)} 무적 회피`,1015,345,12)}}}
+ if(texts.length){const t=texts[texts.length-1];g.save();g.globalAlpha=clamp(Math.min(t.life,t.max-t.life)*2,0,1);g.textAlign='center';g.fillStyle='#e8ddbd';g.font='32px Batang, serif';g.shadowColor='#000';g.shadowBlur=18;g.fillText(t.t,W/2,211);g.fillStyle='#a4bcb7';g.font='12px sans-serif';g.fillText(t.sub,W/2,242);line([[500,262],[780,262]],'#a2b3a24d',1);g.restore()}
+}
+function worldText(t,x,y,size=18){g.font=`${size}px sans-serif`;g.textAlign='center';g.fillStyle=size===12?'#95b2ac':'#c9d8c3';g.fillText(t,x-cam,y)}
+function drawIntro(){const t=introTime;g.save();background();g.save();g.translate(0,0);ground();
+ // 空中裂隙、下坠、苏醒、拾起长矛，全部在本地画布中播放。
+ if(t<3.2){const a=clamp((3.2-t)*1.5,0,1);g.save();g.globalAlpha=a;glow(560,135,185,'#b3e2d466');for(let i=0;i<4;i++){g.strokeStyle=i%2?'#dfebd8aa':'#98d3cf88';g.lineWidth=2;g.beginPath();g.ellipse(560,135,55+i*17,12+i*6,Math.sin(time)*.2,0,Math.PI*2);g.stroke()}g.restore()}
+ const fall=clamp((t-.7)/2,0,1),walk=clamp((t-6.5)/2,0,1);const x=560+walk*150,y=t<2.7?lerp(100,FLOOR,fall*fall):FLOOR;
+ if(t<9.5){glow(760,FLOOR-12,65,'#e4bd702c');g.save();g.translate(760,FLOOR-11);g.rotate(-.12);line([[-64,0],[46,0]],'#b19260',4);path([[46,-7],[70,0],[46,7],[50,0]],'#d7e9da','#587d7b',1);for(let i=0;i<4;i++)line([[35+i*2,-3],[37+i*2,3]],'#d7cca5',1);g.restore()}
+ const dir=t>4&&t<5.2?-1:1;const actor={...player,x,y,dir,vx:t>6.5&&t<8.5?130:0,ground:t>=2.7,atk:0,inv:0,unarmed:t<9.5};
+ g.save();g.translate(x,y);if(t>=2.7&&t<3.8){g.scale(1,.62);g.rotate(-.18)}else if(t>=8.5&&t<9.5){g.scale(1,.72);g.rotate(.25)}g.translate(-x,-y);drawPlayer(actor);g.restore();
+ for(const p of particles){g.globalAlpha=clamp(p.life/p.max,0,1);g.fillStyle=p.c;g.fillRect(p.x,p.y,p.r,p.r)}g.globalAlpha=1;g.restore();
+ fern(20,690,2.2,1,'#08181f');fern(1260,690,2.5,-1,'#08181f');
+ g.fillStyle='#061018';g.fillRect(0,0,W,87);g.fillRect(0,626,W,94);g.fillStyle='#8ea9a6';g.textAlign='left';g.font='12px sans-serif';g.fillText('서막 · 낯선 땅',40,52);
+ let caption=t<2.7?'빛이 갈라지고, 인록은 알 수 없는 땅으로 떨어졌다.':t<6.5?'여긴… 어디지?':t<9.5?'풀숲 사이, 낡은 창 하나가 눈에 들어왔다.':'살아남으려면, 이 창을 놓아서는 안 된다.';
+ g.textAlign='center';g.font='20px Batang, serif';g.fillStyle='#e7dec4';g.fillText(caption,640,661);g.font='11px sans-serif';g.fillStyle='#90aaa3';g.fillText(t>=9.5?'인록의 여행이 시작된다.':'인록',640,688);
+ g.fillStyle='#394f52';g.fillRect(40,709,1200,2);g.fillStyle='#ddbd83';g.fillRect(40,709,1200*clamp(t/13.5,0,1),2);
+ let fade=t<.7?1-t/.7:t>12.8?(t-12.8)/.7:0;if(fade>0){g.fillStyle=`rgba(5,13,20,${clamp(fade,0,1)})`;g.fillRect(0,0,W,H)}g.restore()}
+function drawLaser(){if(boss.laserTime<=0||boss.dead)return;const e=eyePosition(),len=1450,ex=e.x+Math.cos(boss.laserAngle)*len,ey=e.y+Math.sin(boss.laserAngle)*len,warm=boss.laserWarm>0;g.save();g.lineCap='round';if(warm){g.setLineDash([8,12]);line([[e.x,e.y],[ex,ey]],'#ffc29a99',2);g.setLineDash([])}else{g.shadowColor='#ff7951';g.shadowBlur=24;line([[e.x,e.y],[ex,ey]],'#f36d4866',19);line([[e.x,e.y],[ex,ey]],'#ff9873',8);line([[e.x,e.y],[ex,ey]],'#fff2cc',3)}glow(e.x,e.y,warm?24:40,'#ffb77c99');ellipse(e.x,e.y,5,5,'#fff5d9');g.restore()}
+function drawSpear(){if(!spear)return;const s=spear;g.save();g.translate(s.x,s.y);if(s.state==='ground'||s.state==='stuck')glow(0,0,35,'#e6ba7338');g.rotate(s.angle);line([[-46,0],[33,0]],'#b89864',4);line([[-35,-1],[29,-1]],'#e7c590',1);path([[30,-6],[51,0],[30,6],[35,0]],'#e9f6de','#6a9690',1);for(let i=0;i<4;i++)line([[23+i*2,-3],[25+i*2,3]],'#ded5a9',1);g.restore()}
+function drawTitle(){g.save();const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,t=reduced?0:time;const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#091923');sky.addColorStop(.6,'#29434a');sky.addColorStop(1,'#0b242b');g.fillStyle=sky;g.fillRect(0,0,W,H);glow(640,385,450,'#9cbdba1b');
+ for(let depth=0;depth<3;depth++){const color=['#223d46','#17313b','#0c232d'][depth];for(let i=-1;i<8;i++){const x=i*220+depth*93+Math.sin(t*.08+depth)*5;path([[x,0],[x+130,0],[x+105,95+depth*70],[x+125,280],[x+63,470+depth*70],[x-20,720],[x+6,310]],color)}ellipse(640,730,570-depth*65,160-depth*20,color)}
+ for(let i=0;i<24;i++){const x=i*61-65;fern(x,740+(i%3)*13,.9+(i%5)*.25,i%2?1:-1,i%3?'#173a3d':'#28504c')}
+ for(let i=0;i<36;i++){const d=decor[i],x=(d.x%1280)+Math.sin(t*.18+d.x)*15,y=140+d.y*.9+Math.sin(t*.3+d.x)*12;g.globalAlpha=.25+(Math.sin(t*.6+i)+1)*.2;glow(x,y,12,'#aecda82c');ellipse(x,y,1.2,1.2,'#c8dba9')}g.globalAlpha=1;
+ fern(20+Math.sin(t*.14)*3,755,3.1,1,'#081d26');fern(1260+Math.sin(t*.12)*3,755,3.4,-1,'#081d26');const v=g.createRadialGradient(640,350,160,640,350,760);v.addColorStop(0,'transparent');v.addColorStop(1,'#030e19bb');g.fillStyle=v;g.fillRect(0,0,W,H);g.restore()}
+function render(){if(mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title'){drawTitle();return}if(mode==='cutscene'||(mode==='settings'&&settingsReturn==='cutscene')||(mode==='paused'&&pausedFrom==='cutscene')){drawIntro();return}g.save();g.clearRect(0,0,W,H);if(shake>0&&mode==='playing')g.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake*.6);background();g.save();g.translate(-cam,0);ground();
+  {if(stage===3)drawPtera();else if(stage===2){if(arena)raptors.forEach(drawRaptor)}else drawDinosaur();for(const a of afterimages)drawPlayer({...player,x:a.x,y:a.y,dir:a.dir,atk:0,inv:0},a.life*.9);drawPlayer(player)}
+  if(mode!=='title'){if(stage===1)drawLaser();if(stage===3)drawMeteors();drawSpear()}for(const p of particles){g.globalAlpha=clamp(p.life/p.max,0,1);g.fillStyle=p.c;g.fillRect(p.x,p.y,p.r,p.r)}g.globalAlpha=1;g.restore();
+ // 前景植被构成舞台框景。
+ fern(14,685,2.2,1,'#08181f');fern(1268,702,2.6,-1,'#08181f');
+ let vignette=g.createRadialGradient(640,350,220,640,350,790);vignette.addColorStop(0,'transparent');vignette.addColorStop(1,'#030d16a0');g.fillStyle=vignette;g.fillRect(0,0,W,H);
+ hud();
+ if(flash>0){g.fillStyle=`rgba(237,207,162,${Math.min(.18,flash*.5)})`;g.fillRect(0,0,W,H)}g.restore()}
+  // 부모 미리보기용 공개 훅. 전투 규칙을 우회하지 않고 실제 시작/갱신 경로 사용.
+  // previewStage3(2,'meteor') / (3,'meteor'): .75s meteorRoar -> takeoff -> normal AI.
+  // 'ultra', 'ultraTell', 'perchTravel' are compatibility aliases, not attack states.
+  // getState().meteorEvent: active (10s spawn window), elapsed, spawned/total,
+  // targeted/coverage and pending; meteors is a detached projectile snapshot.
+  // Spawns occur at n/3 seconds, n=0..29; final fall/AoE may finish just after 10s.
+   function previewStage3(phase=1,state='fly'){
+     if(![1,2,3].includes(phase)||!['fly','diveTell','swoop','stuck','walk','takeoff','meteor','meteorRoar','perchTravel','ultraTell','ultra','laserTravel','laserTell','laser'].includes(state))return false;
+     // Legacy ultrasound previews now activate the live meteor event and upward cry.
+     if(['meteor','meteorRoar','perchTravel','ultraTell','ultra'].includes(state)){if(phase<2)return false;state='meteorRoar'}
+    if(!debugJourney){debugSnapshot=copyProgress(progress);debugJourney=true}debugUsed=true;enterRegion(3);toggleDebug();debugPhase(phase);closeDebug();
+    if(['diveTell','swoop'].includes(state)){beginPteraDive();if(state==='swoop')pteraState('swoop',PTERA.swoopDuration)}
+     else if(state==='meteorRoar'){boss.cycle=1;pteraSpecial();updateMeteors(0)}
+    else if(['laserTravel','laserTell','laser'].includes(state)){beginPteraLaser(1);if(state!=='laserTravel'){boss.x=boss.endX;boss.y=boss.endY;boss.jawOffset=35;boss.laserY=pteraMouth().y;pteraState(state,state==='laser'?6:1)}}
+    else if(state==='takeoff'){boss.y=FLOOR;pteraTakeoff()}
+    else{boss.y=['walk','stuck'].includes(state)?FLOOR:245;if(state==='walk')pteraWalk();else pteraState(state,{fly:4,stuck:2}[state])}render();return true;
+   }
+    window.primalJourney={start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared})};
+ function frame(ts){const dt=Math.min(.034,(ts-last)/1000||.016);last=ts;if(mode==='playing'||mode==='title'||mode==='dead'||mode==='cutscene')update(dt);render();requestAnimationFrame(frame)}requestAnimationFrame(frame);
+})();
+</script>
+</body></html>

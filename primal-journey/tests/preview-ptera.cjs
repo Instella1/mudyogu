@@ -1,0 +1,1 @@
+const fs=require('fs'),h=fs.readFileSync(__dirname+'/../primal-journey.html','utf8');for(const [n,code]of Object.entries({fly:`previewStage3(1,'fly');`,ultra:`previewStage3(2,'ultra');`,laser:`previewStage3(3,'laser');`}))fs.writeFileSync(__dirname+`/ptera-${n}.html`,h.replace('requestAnimationFrame(frame);\n})();',`${code}texts=[];time=3;render();\n})();`));

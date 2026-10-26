@@ -1,0 +1,160 @@
+=== test-balance.cjs / exit 0 ===
+통과: 체력 변경: 주인공 6 / 보스 1080
+통과: 2단계 돌진 주기 7초 및 속도 확인
+통과: 3단계 돌진 주기 7초 및 속도 확인
+통과: 1단계, 위치 1535: 무입력 대기 시 보스가 피해를 줌
+통과: 1단계, 위치 2100: 무입력 대기 시 보스가 피해를 줌
+통과: 1단계, 위치 2750: 무입력 대기 시 보스가 피해를 줌
+통과: 2단계, 위치 1535: 무입력 대기 시 보스가 피해를 줌
+통과: 2단계, 위치 2100: 무입력 대기 시 보스가 피해를 줌
+통과: 2단계, 위치 2750: 무입력 대기 시 보스가 피해를 줌
+통과: 3단계, 위치 1535: 무입력 대기 시 보스가 피해를 줌
+통과: 3단계, 위치 2100: 무입력 대기 시 보스가 피해를 줌
+통과: 3단계, 위치 2750: 무입력 대기 시 보스가 피해를 줌
+통과: 2단계, 위치 1535: 돌진·레이저 없이도 접근 발차기 명중
+통과: 2단계, 위치 2100: 돌진·레이저 없이도 접근 발차기 명중
+통과: 2단계, 위치 2750: 돌진·레이저 없이도 접근 발차기 명중
+통과: 3단계, 위치 1535: 돌진·레이저 없이도 접근 발차기 명중
+통과: 3단계, 위치 2100: 돌진·레이저 없이도 접근 발차기 명중
+통과: 3단계, 위치 2750: 돌진·레이저 없이도 접근 발차기 명중
+통과: 페이즈 전환 체력 720 / 360
+통과: 돌진 종료 2초 후 레이저 유지
+통과: 키 변경 기능 유지
+통과: 레이저 추적 각속도 초당 0.28로 감소
+통과: 시작 컷신: 추락·착지·창 줍기·자동 게임 진입
+통과: 컷신 건너뛰기와 재도전 시 컷신 생략
+통과: 컷신 일시정지 및 설정 복귀 시 진행 지점 유지
+통과: 투척 포물선과 60 피해 및 적 관통·중복피해 방지
+통과: 창 없는 상태 일반공격 차단, 땅에서 회수 후 공격 복구
+통과: 맵 끝 벽에 3초 박혔다가 바닥으로 낙하
+통과: 투척 키 변경 가능
+통과: 남은 체력 6·5·4·3·2·1 별점 5·4·3·2·1·1
+통과: 클리어 저장·중복 집계 방지·최고별 유지·재로딩 복원
+총 31개 검사 통과
+
+=== test-raptor.cjs / exit 0 ===
+PASS: 800 HP initial, speed 140, full health and actual preview hook
+PASS: new journey starts cutscene; developer region hook enters dormant approach
+PASS: phase 1 moves at 140 and jumps every 10 seconds with tell
+PASS: 500 threshold exact, upward howl delays single wall summon of 500 HP
+PASS: both phase 2 basic speeds 190 and jump timers retained
+PASS: either living raptor at 150 upgrades both: target 0
+PASS: either living raptor at 150 upgrades both: target 1
+PASS: live robot starts at 5 and 7.5, staggered 2.5, repeating every 5 for both
+PASS: robot tell, jump and 320-speed roll lasts 2.5 seconds: 0
+PASS: robot tell, jump and 320-speed roll lasts 2.5 seconds: 1
+PASS: actual moving tell and airborne horizontal displacement: normal
+PASS: actual moving tell and airborne horizontal displacement: robot 0
+PASS: actual moving tell and airborne horizontal displacement: robot 1
+PASS: natural roll reverses toward current player, stops without overshoot or wall hit: 0
+PASS: natural roll reverses toward current player, stops without overshoot or wall hit: 1
+PASS: main dying before howl completion does not skip delayed summon or win
+PASS: no win until both dead, record once, stage-specific victory UI
+PASS: surviving enemy remains independently damageable when first dead: 0
+PASS: surviving enemy remains independently damageable when first dead: 1
+PASS: melee pierces both: exactly 10 per target per attack, next attack resets targets
+PASS: melee may hit second later in same attack without hitting first twice
+PASS: swept spear pierces both for 60 each and never repeats a hit
+PASS: normal unmodified throw arc hits and pierces compact grounded raptors
+PASS: actual damage crosses 500 and 150 thresholds, upgrades cannot repeat
+PASS: damageRaptor halves 10/60 only in roll, not other robot states
+PASS: actual melee deals 5 during roll and 10 after natural roll exit: 0
+PASS: actual melee deals 5 during roll and 10 after natural roll exit: 1
+PASS: actual swept spear deals 30 during roll and 60 after natural roll exit: 0
+PASS: actual swept spear deals 30 during roll and 60 after natural roll exit: 1
+MEASURE: jump maxheight=184.034 airtime=0.422
+PASS: measured normal jump height >160 and airtime <.6 with asymmetric gravity
+MEASURE: rollJump maxheight=184.034 airtime=0.422
+PASS: measured rollJump height >160 and airtime <.6 with asymmetric gravity
+PASS: ally HUD absent before spawn, entity reveal fades 0 to 1 over .7 seconds without numeric HP
+PASS: all raptor phases use contact 1, including ally when main dead
+PASS: reset and retry restore main 800 only, full player HP, clocks and spear cleared
+PASS: pause and settings freeze stage 2 timers
+PASS: records isolation, best stars/time, recent10, stage1 legacy migration and persistence
+PASS: both render paths and original stage1 HP survive region changes
+All 37 raptor checks passed
+
+=== test-journey.cjs / exit 0 ===
+PASS: home uses separate confirmation, freezes play and cancel restores prior state
+PASS: minimal title has no stage selector, dashboard, spoilers or gameplay drawing
+PASS: new journey resets progression, not legacy best records; continue skips cutscene
+PASS: invalid, stale, impossible and malformed saves do not enable continue
+PASS: record overlay hides uncleared regions behind ??? and reveals only cleared region
+PASS: boss win -> overlay -> playable cleared arena -> open gate -> real passage -> dormant approach -> camp -> arena
+PASS: cleared save and R preserve win without adding records or reopening overlay
+PASS: uncleared camp retries fresh fight from before gate, preserves progression
+PASS: cave defeat opens passage and rightward travel enters dormant third region
+PASS: storage errors are graceful and persistence is event-based, not per frame
+All 10 journey checks passed
+
+=== test-debug.cjs / exit 0 ===
+통과: 디버그 지역 자유 이동·페이즈 선택·정상 저장 보존
+통과: 프테라 디버그 체력 1100/700/400, 최대 체력과 재도전 1100 유지
+통과: 패널·터치 버튼 기본 숨김, hidden 우선 CSS 및 우측 상단 배치
+통과: F2·반복 방지·Esc와 터치 열기/닫기: 전투 및 모든 타이머 정지
+통과: 일시정지에서 열고 닫으면 정지 유지, 설정·홈 왕복에 반환 모드 보존
+통과: 1지역: 모든 단계 즉시 정착·왕복, 접근 중 안전 배치와 체력 유지
+통과: 2지역: 모든 단계 즉시 정착·왕복, 접근 중 안전 배치와 체력 유지
+통과: 이전 변신·레이저·방어·투척·플레이어 동작 타이머 완전 제거
+통과: 랩터 이전 울음·등장·강철 전환 제거, 구체 첫 발동 5 / 7.5초 및 5초 반복
+통과: 단순 패널 열기·닫기는 정상 기록·진행 저장을 막지 않음
+통과: 디버그 클리어·재도전·지역 이동 이후도 기록/저장 차단, 홈에서 원본 이어하기 복원
+통과: 저장 없는 테스트는 홈에서 가짜 이어하기를 남기지 않음
+통과: 새 여행 및 저장 이어하기만 오염 해제, 사망·승리·설정에서 F2 무시
+디버그 검사 13개 통과
+
+=== test-ptera.cjs / exit 0 ===
+PASS: stage 3 approach dormant, 1100 HP, no raptors, two arena platforms
+PASS: exact thresholds 701 / 700 and 401 / 400, robot upgrade, no phase regression
+PASS: four-second flight, locked .6 tell, 2s stuck / 7.5s ground / 2s takeoff
+PASS: actual natural mouth trajectory swallows idle player at floor and platform height
+PASS: moving away from locked target makes dive miss and leaves vulnerable stuck state
+PASS: mouth hit respects inv
+PASS: mouth hit respects dash
+PASS: nonmouth body is never instant kill, even robot phase; tell mouth is not lethal
+PASS: swept mouth does not tunnel at .034 or .1 second update steps
+PASS: phase2 cadence uses .75 upward cry, no travel or teleport, then smooth normal flight
+PASS: meteors honor dash and invulnerability; each rock and impact do only one damage
+PASS: laser smooth 2s approach, 1s tell, symmetric six-second low-high-low firing
+PASS: laser rectangle clipping, one damage, jump/platform evasion, dash / inv immunity
+PASS: laser preview shares live pose, full-size torso remains in arena throughout rise
+PASS: phase3 naturally interleaves repeated dives, meteor cries and lasers without starvation
+PASS: WASD defaults, explicit custom retained, untouched Space default migrated and saved
+PASS: keyboard W jump, A/D movement, S drop and touch-down event wiring
+PASS: crowded custom bindings never reset when all preferred drop candidates are occupied
+PASS: JKL defaults, prior WASD defaults migrate, reset uses JKL and custom retained
+PASS: natural dives reach idle players at both arena boundaries in every phase
+PASS: both 162-high arena platforms reachable by actual double jump, third jump denied
+PASS: drop through platform keeps floor solid; stage1/2 arena platforms remain absent
+PASS: melee 10 once per swing against stuck ptera and spear 60 airborne once
+PASS: spear lands on either arena platform and can be recovered from that platform
+PASS: no third records before clear; stars, isolation, single clear and reload
+PASS: legacy records v1/v2 preserved independently and stage3 persists into v2
+PASS: legacy stage2 ending migrates to passage, traverses into3, camp save restores fresh fight
+PASS: invalid stage3 unlock chains, checkpoints and malformed cleared3 rejected
+PASS: stage3 quiet ending is persisted without reopening clear or double records
+PASS: third-boss debug phases 1100/700/400 and retry reset all new pattern state
+PASS: natural full multi-cycle trajectories obey per-step velocity bounds in every phase at 120Hz
+PASS: ground beak locks .45 tell, .20 normal-damage lunge, .7 recovery and 2s cadence
+PASS: measured walking is 220 and locked lunges reach 150 in exactly .20 seconds both ways
+PASS: natural and preview swoops last .50 seconds and preserve the .72 trajectory breakpoint
+PASS: meteor roar renders upward rings without any forward cone
+PASS: travel preserves coordinates, remains spear-vulnerable, and never inflicts incidental body damage
+PASS: all transition preview states initialize and reset travel, lunge and beam clocks
+PASS: preview hooks callable from parent, taint snapshot preserved, no records or saves
+PASS: pause/settings/debug freeze new clocks and all stage3 render states execute without exceptions
+PASS: airborne hunt reverses after the player changes sides, with bounded acceleration and bank
+PASS: live 290-speed moving prey changes hunt aim during flight without restarting the clock
+PASS: idle prey is swept overhead rather than parked on for the entire four seconds
+PASS: platform-aware hunt height changes smoothly and takeoff aims at the current player
+PASS: flight art uses articulated curves, altitude shadow and exact transformed mouth anchor; title stays hidden
+PASS: exactly30 in10s, 18 predictive / 12 coverage, deterministic lanes on both platforms
+PASS: scheduler boundaries spawn at0 then1/3, never31 and never reset or extend while active
+PASS: meteor swept falling collision hits airborne player and platform top before floor
+PASS: 40-radius impact AoE lasts .15s, one damage, not full-height floor damage
+PASS: boss immunity and normal takeoff pursuit dive stuck ground continue during full meteor event
+PASS: natural phase3 cadence starts meteors only in old special slot, not phase1
+PASS: reset retry debug every phase region home and victory clear all pending meteors
+PASS: pause settings debug home confirmation and player death freeze event and projectile clocks
+PASS: preview alias activation eligibility, warning durations and snapshot copies are documented
+All 53 ptera checks passed
