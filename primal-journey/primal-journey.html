@@ -151,10 +151,10 @@ function enterRegion(which,cinematic=false){stage=which;records=stageRecords[sta
 // 개발 미리보기 전용. 타이틀에는 지역 선택 경로가 없다.
 function startStage(which=1){if(![1,2,3,4].includes(which))return false;progress={version:1,stage:which,checkpoint:'entry',cleared:{1:which>=2,2:which>=3,3:which>=4,4:false}};enterRegion(which,which===1);saveProgress();return true}
 function startStage3(){return startStage(3)}
-function restoreProgress(){const p=progress;if(!p)return false;stage=p.stage;records=stageRecords[stage];reset(false);if(p.checkpoint==='camp'){checkpoint=true;player.x=1430;cam=1020}if(p.cleared[stage]){stageCleared=true;clearDismissed=true;arena=checkpoint=true;player.x=p.checkpoint==='passage'?2920:p.checkpoint==='ending'?3200:2530;boss.hp=0;boss.dead=true;boss.state='dead';boss.timer=0;for(const r of raptors){r.hp=0;r.dead=true;r.state='dead'}summoned=stage===2;cam=clamp(player.x-410,0,worldEnd()-W)}mode='playing';layers('');canvas.focus();return true}
+function restoreProgress(){const p=progress;if(!p)return false;stage=p.stage;records=stageRecords[stage];reset(false);if(p.checkpoint==='camp'){checkpoint=true;player.x=1430;cam=1020}if(p.cleared[stage]){stageCleared=true;clearDismissed=true;arena=checkpoint=true;player.x=(p.checkpoint==='passage'?2920:p.checkpoint==='ending'?3200:2530)+regionShift();boss.hp=0;boss.dead=true;boss.state='dead';boss.timer=0;for(const r of raptors){r.hp=0;r.dead=true;r.state='dead'}summoned=stage===2;cam=clamp(player.x-410,0,worldEnd()-W)}mode='playing';layers('');canvas.focus();return true}
 function continueJourney(){if(mode==='won'){clearDismissed=true;mode='playing';keys={};press={};saveProgress();layers('');canvas.focus();message('길이 열렸다',stage===1?'오른편 문 너머로 물소리가 들린다.':stage===3?'바람이 잦아드는 쪽, 물비린내를 따라가자.':'고요한 빛을 향해 걸어가자.',3)}}
 function continueSaved(){discardDebugJourney();refreshContinue();return restoreProgress()}
-function worldEnd(){return stageCleared?stage<4?3650:3500:2780}
+function worldEnd(){return (stageCleared?stage<4?3650:3500:2780)+regionShift()}
 function markCleared(){stageCleared=true;progress=progress||{version:1,stage,checkpoint:'entry',cleared:{1:stage>=2,2:stage>=3,3:stage>=4,4:false}};progress.stage=stage;progress.cleared[stage]=true;progress.checkpoint='cleared';saveProgress()}
 function finishIntro(){if(mode!=='cutscene')return;reset(false);mode='playing';layers('');canvas.focus();message('잊힌 뿔의 계곡','인록의 생존이 시작된다.',3)}
 function updateIntro(dt){introTime+=dt;if(introTime>=2.7&&!introLanded){introLanded=true;burst(560,FLOOR,36,C.mist,230);shake=10;noise(.3,.1);tone(75,.3,'triangle',.06)}if(introTime>=9.5&&!introPicked){introPicked=true;burst(738,FLOOR-28,18,C.gold,100);tone(440,.3,'triangle',.05);tone(660,.5,'triangle',.04,.14)}if(introTime>=13.5)finishIntro()}
@@ -430,37 +430,48 @@ function setState(s,t){boss.state=s;boss.timer=t}
  }
 
  // ── 4지역 · 잠긴 달의 물가: 스피노사우루스 ──
- // 오른쪽 절반은 물. 물에 들어가면 수영(느려짐·낮은 한 번 점프), 4초 넘게 있으면 2초마다 숨 피해 1.
+ // 넓은 가로 맵(화면이 플레이어를 따라 이동): 땅-물-땅-물-땅. 물에선 수영(느려짐·낮은 한 번 점프), 4초 넘게 있으면 2초마다 숨 피해 1.
+ // 스피노는 물웅덩이와 땅을 오가며 플레이어를 쫓는다. 몸통 판정은 더블점프로 넉넉히 뛰어넘을 수 있는 크기(150×85).
  // 2·3페이즈는 약 12초마다 어둠(주인공 주변 작은 원만 보임). 눈빛·발광 지느러미·물결 예고는 어둠 위에도 보인다.
- const SPINO={hp:1300,robotHP:870,stormHP:430,water:2140,tideX:1840,swimSpeed:160,landSpeed:130,gap:[0,1.6,1.3,1.1],
-  lungeTell:.6,lungeTime:.35,lungeReach:560,lungeMax:600,jaw:235,beached:2,crawl:1.2,clawRange:260,clawTell:.45,swipe:.15,swipeGap:.35,clawRecover:.7,wadeMax:5,
+ const SPINO={hp:1300,robotHP:870,stormHP:430,right:4750,pools:[[2200,2700],[3300,3800]],tide:150,scale:.6,w:150,h:85,swimSink:35,deepSink:110,
+  swimSpeed:170,landSpeed:170,gap:[0,1.6,1.3,1.1],lungeTell:.6,lungeTime:.35,lungeReach:520,lungeMax:520,jaw:135,beached:2,clawRange:170,clawTell:.45,swipe:.15,swipeGap:.35,clawRecover:.7,
   submerge:.5,finSpeed:260,finMax:3,breachTell:.7,breach:.35,surfaced:.8,inhaleTell:.7,inhale:2,pull:170,shockTell:1,shock:2,roar:1.4,
   darkFirst:4,darkEvery:12,darkTell:1,dark:5,radius:[0,0,120,95],tideFirst:5,tideEvery:16,tideRise:2,tideHold:4,swim:150,swimJump:-470,breath:4,drownEvery:2};
  const SUBMERGED=['submerge','fin','breachTell'],SPINO_TELLS=['lungeTell','clawTell','clawGap','inhaleTell','shockTell','breachTell','roar'];
- const SPINO_HINTS={body:'몸통도 무기다. 물가에서 거리를 재라.',bite:'물가에서 고개가 들리면, 덮치기 전에 물러서라.',claw:'앞발은 두 번 휘두른다. 첫 번째 뒤의 틈을 기다려라.',breach:'물결이 원을 그리면, 그 자리에서 벗어나라.',shock:'지느러미가 번쩍이면 물 밖으로.',drown:'숨이 다하기 전에 물 밖으로 나와라.'};
- function makeSpino(){return{x:2450,y:FLOOR,hp:SPINO.hp,max:SPINO.hp,phase:1,robot:false,state:'swim',timer:0,dir:-1,sink:55,elapsed:0,nextAt:2,count:0,hit:0,dead:false,from:2450,to:2450,lockX:2450,struck:false,dark:'off',darkT:0,darkAt:Infinity,tide:'off',tideT:0,tideAt:Infinity}}
- // 밀물 때 물가가 왼쪽으로 차오른다.
- function waterLine(){if(stage!==4)return Infinity;const b=boss;if(!b||!b.tide||b.tide==='off')return SPINO.water;const q=clamp(b.tideT/(b.tide==='hold'?SPINO.tideHold:SPINO.tideRise),0,1);return b.tide==='rise'?lerp(SPINO.water,SPINO.tideX,q):b.tide==='hold'?SPINO.tideX:lerp(SPINO.tideX,SPINO.water,q)}
- function isSwimming(p=player){return stage===4&&p.x>waterLine()&&p.y>=FLOOR-1}
+ const SPINO_HINTS={body:'몸통도 무기다. 두 번 뛰어 넘어가라.',bite:'물가에서 고개가 들리면, 덮치기 전에 물러서라.',claw:'앞발은 두 번 휘두른다. 첫 번째 뒤의 틈을 기다려라.',breach:'물결이 원을 그리면, 그 자리에서 벗어나라.',shock:'지느러미가 번쩍이면 물 밖으로.',drown:'숨이 다하기 전에 물 밖으로 나와라.'};
+ // 4지역 전투장은 다른 지역보다 오른쪽으로 2000 더 길다. 클리어 뒤 길·엔딩 좌표도 함께 민다.
+ function regionShift(){return stage===4?SPINO.right-2750:0}
+ function makeSpino(){return{x:2450,y:FLOOR,hp:SPINO.hp,max:SPINO.hp,phase:1,robot:false,state:'swim',timer:0,dir:-1,sink:SPINO.swimSink,elapsed:0,nextAt:2,count:0,hit:0,dead:false,from:2450,to:2450,lockX:2450,struck:false,dark:'off',darkT:0,darkAt:Infinity,tide:'off',tideT:0,tideAt:Infinity}}
+ // 밀물 때 두 물웅덩이가 양쪽으로 넓어지고 땅이 좁아진다.
+ function tideAmount(){const b=boss;if(stage!==4||!b||!b.tide||b.tide==='off')return 0;const q=clamp(b.tideT/(b.tide==='hold'?SPINO.tideHold:SPINO.tideRise),0,1);return SPINO.tide*(b.tide==='rise'?q:b.tide==='hold'?1:1-q)}
+ function pools(){const t=tideAmount();return SPINO.pools.map(([a,c])=>[a-t,c+t])}
+ function poolAt(x){if(stage!==4)return -1;return pools().findIndex(([a,c])=>x>a&&x<c)}
+ function isSwimming(p=player){return poolAt(p.x)>=0&&p.y>=FLOOR-1}
  function spinoState(state,seconds=0){boss.state=state;boss.timer=seconds;boss.struck=false}
  function spinoTargetable(){return !boss.dead&&!SUBMERGED.includes(boss.state)}
- function spinoBodyRect(){const b=boss,top=FLOOR-170+b.sink;return{x:b.x-150,y:top,w:300,h:Math.max(0,FLOOR-top)}}
+ function spinoBodyRect(){const b=boss,top=FLOOR-SPINO.h+b.sink;return{x:b.x-SPINO.w/2,y:top,w:SPINO.w,h:Math.max(0,FLOOR-top)}}
  function spinoAttackRect(){const b=boss;
-  if(b.state==='lunge')return{x:b.dir>0?b.x+170:b.x-300,y:FLOOR-95,w:130,h:95};
-  if(b.state==='swipe'||b.state==='swipe2')return{x:b.dir>0?b.x+100:b.x-310,y:FLOOR-150,w:210,h:150};
-  if(b.state==='breach')return{x:b.lockX-90,y:FLOOR-260,w:180,h:260};
+  if(b.state==='lunge')return{x:b.dir>0?b.x+90:b.x-175,y:FLOOR-70,w:85,h:70};
+  if(b.state==='swipe'||b.state==='swipe2')return{x:b.dir>0?b.x+55:b.x-180,y:FLOOR-95,w:125,h:95};
+  if(b.state==='breach')return{x:b.lockX-60,y:FLOOR-170,w:120,h:170};
   return null}
  function goSwim(){spinoState('swim');boss.nextAt=boss.elapsed+SPINO.gap[boss.phase]}
- function backToWater(){const b=boss,home=waterLine()+170;if(b.x<home-50){b.from=b.x;b.to=home;spinoState('crawl',SPINO.crawl)}else goSwim()}
- function chooseSpinoAttack(){const b=boss;b.count++;b.dir=player.x<b.x?-1:1;
-  if(b.phase>=3&&b.count%3===0){spinoState('shockTell',SPINO.shockTell);tone(900,.6,'sawtooth',.03);return}
-  if(b.phase>=2&&b.count%4===2&&!isSwimming()){spinoState('inhaleTell',SPINO.inhaleTell);tone(160,.6,'triangle',.05);return}
-  if(isSwimming()){spinoState('submerge',SPINO.submerge);noise(.25,.06);return}
-  if(Math.abs(player.x-b.x)<=SPINO.lungeReach){spinoState('lungeTell',SPINO.lungeTell);tone(130,.4,'sawtooth',.04);return}
-  spinoState('wade',SPINO.wadeMax)}
+ // 쫓아갈 자리: 같은 웅덩이면 물속으로, 땅이면 덮칠 수 있는 가장 가까운 물가에 숨고, 없으면 걸어 나가 앞발.
+ function spinoGoal(){const b=boss,ps=pools(),pp=poolAt(player.x),side=b.x<player.x?-1:1;
+  if(pp>=0)return clamp(player.x+side*110,ps[pp][0]+50,ps[pp][1]-50);
+  let best=null;for(const [a,c] of ps){const x=player.x<a?a+80:c-80;if(Math.abs(x-player.x)<=SPINO.lungeReach-60&&(best===null||Math.abs(x-player.x)<Math.abs(best-player.x)))best=x}
+  return best??player.x+side*(SPINO.clawRange-20)}
+ function chooseSpinoAttack(){const b=boss,pi=poolAt(b.x),pp=poolAt(player.x),d=Math.abs(player.x-b.x);b.dir=player.x<b.x?-1:1;
+  const go=(state,seconds,f,v,type='triangle')=>{b.count++;spinoState(state,seconds);tone(f,.5,type,v);return true};
+  if(b.phase>=3&&pi>=0&&b.count%3===2)return go('shockTell',SPINO.shockTell,900,.03,'sawtooth');
+  if(b.phase>=2&&pi>=0&&pp<0&&d<720&&b.count%4===1)return go('inhaleTell',SPINO.inhaleTell,160,.05);
+  if(pp>=0&&pp===pi){b.count++;spinoState('submerge',SPINO.submerge);noise(.25,.06);return true}
+  if(pp<0&&pi>=0&&d<=SPINO.lungeReach)return go('lungeTell',SPINO.lungeTell,130,.04,'sawtooth');
+  if(pi<0&&d<=SPINO.clawRange+30)return go('clawTell',SPINO.clawTell,300,.04);
+  return false}
  function checkSpinoPhases(){const b=boss,next=b.hp<=SPINO.stormHP?3:b.hp<=SPINO.robotHP?2:1;if(next<=b.phase)return;b.phase=next;b.robot=true;
-  if(SUBMERGED.includes(b.state))b.sink=55;
-  spinoState('roar',SPINO.roar);shake=14;burst(b.x,FLOOR-120,50,next===3?'#ffb06a':'#9fe9df',320);noise(.5,.12);
+  if(SUBMERGED.includes(b.state))b.sink=SPINO.swimSink;
+  spinoState('roar',SPINO.roar);shake=14;burst(b.x,FLOOR-80,50,next===3?'#ffb06a':'#9fe9df',320);noise(.5,.12);
   if(b.darkAt===Infinity)b.darkAt=b.elapsed+SPINO.darkFirst;
   if(next===3)b.tideAt=b.elapsed+SPINO.tideFirst;
   message(next===3?'폭풍의 물가':'강철 지느러미',next===3?'물이 차오르고, 물속엔 번개가 흐른다':'달이 가라앉으면, 빛나는 지느러미를 보라',2.4)}
@@ -480,31 +491,30 @@ function setState(s,t){boss.state=s;boss.timer=t}
   const b=boss;if(!arena)return;
   if(b.dead){b.dark='off';b.tide='off';b.timer-=dt;if(!clearDismissed&&b.timer<=0&&mode==='playing'){mode='won';$('winStats').textContent=`${attempt}번째 도전 · ${durationLabel(runTime)} · 받은 피해 ${damageTaken}회`;layers('win')}return}
   checkSpinoPhases();b.hit=Math.max(0,b.hit-dt);b.elapsed+=dt;spinoEnvironment(dt);b.timer-=dt;
-  const st=b.state,wl=waterLine(),face=()=>{b.dir=player.x<b.x?-1:1},sinkTo=v=>{b.sink+=clamp(v-b.sink,-320*dt,320*dt)};
-  if(st==='swim'){sinkTo(55);face();const goal=clamp(player.x+230,wl+170,2600),move=goal-b.x;b.x+=Math.sign(move)*Math.min(SPINO.swimSpeed*dt,Math.abs(move));if(b.elapsed>=b.nextAt)chooseSpinoAttack();return}
+  const st=b.state,wet=poolAt(b.x)>=0,face=()=>{b.dir=player.x<b.x?-1:1},sinkTo=v=>{b.sink+=clamp(v-b.sink,-260*dt,260*dt)},lo=1620,hi=SPINO.right-60;
+  // 추격: 물웅덩이와 땅을 오가며 플레이어 쪽으로. 공격 조건이 맞으면 공격.
+  if(st==='swim'){sinkTo(wet?SPINO.swimSink:0);face();const goal=clamp(spinoGoal(),lo,hi),move=goal-b.x;b.x+=Math.sign(move)*Math.min((wet?SPINO.swimSpeed:SPINO.landSpeed)*dt,Math.abs(move));if(b.elapsed>=b.nextAt)chooseSpinoAttack();return}
   // 물가 매복 덮치기: 고개를 들고(예고) → 물가로 길게 덮쳐 문다. 빗나가 땅에 엎어지면 2초 허우적거림.
-  if(st==='lungeTell'){sinkTo(30);face();if(b.timer<=0){b.from=b.x;const reach=clamp((player.x-b.dir*(SPINO.jaw-20)-b.x)*b.dir,0,SPINO.lungeMax);b.to=clamp(b.x+b.dir*reach,1640,2650);spinoState('lunge',SPINO.lungeTime);shake=6;noise(.25,.1)}return}
-  if(st==='lunge'){const q=clamp(1-b.timer/SPINO.lungeTime,0,1);b.x=lerp(b.from,b.to,1-(1-q)*(1-q));b.sink=b.x<wl+60?0:30;if(b.timer<=0){b.x=b.to;if(b.x<wl+60&&!b.struck){spinoState('beached',SPINO.beached);shake=10;burst(b.x+b.dir*200,FLOOR-10,30,'#9fd0e0',240);noise(.3,.1)}else backToWater()}return}
-  if(st==='beached'){b.sink=0;if(b.timer<=0)backToWater();return}
-  if(st==='crawl'){const q=clamp(1-b.timer/SPINO.crawl,0,1);b.x=lerp(b.from,b.to,q*q*(3-2*q));sinkTo(b.x>wl?40:0);if(b.timer<=0)goSwim();return}
-  // 멀리 땅 위에 있으면 걸어 나와 앞발 2연타.
-  if(st==='wade'){sinkTo(b.x<wl?0:40);face();const d=Math.abs(player.x-b.x);if(d<=SPINO.clawRange||b.timer<=0){spinoState('clawTell',SPINO.clawTell);tone(300,.3,'triangle',.04);return}b.x+=b.dir*Math.min(SPINO.landSpeed*dt,d-SPINO.clawRange+1);return}
+  if(st==='lungeTell'){sinkTo(20);face();if(b.timer<=0){b.from=b.x;const reach=clamp((player.x-b.dir*(SPINO.jaw-15)-b.x)*b.dir,0,SPINO.lungeMax);b.to=clamp(b.x+b.dir*reach,lo,hi);spinoState('lunge',SPINO.lungeTime);shake=6;noise(.25,.1)}return}
+  if(st==='lunge'){const q=clamp(1-b.timer/SPINO.lungeTime,0,1);b.x=lerp(b.from,b.to,1-(1-q)*(1-q));b.sink=wet?20:0;if(b.timer<=0){b.x=b.to;if(poolAt(b.x)<0&&!b.struck){spinoState('beached',SPINO.beached);shake=10;burst(b.x+b.dir*120,FLOOR-10,30,'#9fd0e0',240);noise(.3,.1)}else goSwim()}return}
+  if(st==='beached'){b.sink=0;if(b.timer<=0)goSwim();return}
+  // 땅 위에서 가까우면 앞발 2연타.
   if(st==='clawTell'||st==='clawGap'){face();if(b.timer<=0){spinoState(st==='clawTell'?'swipe':'swipe2',SPINO.swipe);noise(.12,.08)}return}
   if(st==='swipe'||st==='swipe2'){if(b.timer<=0)spinoState(st==='swipe'?'clawGap':'clawRecover',st==='swipe'?SPINO.swipeGap:SPINO.clawRecover);return}
-  if(st==='clawRecover'){if(b.timer<=0)backToWater();return}
-  // 지느러미 추적: 잠수 → 지느러미만 다가옴 → 물결 원(예고) → 솟구쳐 물기.
-  if(st==='submerge'){sinkTo(175);if(b.timer<=0){b.sink=175;spinoState('fin',SPINO.finMax)}return}
-  if(st==='fin'){const goal=clamp(isSwimming()?player.x:wl+40,wl+40,2700),move=goal-b.x;b.x+=Math.sign(move)*Math.min(SPINO.finSpeed*dt,Math.abs(move));if(Math.abs(goal-b.x)<15||b.timer<=0){b.lockX=b.x;spinoState('breachTell',SPINO.breachTell);tone(220,.5,'sine',.05)}return}
+  if(st==='clawRecover'){if(b.timer<=0)goSwim();return}
+  // 지느러미 추적: 잠수 → 지느러미만 다가옴(같은 웅덩이 안) → 물결 원(예고) → 솟구쳐 물기.
+  if(st==='submerge'){sinkTo(SPINO.deepSink);if(b.timer<=0){b.sink=SPINO.deepSink;spinoState('fin',SPINO.finMax)}return}
+  if(st==='fin'){const ps=pools(),pi=Math.max(0,poolAt(b.x)),goal=clamp(player.x,ps[pi][0]+30,ps[pi][1]-30),move=goal-b.x;b.x+=Math.sign(move)*Math.min(SPINO.finSpeed*dt,Math.abs(move));if(Math.abs(goal-b.x)<15||b.timer<=0){b.lockX=b.x;spinoState('breachTell',SPINO.breachTell);tone(220,.5,'sine',.05)}return}
   if(st==='breachTell'){if(b.timer<=0){spinoState('breach',SPINO.breach);shake=12;burst(b.lockX,FLOOR-20,40,'#9fd0e0',300);noise(.35,.12)}return}
-  if(st==='breach'){b.sink=175*clamp(b.timer/SPINO.breach,0,1);if(b.timer<=0){b.sink=0;spinoState('surfaced',SPINO.surfaced)}return}
-  if(st==='surfaced'){sinkTo(55);if(b.timer<=0)backToWater();return}
+  if(st==='breach'){b.sink=SPINO.deepSink*clamp(b.timer/SPINO.breach,0,1);if(b.timer<=0){b.sink=0;spinoState('surfaced',SPINO.surfaced)}return}
+  if(st==='surfaced'){sinkTo(SPINO.swimSink);if(b.timer<=0)goSwim();return}
   // 2페이즈~: 물살 끌어당기기 (반대로 걸으면 버틸 수 있음).
-  if(st==='inhaleTell'){sinkTo(55);face();if(b.timer<=0)spinoState('inhale',SPINO.inhale);return}
-  if(st==='inhale'){face();if(mode==='playing'&&player.dash<=0&&Math.abs(player.x-b.x)>170)player.x+=Math.sign(b.x-player.x)*SPINO.pull*dt;if(b.timer<=0)goSwim();return}
-  // 3페이즈: 전기 지느러미 — 물속에 있으면 피해.
-  if(st==='shockTell'){sinkTo(55);if(b.timer<=0)spinoState('shock',SPINO.shock);return}
+  if(st==='inhaleTell'){sinkTo(SPINO.swimSink);face();if(b.timer<=0)spinoState('inhale',SPINO.inhale);return}
+  if(st==='inhale'){face();if(mode==='playing'&&player.dash<=0&&Math.abs(player.x-b.x)>110)player.x+=Math.sign(b.x-player.x)*SPINO.pull*dt;if(b.timer<=0)goSwim();return}
+  // 3페이즈: 전기 지느러미 — 어느 웅덩이든 물속에 있으면 피해.
+  if(st==='shockTell'){sinkTo(SPINO.swimSink);if(b.timer<=0)spinoState('shock',SPINO.shock);return}
   if(st==='shock'){if(mode==='playing'&&isSwimming())hurtSpino('shock');if(b.timer<=0)goSwim();return}
-  if(st==='roar'){sinkTo(b.x<wl?0:55);if(b.timer<=0)backToWater();return}
+  if(st==='roar'){sinkTo(wet?SPINO.swimSink:0);if(b.timer<=0)goSwim();return}
  }
  // 방어·엎드린 돌진 예약이 발 구르기 때문에 밀리지 않게 한다.
  function stompRoom(){const next=Math.min(boss.phase<3?boss.guardAt:Infinity,boss.phase>=2?boss.diveAt:Infinity);return next-boss.elapsed>TRI.stompRoom}
@@ -558,7 +568,7 @@ function updateSpear(dt){if(!spear)return;const s=spear;s.age+=dt;
  if(s.state==='flying'||s.state==='falling'){const ox=s.x,oy=s.y;s.vy+=650*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;if(s.state==='flying')s.angle=Math.atan2(s.vy,s.vx);else s.angle=lerp(s.angle,Math.PI/2,Math.min(1,dt*5));
    if(stage===2&&arena){for(const r of raptors)if(!r.dead&&!s.hits.has(r.id)&&segmentRect(ox,oy,s.x,s.y,raptorRect(r))){s.hits.add(r.id);damageRaptor(r,60)}}
   else if(!s.hit&&arena&&!boss.dead&&segmentRect(ox,oy,s.x,s.y,bossRect())){s.hit=true;if(boss.state==='guard'||boss.state==='transform'){burst(s.x,s.y,14,'#b4ecec',160);tone(830,.17,'triangle')}else{boss.hp=Math.max(0,boss.hp-60);boss.hit=.16;hitstop=.05;shake=8;burst(s.x,s.y,26,C.gold,270);noise(.15,.08);if(boss.hp<=0)victory()}}
-  const left=arena?1535:35,right=2750;if(s.state==='flying'&&(s.x<=left||s.x>=right)){s.x=clamp(s.x,left+7,right-7);s.vx=0;s.vy=0;s.state='stuck';s.wallTime=3;burst(s.x,s.y,12,C.gold,120);noise(.12,.04)}
+  const left=arena?1535:35,right=2750+regionShift();if(s.state==='flying'&&(s.x<=left||s.x>=right)){s.x=clamp(s.x,left+7,right-7);s.vx=0;s.vy=0;s.state='stuck';s.wallTime=3;burst(s.x,s.y,12,C.gold,120);noise(.12,.04)}
    let floor=FLOOR-7;for(const p of activePlatforms())if(s.vy>=0&&oy<=p.y-5&&s.y>=p.y-5&&s.x>=p.x&&s.x<=p.x+p.w)floor=Math.min(floor,p.y-7);
   if(s.y>=floor){s.y=floor;s.vx=0;s.vy=0;s.state='ground';s.angle=-.1}}
  if((s.state==='ground'||s.state==='stuck')&&s.age>.35&&Math.hypot(player.x-s.x,player.y-23-s.y)<48){burst(s.x,s.y,9,C.gold,85);tone(660,.13,'triangle',.04);spear=null}
@@ -580,10 +590,10 @@ function updatePlayer(dt){
  const prev=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.ground=false;
  if(p.y>=FLOOR){p.y=FLOOR;p.vy=0;p.ground=true;p.jumps=0}
   if(p.dropTime<=0)for(const f of activePlatforms()){if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0}}
-  p.x=clamp(p.x,arena?1535:35,stageCleared?worldEnd()-30:2750);
+  p.x=clamp(p.x,arena?1535:35,stageCleared?worldEnd()-30:2750+regionShift());
   if(!checkpoint&&p.x>1400){checkpoint=true;message('불씨를 기억했다','체력이 회복되었습니다',2.3);p.hp=p.max;if(progress){progress.checkpoint='camp';saveProgress()}tone(660,.4,'triangle')}
    if(!arena&&p.x>1660){arena=true;checkpoint=true;boss.elapsed=0;boss.guardAt=9;boss.chargeCD=1.5;boss.stompAt=TRI.stompFirst;boss.waves=[];p.hp=p.max;message(stage===4?'스피노사우루스':stage===3?'프테라노돈':stage===2?'울림의 동굴':'트리케라톱스',stage===4?'물가에 서면, 물속을 보라':stage===3?'큰 입이 열리면, 옆으로 피하라':stage===2?'어둠 속 발톱이 깨어난다':'계곡의 문지기',3);tone(90,.8,'sawtooth',.07)}
-   if(stageCleared&&clearDismissed){if(stage<4&&p.x>2890&&progress.checkpoint!=='passage'){progress.checkpoint='passage';saveProgress();message(stage===1?'물소리가 흐르는 길':stage===2?'하늘로 열린 길':'달빛이 내려앉은 길',stage===1?'고사리 사이로 동굴의 숨결이 닿는다':stage===2?'절벽 너머로 구름과 바람이 흐른다':'바람이 잦아들고, 물비린내가 번진다',3)}if(stage<4&&p.x>3600){const next=stage+1;progress.stage=next;progress.checkpoint='entry';enterRegion(next);saveProgress();return}if(stage===4&&p.x>3170&&progress.checkpoint!=='ending'){progress.checkpoint='ending';saveProgress();message('잠시, 고요 속에서','물결이 잦아들고, 달빛만이 길을 비춘다.',6)}}
+   if(stageCleared&&clearDismissed){if(stage<4&&p.x>2890&&progress.checkpoint!=='passage'){progress.checkpoint='passage';saveProgress();message(stage===1?'물소리가 흐르는 길':stage===2?'하늘로 열린 길':'달빛이 내려앉은 길',stage===1?'고사리 사이로 동굴의 숨결이 닿는다':stage===2?'절벽 너머로 구름과 바람이 흐른다':'바람이 잦아들고, 물비린내가 번진다',3)}if(stage<4&&p.x>3600){const next=stage+1;progress.stage=next;progress.checkpoint='entry';enterRegion(next);saveProgress();return}if(stage===4&&p.x>3170+regionShift()&&progress.checkpoint!=='ending'){progress.checkpoint='ending';saveProgress();message('잠시, 고요 속에서','물결이 잦아들고, 달빛만이 길을 비춘다.',6)}}
  if(stage===4&&arena&&!stageCleared&&mode==='playing'){if(isSwimming(p)){p.breath=Math.min(SPINO.breath,(p.breath||0)+dt);if(p.breath>=SPINO.breath){p.drownClock=(p.drownClock||0)-dt;if(p.drownClock<=0){p.drownClock=SPINO.drownEvery;drown()}}}else{p.breath=Math.max(0,(p.breath||0)-dt*2);p.drownClock=0}if(mode!=='playing')return}
  if(press.throw)throwSpear();
  if(!spear&&(keys.attack||press.attack)&&p.atkCD<=0&&p.dash<=0&&p.hurt<=0){p.atk=.18;p.atkCD=.3;p.attackHit=false;p.attackHits=new Set();tone(530,.07,'triangle',.022);noise(.055,.018)}
@@ -599,7 +609,7 @@ function update(dt){if(!['playing','cutscene','title'].includes(mode))return;tim
  if(mode==='cutscene'){updateIntro(dt);return}
  if(mode!=='playing')return;
  runTime+=dt;if(hitstop>0){hitstop-=dt;return}updateBoss(dt);if(mode==='playing'){updatePlayer(dt);if(mode==='playing')updateSpear(dt)}
-  const target=arena&&!stageCleared?1500:clamp(player.x-410,0,worldEnd()-W);cam=lerp(cam,target,Math.min(1,dt*6));press={};}
+  const target=arena&&!stageCleared?(stage===4?clamp(player.x-560,1500,worldEnd()-W):1500):clamp(player.x-410,0,worldEnd()-W);cam=lerp(cam,target,Math.min(1,dt*6));press={};}
 // ── 绘制：自绘矢量，不依赖外部素材 ──
 function path(points,fill,stroke=null,lw=1){g.beginPath();points.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw;g.stroke()}}
 function ellipse(x,y,rx,ry,color){g.fillStyle=color;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()}
@@ -620,15 +630,15 @@ function background(){
  const fog=g.createLinearGradient(0,360,0,630);fog.addColorStop(0,'#9ecac300');fog.addColorStop(1,'#82b9af12');g.fillStyle=fog;g.fillRect(0,360,W,270);
 }
 function ground(){
- g.fillStyle='#101f27';g.fillRect(-100,FLOOR,3900,180);path([[-80,FLOOR],[3800,FLOOR],[3800,FLOOR+15],[-80,FLOOR+26]],'#61716a');
- for(let i=0;i<66;i++){const x=i*46;path([[x,FLOOR+8],[x+24,FLOOR+5],[x+38,FLOOR+34],[x+19,FLOOR+70],[x-5,FLOOR+45]],i%3===0?'#24383a':'#1b2d33');line([[x+22,FLOOR+7],[x+14,FLOOR+23]],'#7b87734c')}
- for(let i=0;i<40;i++){const x=i*78+20;path([[x,FLOOR],[x+4,FLOOR-9],[x+8,FLOOR-3],[x+13,FLOOR-12],[x+14,FLOOR]],'#67836b')}
+ const groundW=3900+regionShift();g.fillStyle='#101f27';g.fillRect(-100,FLOOR,groundW,180);path([[-80,FLOOR],[groundW-100,FLOOR],[groundW-100,FLOOR+15],[-80,FLOOR+26]],'#61716a');
+ for(let i=0;i<66+regionShift()/46;i++){const x=i*46;path([[x,FLOOR+8],[x+24,FLOOR+5],[x+38,FLOOR+34],[x+19,FLOOR+70],[x-5,FLOOR+45]],i%3===0?'#24383a':'#1b2d33');line([[x+22,FLOOR+7],[x+14,FLOOR+23]],'#7b87734c')}
+ for(let i=0;i<40+regionShift()/78;i++){const x=i*78+20;path([[x,FLOOR],[x+4,FLOOR-9],[x+8,FLOOR-3],[x+13,FLOOR-12],[x+14,FLOOR]],'#67836b')}
   for(const p of activePlatforms()){path([[p.x,p.y],[p.x+p.w,p.y],[p.x+p.w-13,p.y+22],[p.x+p.w*.66,p.y+34],[p.x+13,p.y+23]],stage===3?'#55737f':'#263e40');line([[p.x,p.y],[p.x+p.w,p.y]],stage===3?'#d1dbc7':'#8a977b',4);fern(p.x+30,p.y, .52,1,'#66846a')}
  for(const x of [45,327,589,1030,1330,1780,2735])fern(x,FLOOR, .65+(x%7)/10,x%2?-1:1);
  // 竞技场石门。
- for(const x of [1505,2770]){path([[x-30,FLOOR],[x-25,286],[x+10,263],[x+30,365],[x+24,FLOOR]],'#152a31');line([[x-10,305],[x-6,550]],'#43616a',3);if(arena&&(stage===2?!stageCleared:!boss.dead)){glow(x,460,95,'#e6a35f22');for(let j=0;j<7;j++){let yy=328+j*38;line([[x-11,yy],[x+7,yy+11],[x-6,yy+25]],'#d2b98e88',2)}}}
+ for(const x of [1505,2770+regionShift()]){path([[x-30,FLOOR],[x-25,286],[x+10,263],[x+30,365],[x+24,FLOOR]],'#152a31');line([[x-10,305],[x-6,550]],'#43616a',3);if(arena&&(stage===2?!stageCleared:!boss.dead)){glow(x,460,95,'#e6a35f22');for(let j=0;j<7;j++){let yy=328+j*38;line([[x-11,yy],[x+7,yy+11],[x-6,yy+25]],'#d2b98e88',2)}}}
   if(stage===2){for(let i=0;i<18;i++){const x=90+i*160;path([[x,120+(i%3)*30],[x+65,130],[x+28,260+(i%3)*39]],'#132c36');if(x<1450){fern(x+70,FLOOR,.7,-1,'#44675d');glow(x+35,FLOOR-12,70,'#7baca217');ellipse(x+30,FLOOR-4,48,4,'#8cb3b522')}}if(howlRemaining>0){glow(2760,490,160,'#9fe9df55');line([[2755,360],[2740,420],[2763,460],[2742,520],[2756,600]],'#c2f5e1',3)}}
-   if(stageCleared){for(let i=0;i<9;i++){const x=2830+i*94;fern(x,FLOOR,1+(i%3)*.2,i%2?1:-1,'#355a52');ellipse(x+28,FLOOR+4,42,3,'#89b1ac44')}glow(stage<4?3600:3340,400,240,'#8cbfb42c');if(stage<4){line([[3060,170],[3065,578]],'#abcfc31f',10);line([[3070,175],[3075,579]],'#abcfc327',2)}else{g.fillStyle='#e1e8d7';g.font='18px Batang, serif';g.textAlign='center';g.fillText('이곳에서, 잠시 숨을 고른다.',3270,435);g.font='12px sans-serif';g.fillText('물결이 잦아들고, 달빛만이 남았다.',3270,466)}}
+   if(stageCleared){for(let i=0;i<9;i++){const x=2830+regionShift()+i*94;fern(x,FLOOR,1+(i%3)*.2,i%2?1:-1,'#355a52');ellipse(x+28,FLOOR+4,42,3,'#89b1ac44')}glow((stage<4?3600:3340)+regionShift(),400,240,'#8cbfb42c');if(stage<4){line([[3060,170],[3065,578]],'#abcfc31f',10);line([[3070,175],[3075,579]],'#abcfc327',2)}else{g.fillStyle='#e1e8d7';g.font='18px Batang, serif';g.textAlign='center';g.fillText('이곳에서, 잠시 숨을 고른다.',3270+regionShift(),435);g.font='12px sans-serif';g.fillText('물결이 잦아들고, 달빛만이 남았다.',3270+regionShift(),466)}}
   if(stage===4){drawWaterBack();if(!arena){g.fillStyle='#d8e5da';g.font='17px Batang, serif';g.textAlign='center';g.fillText('잠긴 달의 물가',820,320);g.font='12px sans-serif';g.fillText('검은 물결 아래, 커다란 지느러미가 지나간다.',820,347)}}
   if(stage===3&&!arena){g.fillStyle='#d8e5da';g.font='17px Batang, serif';g.textAlign='center';g.fillText('바람의 하늘 절벽',820,320);g.font='12px sans-serif';g.fillText('절벽의 불씨 너머, 거대한 날개가 기다린다.',820,347)}
   drawFire(1430,FLOOR);if(!arena&&player.x>1040){g.fillStyle='#a9c8bc';g.font='13px sans-serif';g.textAlign='center';g.fillText('모닥불 · 다시 일어설 자리',1430,522)}
@@ -657,29 +667,33 @@ function drawMoonShore(){const sky=g.createLinearGradient(0,0,0,H);sky.addColorS
  for(const d of decor){const x=((d.x-cam*.05)%1400+1400)%1400-60;ellipse(x,d.y*.7,d.r*.4,d.r*.4,'#cfe3e830')}
  // 수평선 가까이 반쯤 잠긴 달.
  const mx=930-cam*.04;glow(mx,470,300,'#cfe3e81c');ellipse(mx,470,62,62,'#d6e2d6');ellipse(mx,470,58,58,'#e3ebdf');
- for(let i=-1;i<8;i++){const x=i*300-cam*.15;path([[x,640],[x+60,455+(i%3)*25],[x+150,430+(i%2)*35],[x+260,470],[x+330,640]],'#0b1a21')}
+ for(let i=-1;i<8;i++){const x=((i*300-cam*.15)%2700+2700)%2700-300;path([[x,640],[x+60,455+(i%3)*25],[x+150,430+(i%2)*35],[x+260,470],[x+330,640]],'#0b1a21')}
  for(let i=0;i<14;i++){const x=((i*165-cam*.3)%2300+2300)%2300-200,h=120+(i%4)*30;line([[x,610],[x+5,610-h]],'#0d1f26',4);line([[x+4,610-h*.6],[x+30,610-h*.8]],'#0d1f26',2);line([[x+3,610-h*.4],[x-22,610-h*.55]],'#0d1f26',2)}
  const fog=g.createLinearGradient(0,380,0,640);fog.addColorStop(0,'#7fa9b000');fog.addColorStop(1,'#7fa9b018');g.fillStyle=fog;g.fillRect(0,380,W,260)}
-function drawWaterBack(){const wl=waterLine();g.fillStyle='#061620';g.fillRect(wl,FLOOR-22,2760-wl,200);path([[wl-40,FLOOR],[wl,FLOOR-22],[wl+30,FLOOR-22],[wl+10,FLOOR+10]],'#2a3d3b');
- // 물에 비친 달.
- const mx=930-cam*.04+cam;for(let i=0;i<7;i++){const y=FLOOR-14+i*12,w=70-i*7+Math.sin(time*2+i)*8;if(mx-w>wl)line([[mx-w,y],[mx+w,y]],'#d6e2d655',2)}
- for(let i=0;i<14;i++){const x=1540+i*86;if(x<wl-30){line([[x,FLOOR],[x+3,FLOOR-34-(i%3)*10]],'#3d5b4c',2);line([[x+6,FLOOR],[x+11,FLOOR-24]],'#3d5b4c',2)}}}
-function drawWaterFront(){const wl=waterLine(),b=boss,shock=arena&&!b.dead&&['shock','shockTell'].includes(b.state);g.save();g.fillStyle='rgba(10,34,48,.74)';g.fillRect(wl,FLOOR-22,2760-wl,200);
- g.beginPath();for(let x=wl;x<=2760;x+=20)g.lineTo(x,FLOOR-22+Math.sin(time*2.2+x*.03)*2);g.strokeStyle='#9cc7cf88';g.lineWidth=2;g.stroke();
- if(shock){g.globalAlpha=b.state==='shock'?.9:.35+.3*Math.abs(Math.sin(time*25));for(let i=0;i<6;i++){const y=FLOOR-14+i*16;g.beginPath();for(let x=wl;x<=2760;x+=26)g.lineTo(x,y+((x/26+i+Math.floor(time*20))%2?-7:7));g.strokeStyle='#9ff1ff';g.lineWidth=2;g.stroke()}}
+function drawWaterBack(){const mx=930-cam*.04+cam,ps=pools();
+ for(const [a,c] of ps){g.fillStyle='#061620';g.fillRect(a,FLOOR-22,c-a,200);path([[a-40,FLOOR],[a,FLOOR-22],[a+30,FLOOR-22],[a+10,FLOOR+10]],'#2a3d3b');path([[c+40,FLOOR],[c,FLOOR-22],[c-30,FLOOR-22],[c-10,FLOOR+10]],'#2a3d3b');
+  // 물에 비친 달.
+  for(let i=0;i<7;i++){const y=FLOOR-14+i*12,w=60-i*6+Math.sin(time*2+i)*7;if(mx-w>a&&mx+w<c)line([[mx-w,y],[mx+w,y]],'#d6e2d655',2)}}
+ // 땅 구간의 갈대.
+ for(let i=0;i<46;i++){const x=1540+i*70;if(x<SPINO.right&&poolAt(x)<0&&poolAt(x+12)<0){line([[x,FLOOR],[x+3,FLOOR-34-(i%3)*10]],'#3d5b4c',2);line([[x+6,FLOOR],[x+11,FLOOR-24]],'#3d5b4c',2)}}}
+function drawWaterFront(){const b=boss,shock=arena&&!b.dead&&['shock','shockTell'].includes(b.state);g.save();
+ for(const [a,c] of pools()){g.globalAlpha=1;g.fillStyle='rgba(10,34,48,.74)';g.fillRect(a,FLOOR-22,c-a,200);
+  g.beginPath();for(let x=a;x<=c;x+=20)g.lineTo(x,FLOOR-22+Math.sin(time*2.2+x*.03)*2);g.strokeStyle='#9cc7cf88';g.lineWidth=2;g.stroke();
+  if(shock){g.globalAlpha=b.state==='shock'?.9:.35+.3*Math.abs(Math.sin(time*25));for(let i=0;i<6;i++){const y=FLOOR-14+i*16;g.beginPath();for(let x=a;x<=c;x+=26)g.lineTo(x,y+((x/26+i+Math.floor(time*20))%2?-7:7));g.strokeStyle='#9ff1ff';g.lineWidth=2;g.stroke()}}}
  g.restore()}
-function drawSpinoFin(x,alpha=1){g.save();g.globalAlpha=alpha;const y=FLOOR-22,robot=boss.robot;path([[x-75,y],[x-45,y-58],[x-5,y-92],[x+35,y-70],[x+70,y]],robot?'#4d6b7c':'#7a3f3a','#14262c',3);for(const k of [-45,-20,5,30])line([[x+k,y],[x+k*.8,y-60+Math.abs(k)*.5]],'#d9c9a5aa',2);if(robot)line([[x-45,y-58],[x-5,y-92],[x+35,y-70]],'#8ff0ff',2);
- for(let i=0;i<3;i++){const q=(time*1.3+i/3)%1;g.globalAlpha=alpha*(1-q)*.6;g.strokeStyle='#bfe0e6';g.lineWidth=2;g.beginPath();g.ellipse(x+40+q*60,y+2,20+q*40,3+q*3,0,0,Math.PI*2);g.stroke()}g.restore()}
-function drawSpino(){const b=boss;if(!arena&&!stageCleared){drawSpinoFin(2420+Math.sin(time*.35)*170,.55);return}
- const st=b.state;if(st==='fin'||st==='breachTell'||st==='submerge'&&b.sink>140){drawSpinoFin(b.x);if(st==='breachTell')spinoRipples();return}
- const robot=b.robot,storm=b.phase>=3,tell=SPINO_TELLS.includes(st),open=['lungeTell','lunge','roar','inhale','inhaleTell','breach'].includes(st),swipe=st==='swipe'||st==='swipe2';
+function drawSpinoFin(x,alpha=1){g.save();g.globalAlpha=alpha;g.translate(x,FLOOR-22);g.scale(.7,.7);const robot=boss.robot;path([[-75,0],[-45,-58],[-5,-92],[35,-70],[70,0]],robot?'#4d6b7c':'#7a3f3a','#14262c',3);for(const k of [-45,-20,5,30])line([[k,0],[k*.8,-60+Math.abs(k)*.5]],'#d9c9a5aa',2);if(robot)line([[-45,-58],[-5,-92],[35,-70]],'#8ff0ff',2);
+ for(let i=0;i<3;i++){const q=(time*1.3+i/3)%1;g.globalAlpha=alpha*(1-q)*.6;g.strokeStyle='#bfe0e6';g.lineWidth=2;g.beginPath();g.ellipse(40+q*60,2,20+q*40,3+q*3,0,0,Math.PI*2);g.stroke()}g.restore()}
+function drawSpino(){const b=boss;if(!arena&&!stageCleared){drawSpinoFin(2450+Math.sin(time*.35)*160,.55);return}
+ const st=b.state;if(st==='fin'||st==='breachTell'||st==='submerge'&&b.sink>SPINO.deepSink*.8){drawSpinoFin(b.x);if(st==='breachTell')spinoRipples();return}
+ const robot=b.robot,storm=b.phase>=3,tell=SPINO_TELLS.includes(st),open=['lungeTell','lunge','roar','inhale','inhaleTell','breach'].includes(st),swipe=st==='swipe'||st==='swipe2',k=SPINO.scale;
  const skin=robot?'#6f8791':'#3d5a52',belly=robot?'#9fb0ae':'#7d927c',sail=robot?'#4d6b7c':'#8a4b42',dark='#14262c';
- g.save();g.translate(b.x,FLOOR+b.sink);g.scale(b.dir,1);if(b.dead)g.globalAlpha=.25;
+ g.save();g.translate(b.x,FLOOR+b.sink);g.scale(b.dir*k,k);if(b.dead)g.globalAlpha=.25;
  if(st==='beached'){g.translate(0,30);g.rotate(.13+Math.sin(time*16)*.05)}
  const glowSail=robot&&(tell||st==='shock')||st==='inhale';
  if(glowSail)glow(-5,-190,170,storm?'#ffd27a55':'#7fe6ff55');
  path([[-120,-95],[-260,-75],[-335,-42],[-250,-58],[-120,-60]],skin,dark,3);
- for(const [hx,kx,fx] of [[-60,-72,-55],[25,32,18]]){line([[hx,-65],[kx,-28],[fx,0]],dark,20);line([[hx,-65],[kx,-28],[fx,0]],skin,14)}
+ const gait=st==='swim'&&poolAt(b.x)<0?Math.sin(time*10)*12:0;
+ for(const [hx,kx,fx,s] of [[-60,-72,-55,1],[25,32,18,-1]]){line([[hx,-65],[kx+gait*s,-28],[fx+gait*s,0]],dark,20);line([[hx,-65],[kx+gait*s,-28],[fx+gait*s,0]],skin,14)}
  // 등 지느러미(돛).
  path([[-120,-122],[-112,-150],[-72,-215],[-20,-252],[30,-246],[80,-202],[112,-140],[110,-122]],sail,dark,3);
  for(const [x,y] of [[-112,-150],[-72,-215],[-20,-252],[30,-246],[80,-202],[112,-140]])line([[x*.92,-120],[x,y]],'#d9c9a5bb',3);
@@ -698,25 +712,25 @@ function drawSpino(){const b=boss;if(!arena&&!stageCleared){drawSpinoFin(2420+Ma
  if(robot)line([[60,-42],[150,-30]],storm?'#ffbc75':'#8ff0ff',3);g.restore();
  if(b.hit>0)glow(0,-110,160,'#fff3cd66');
  g.restore();
- if(st==='roar'){g.save();for(let i=0;i<5;i++){const q=(time*1.6+i*.2)%1;g.globalAlpha=1-q;g.strokeStyle='#e7f3ee';g.lineWidth=3;g.beginPath();g.ellipse(b.x+b.dir*230,FLOOR+b.sink-200-q*150,14+q*60,5+q*16,0,0,Math.PI*2);g.stroke()}g.restore()}
- if(swipe){g.save();g.strokeStyle='#ffe6b8';g.lineWidth=5;g.globalAlpha=.8;g.beginPath();g.arc(b.x+b.dir*200,FLOOR-80,95,st==='swipe'?-1.2:.2,st==='swipe'?.4:1.6);g.stroke();g.restore()}
- if(st==='inhale'){g.save();for(let i=0;i<8;i++){const q=(time*1.8+i/8)%1,x=lerp(player.x,b.x+b.dir*230,q),y=FLOOR-40-Math.sin(i)*30;g.globalAlpha=(1-q)*.6;line([[x,y],[x+(b.x-player.x>0?30:-30),y]],'#bfe0e6',2)}g.restore()}
- if(['lungeTell','clawTell'].includes(st)){const span=st==='lungeTell'?SPINO.lungeTell:SPINO.clawTell,q=clamp(1-b.timer/span,0,1);g.fillStyle='#dfae6655';g.fillRect(b.x-70,FLOOR+8,140,5);g.fillStyle='#ff8f6b';g.fillRect(b.x-70,FLOOR+8,140*q,5)}
+ if(st==='roar'){g.save();for(let i=0;i<5;i++){const q=(time*1.6+i*.2)%1;g.globalAlpha=1-q;g.strokeStyle='#e7f3ee';g.lineWidth=3;g.beginPath();g.ellipse(b.x+b.dir*143,FLOOR+b.sink-124-q*120,10+q*45,4+q*12,0,0,Math.PI*2);g.stroke()}g.restore()}
+ if(swipe){g.save();g.strokeStyle='#ffe6b8';g.lineWidth=5;g.globalAlpha=.8;g.beginPath();g.arc(b.x+b.dir*124,FLOOR-50,60,st==='swipe'?-1.2:.2,st==='swipe'?.4:1.6);g.stroke();g.restore()}
+ if(st==='inhale'){g.save();for(let i=0;i<8;i++){const q=(time*1.8+i/8)%1,x=lerp(player.x,b.x+b.dir*143,q),y=FLOOR-40-Math.sin(i)*30;g.globalAlpha=(1-q)*.6;line([[x,y],[x+(b.x-player.x>0?30:-30),y]],'#bfe0e6',2)}g.restore()}
+ if(['lungeTell','clawTell'].includes(st)){const span=st==='lungeTell'?SPINO.lungeTell:SPINO.clawTell,q=clamp(1-b.timer/span,0,1);g.fillStyle='#dfae6655';g.fillRect(b.x-60,FLOOR+8,120,5);g.fillStyle='#ff8f6b';g.fillRect(b.x-60,FLOOR+8,120*q,5)}
 }
-function spinoRipples(){const b=boss,q=clamp(1-b.timer/SPINO.breachTell,0,1);g.save();for(let i=0;i<3;i++){const r=(q*3+i)%3/3;g.globalAlpha=(1-r)*.9;g.strokeStyle=b.robot?'#8ff0ff':'#e9d6a6';g.lineWidth=3;g.beginPath();g.ellipse(b.lockX,FLOOR-20,30+r*80,6+r*10,0,0,Math.PI*2);g.stroke()}glow(b.lockX,FLOOR-20,90,'#bfe0e644');g.restore()}
+function spinoRipples(){const b=boss,q=clamp(1-b.timer/SPINO.breachTell,0,1);g.save();for(let i=0;i<3;i++){const r=(q*3+i)%3/3;g.globalAlpha=(1-r)*.9;g.strokeStyle=b.robot?'#8ff0ff':'#e9d6a6';g.lineWidth=3;g.beginPath();g.ellipse(b.lockX,FLOOR-20,24+r*60,5+r*8,0,0,Math.PI*2);g.stroke()}glow(b.lockX,FLOOR-20,70,'#bfe0e644');g.restore()}
 // 2·3페이즈 어둠: 주인공 주변 작은 원만 보이고, 눈빛·발광 지느러미·물결 예고만 어둠 위에 남는다.
 function drawDarkness(){const b=boss;if(!arena||b.dead||!b.dark||b.dark==='off')return;
  const a=b.dark==='tell'?(.25+.45*Math.abs(Math.sin(b.darkT*Math.PI*5)))*clamp(b.darkT/SPINO.darkTell+.3,0,1):.97*clamp((SPINO.dark-b.darkT)/.35,0,1);
- const px=player.x-cam,py=player.y-28,r=SPINO.radius[Math.max(2,b.phase)];
+ const px=player.x-cam,py=player.y-28,r=SPINO.radius[Math.max(2,b.phase)],k=SPINO.scale;
  g.save();const grad=g.createRadialGradient(px,py,r*.55,px,py,r);grad.addColorStop(0,'rgba(2,5,9,0)');grad.addColorStop(1,`rgba(2,5,9,${a})`);g.fillStyle=grad;g.fillRect(0,0,W,H);
- g.translate(-cam,0);g.globalAlpha=clamp(a*1.05,0,1);const st=b.state;
- if(!SUBMERGED.includes(st)){const ex=b.x+b.dir*200,ey=FLOOR+b.sink-145;glow(ex,ey,26,'#ff7a4a99');ellipse(ex,ey,4,3,'#ffd0a0')}
- if(b.robot&&(SPINO_TELLS.includes(st)||st==='shock')){const y=FLOOR+b.sink;glow(b.x,y-190,150,b.phase>=3?'#ffd27a44':'#7fe6ff44');line([[b.x-112*b.dir,y-150],[b.x-72*b.dir,y-215],[b.x-20*b.dir,y-252],[b.x+30*b.dir,y-246],[b.x+80*b.dir,y-202],[b.x+112*b.dir,y-140]],b.phase>=3?'#ffd27a':'#aaf6ff',4)}
+ g.translate(-cam,0);g.globalAlpha=clamp(a*1.05,0,1);const st=b.state,y=FLOOR+b.sink;
+ if(!SUBMERGED.includes(st)){const ex=b.x+b.dir*124,ey=y-90;glow(ex,ey,22,'#ff7a4a99');ellipse(ex,ey,3,3,'#ffd0a0')}
+ if(b.robot&&(SPINO_TELLS.includes(st)||st==='shock')){glow(b.x,y-118,100,b.phase>=3?'#ffd27a44':'#7fe6ff44');line([[-112,-150],[-72,-215],[-20,-252],[30,-246],[80,-202],[112,-140]].map(([x,yy])=>[b.x+x*k*b.dir,y+yy*k]),b.phase>=3?'#ffd27a':'#aaf6ff',4)}
  if(st==='breachTell')spinoRipples();
  if(st==='fin'){g.globalAlpha*=.5;for(let i=0;i<2;i++){const q=(time*1.3+i/2)%1;g.strokeStyle='#bfe0e6';g.lineWidth=2;g.beginPath();g.ellipse(b.x,FLOOR-20,20+q*40,3+q*3,0,0,Math.PI*2);g.stroke()}}
  g.restore()}
 function spinoHint(){const b=boss,st=b.state;if(b.dark==='tell')return '달이 가라앉는다 · 눈빛과 지느러미를 보라';
- return st==='beached'?'물 밖에 엎어졌다 · 공격 기회':st==='surfaced'?'떠올랐다 · 공격 기회':st==='lungeTell'?'고개가 들렸다 · 물가에서 물러서라':st==='clawTell'||st==='clawGap'?'앞발 · 두 번 휘두른다':st==='submerge'||st==='fin'?'지느러미가 다가온다 · 물 밖으로':st==='breachTell'?'물결이 원을 그린다 · 그 자리를 벗어나라':st==='inhaleTell'||st==='inhale'?'물살이 당긴다 · 반대로 버텨라':st==='shockTell'||st==='shock'?'번개 지느러미 · 물 밖으로':isSwimming()?'숨이 다하기 전에 물 밖으로':'물가에서 거리를 재라'}
+ return st==='beached'?'물 밖에 엎어졌다 · 공격 기회':st==='surfaced'?'떠올랐다 · 공격 기회':st==='lungeTell'?'고개가 들렸다 · 물가에서 물러서라':st==='clawTell'||st==='clawGap'?'앞발 · 두 번 휘두른다':st==='submerge'||st==='fin'?'지느러미가 다가온다 · 물 밖으로':st==='breachTell'?'물결이 원을 그린다 · 그 자리를 벗어나라':st==='inhaleTell'||st==='inhale'?'물살이 당긴다 · 반대로 버텨라':st==='shockTell'||st==='shock'?'번개 지느러미 · 물 밖으로':isSwimming()?'숨이 다하기 전에 물 밖으로':'땅과 물을 건너며 싸워라 · 두 번 뛰면 넘어간다'}
 function spinoHud(){const b=boss;if(arena&&!b.dead){g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('스피노사우루스 · '+(b.phase>=3?'폭풍의 물가':b.robot?'강철 지느러미':'물가의 그림자'),640,31);g.fillStyle='#10303a';g.fillRect(350,49,580,9);g.strokeStyle='#c2d7d4';g.strokeRect(348,47,584,13);g.fillStyle=b.phase>=3?'#f0b27a':b.robot?'#8dd9f5':'#7fb7a4';g.fillRect(350,49,580*b.hp/b.max,9);g.font='12px sans-serif';g.fillStyle='#e5ede0';g.fillText(spinoHint(),640,83)}
  // 숨 게이지(주인공 머리 위).
  const br=player.breath||0;if(arena&&!stageCleared&&(isSwimming()||br>0)){const x=player.x-cam,y=player.y-80,left=1-clamp(br/SPINO.breath,0,1);g.fillStyle='#0b1b26cc';g.fillRect(x-24,y,48,6);g.fillStyle=left>0?'#8fd8ff':'#ff7a5a';g.fillRect(x-24,y,48*(left>0?left:1),6);g.font='10px sans-serif';g.textAlign='center';g.fillStyle=left>0?'#cfeaf2':'#ffb3a0';g.fillText(left>0?'숨':'숨이 차다',x,y-4)}}
@@ -870,7 +884,7 @@ function drawIntro(){const t=introTime;g.save();background();g.save();g.translat
  g.fillStyle='#394f52';g.fillRect(40,709,1200,2);g.fillStyle='#ddbd83';g.fillRect(40,709,1200*clamp(t/13.5,0,1),2);
  let fade=t<.7?1-t/.7:t>12.8?(t-12.8)/.7:0;if(fade>0){g.fillStyle=`rgba(5,13,20,${clamp(fade,0,1)})`;g.fillRect(0,0,W,H)}g.restore()}
 function drawLaser(){if(boss.laserTime<=0||boss.dead)return;const e=eyePosition(),len=1450,ex=e.x+Math.cos(boss.laserAngle)*len,ey=e.y+Math.sin(boss.laserAngle)*len,warm=boss.laserWarm>0;g.save();g.lineCap='round';if(warm){g.setLineDash([8,12]);line([[e.x,e.y],[ex,ey]],'#ffc29a99',2);g.setLineDash([])}else{g.shadowColor='#ff7951';g.shadowBlur=24;line([[e.x,e.y],[ex,ey]],'#f36d4866',19);line([[e.x,e.y],[ex,ey]],'#ff9873',8);line([[e.x,e.y],[ex,ey]],'#fff2cc',3)}glow(e.x,e.y,warm?24:40,'#ffb77c99');ellipse(e.x,e.y,5,5,'#fff5d9');g.restore()}
-function drawSpear(){if(!spear)return;const s=spear;g.save();g.translate(s.x,s.y);if(stage===4&&s.state==='ground'&&s.x>waterLine())g.translate(0,-16+Math.sin(time*2.4)*3);if(s.state==='ground'||s.state==='stuck')glow(0,0,35,'#e6ba7338');g.rotate(s.angle);line([[-46,0],[33,0]],'#b89864',4);line([[-35,-1],[29,-1]],'#e7c590',1);path([[30,-6],[51,0],[30,6],[35,0]],'#e9f6de','#6a9690',1);for(let i=0;i<4;i++)line([[23+i*2,-3],[25+i*2,3]],'#ded5a9',1);g.restore()}
+function drawSpear(){if(!spear)return;const s=spear;g.save();g.translate(s.x,s.y);if(stage===4&&s.state==='ground'&&poolAt(s.x)>=0)g.translate(0,-16+Math.sin(time*2.4)*3);if(s.state==='ground'||s.state==='stuck')glow(0,0,35,'#e6ba7338');g.rotate(s.angle);line([[-46,0],[33,0]],'#b89864',4);line([[-35,-1],[29,-1]],'#e7c590',1);path([[30,-6],[51,0],[30,6],[35,0]],'#e9f6de','#6a9690',1);for(let i=0;i<4;i++)line([[23+i*2,-3],[25+i*2,3]],'#ded5a9',1);g.restore()}
 function drawTitle(){g.save();const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,t=reduced?0:time;const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#091923');sky.addColorStop(.6,'#29434a');sky.addColorStop(1,'#0b242b');g.fillStyle=sky;g.fillRect(0,0,W,H);glow(640,385,450,'#9cbdba1b');
  for(let depth=0;depth<3;depth++){const color=['#223d46','#17313b','#0c232d'][depth];for(let i=-1;i<8;i++){const x=i*220+depth*93+Math.sin(t*.08+depth)*5;path([[x,0],[x+130,0],[x+105,95+depth*70],[x+125,280],[x+63,470+depth*70],[x-20,720],[x+6,310]],color)}ellipse(640,730,570-depth*65,160-depth*20,color)}
  for(let i=0;i<24;i++){const x=i*61-65;fern(x,740+(i%3)*13,.9+(i%5)*.25,i%2?1:-1,i%3?'#173a3d':'#28504c')}
@@ -902,7 +916,7 @@ function render(){if(mode==='title'||mode==='records'||mode==='settings'&&settin
     else if(state==='takeoff'){boss.y=FLOOR;pteraTakeoff()}
     else{boss.y=['walk','stuck'].includes(state)?FLOOR:245;if(state==='walk')pteraWalk();else pteraState(state,{fly:4,stuck:2}[state])}render();return true;
    }
-    window.primalJourney={start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,waterLine:stage===4?waterLine():null,swimming:stage===4&&isSwimming()})};
+    window.primalJourney={start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,pools:stage===4?pools():null,swimming:stage===4&&isSwimming()})};
  function frame(ts){const dt=Math.min(.034,(ts-last)/1000||.016);last=ts;if(mode==='playing'||mode==='title'||mode==='dead'||mode==='cutscene')update(dt);render();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
 </script>
