@@ -2155,6 +2155,29 @@ if(typeof document!=='undefined'){
   };
 })();
 
+/* ===================== 뮤됴구: 포지션 적합도 · 전술 추가 (사용자 요청) =====================
+   - CM ↔ DM 은 사실상 같은 자리 → 능력 감소 8% → 2% (적합도 .92 → .98).
+     서브 포지션(.95)보다 가까운 자리가 더 높으면 높은 쪽을 쓴다 (CM 선수에게 DM 이 서브로 있어도 .98).
+   - 전술 3-5-2 · 3-4-3 · 3-4-2-1 추가 (경기 라인업 · 상대 팀 · MY TEAM 모두). 윙백은 LB/RB. */
+(function lifeTactics(){
+  if (typeof CLOSE === 'undefined' || typeof FORMS === 'undefined' || typeof fit !== 'function') return;
+  CLOSE['DM-CM'] = .98;
+  var origFit = fit;
+  fit = function (p, pos) {
+    var v = origFit(p, pos);
+    if (v >= 1 || pos === 'GK' || p.pos === 'GK') return v;
+    return Math.max(v, closeness(p.pos, pos));
+  };
+  [
+    {id:'3-5-2',s:[['GK',50,90],['CB',30,76],['CB',50,79],['CB',70,76],['LB',10,47],['CM',30,48],['DM',50,57],['CM',70,48],['RB',90,47],['ST',36,16],['ST',64,16]]},
+    {id:'3-4-3',s:[['GK',50,90],['CB',30,76],['CB',50,79],['CB',70,76],['LB',10,50],['CM',37,53],['CM',63,53],['RB',90,50],['LW',17,25],['ST',50,14],['RW',83,25]]},
+    {id:'3-4-2-1',s:[['GK',50,90],['CB',30,76],['CB',50,79],['CB',70,76],['LB',10,52],['CM',37,56],['CM',63,56],['RB',90,52],['AM',33,33],['AM',67,33],['ST',50,14]]}
+  ].forEach(function (f) {
+    if (FORMS.some(function (x) { return x.id === f.id; })) return;
+    FORMS.push({ id: f.id, slots: f.s.map(function (a) { return { pos: a[0], x: a[1], y: a[2] }; }) });
+  });
+})();
+
 /* ===================== 뮤됴구: 엔터키로 대화 넘기기 =====================
    원본은 대화창을 클릭하거나, 대화창에 포커스가 있을 때만 엔터가 먹었다.
    → 어디서든 엔터를 누르면 지금 대화를 다음 줄로 넘긴다.
