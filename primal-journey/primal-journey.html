@@ -86,7 +86,7 @@ function discardDebugJourney(){if(debugJourney)progress=copyProgress(debugSnapsh
 const PLAYER_HP=6,BOSS_HP=1080,DIVE_INTERVAL=7;
  const RECORD_KEY='primalJourney.records.v1';
  const STAGE_RECORD_KEY='primalJourney.records.v2',STAGE_NAMES={1:'잊힌 뿔의 계곡',2:'울림의 동굴',3:'바람의 하늘 절벽'};
-  let stage=1,raptors=[],raptorPhase=1,summoned=false,stageCleared=false,clearTimer=0,howlRemaining=0;
+  let stage=1,raptors=[],raptorPhase=1,summoned=false,stageCleared=false,clearTimer=0,howlRemaining=0,packWait=0,packReserve=0,packNext='',packLead='main',packSwap=8;
   const JOURNEY_KEY='primalJourney.progress.v1';
   // 전투 기록과 독립된 여정. 위치는 검증된 모닥불/지역 경계로만 복원한다.
    function validProgress(p){return !!p&&p.version===1&&[1,2,3].includes(p.stage)&&['entry','camp','cleared','passage','ending'].includes(p.checkpoint)&&p.cleared&&[1,2,3].every(n=>typeof p.cleared[n]==='boolean')&&(!p.cleared[2]||p.cleared[1])&&(!p.cleared[3]||p.cleared[2])&&(p.stage<2||p.cleared[1])&&(p.stage<3||p.cleared[2])&&(!['cleared','passage','ending'].includes(p.checkpoint)||p.cleared[p.stage])&&(p.checkpoint!=='passage'||p.stage<3)&&(p.checkpoint!=='ending'||p.stage===3)&&(!p.cleared[p.stage]||!['entry','camp'].includes(p.checkpoint))}
@@ -135,7 +135,7 @@ function message(t,sub='',duration=2.6){texts.push({t,sub,life:duration,max:dura
 function layers(id){['title','dead','pause','win','settings','records','homeConfirm'].forEach(x=>$(x).classList.toggle('open',x===id));$('shell').classList.toggle('cinematic',mode==='cutscene');$('shell').classList.toggle('at-title',mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title');$('shell').classList.toggle('in-play',mode==='playing');$('debugPanel').hidden=mode!=='debug';$('debugBtn').hidden=!['playing','paused','debug'].includes(mode);$('debugBtn').setAttribute('aria-expanded',String(mode==='debug'))}
 function reset(toBoss=false){spear=null;player={x:toBoss?1660:150,y:FLOOR,vx:0,vy:0,dir:1,hp:PLAYER_HP,max:PLAYER_HP,jumps:0,ground:true,coyote:.1,jumpBuffer:0,atk:0,atkCD:0,attackHit:false,attackHits:new Set(),inv:0,dash:0,dashCD:0,hurt:0};boss={x:2450,y:FLOOR,hp:BOSS_HP,max:BOSS_HP,phase:1,state:'idle',timer:1.6,dir:-1,vx:0,elapsed:0,guardAt:9,diveAt:DIVE_INTERVAL,chargeCD:1.8,hit:0,transform:0,dead:false,kick:0,laserDelay:-1,laserTime:0,laserAngle:0,laserWarm:0};particles=[];afterimages=[];texts=[];shake=0;flash=0;hitstop=0;arena=toBoss;checkpoint=toBoss;cam=toBoss?1500:0;runTime=0;damageTaken=0;keys={};press={};time=0;
   clearMeteors();
-  raptors=[];raptorPhase=1;summoned=false;stageCleared=false;clearDismissed=false;clearTimer=0;howlRemaining=0;
+  raptors=[];raptorPhase=1;summoned=false;stageCleared=false;clearDismissed=false;clearTimer=0;howlRemaining=0;resetPack();
   if(stage===2){raptors=[makeRaptor('main',800,2400)];boss=raptors[0];if(toBoss)player.x=1750}
   if(stage===3){boss=makePtera();if(toBoss)player.x=1750}
   player.dropTime=0;
@@ -183,7 +183,7 @@ function debugPhase(n){
  spear=null;particles=[];texts=[];afterimages=[];shake=flash=hitstop=0;keys={};press={};
  Object.assign(player,{x:1750,y:FLOOR,vx:0,vy:0,dir:1,jumps:0,ground:true,coyote:.1,jumpBuffer:0,atk:0,atkCD:0,attackHit:false,attackHits:new Set(),inv:0,dash:0,dashCD:0,hurt:0});
  if(stage===2){
-  raptorPhase=n;summoned=n>=2;
+  raptorPhase=n;summoned=n>=2;resetPack();
   raptors=[makeRaptor('main',RAPTOR.mainHP,2400)];
   if(n>=2)raptors.push(makeRaptor('ally',RAPTOR.allyHP,2640));
   raptors.forEach((r,i)=>{r.hp=i===0?(n===1?800:n===2?500:150):500;r.robot=n===3;r.rollAt=5+i*2.5;r.hudReveal=1});
@@ -224,10 +224,44 @@ function updateLaser(dt){if(!arena||boss.dead||boss.phase<2||boss.state==='trans
 function laserHitsPlayer(){if(boss.laserTime<=0||boss.laserWarm>0)return false;const e=eyePosition(),dx=Math.cos(boss.laserAngle),dy=Math.sin(boss.laserAngle),rx=player.x-e.x,ry=player.y-23-e.y,along=rx*dx+ry*dy,side=Math.abs(rx*dy-ry*dx);return along>0&&along<1450&&side<22}
 function setState(s,t){boss.state=s;boss.timer=t}
  // 스테이지 2는 계곡 보스의 수치·패턴과 완전히 분리한다.
- const RAPTOR={mainHP:800,allyHP:500,summonHP:500,robotHP:150,speeds:[0,140,190,240],jumpEvery:10,rollEvery:5,rollSpeed:320,rollDuration:2.5,howlDuration:1.6};
+ const RAPTOR={mainHP:800,allyHP:500,summonHP:500,robotHP:150,speeds:[0,140,190,240],jumpEvery:10,rollEvery:5,rollSpeed:320,rollDuration:2.5,howlDuration:1.6,
+  // 치고 빠지기 · 협공 (간보기 거리, 물기 예고/돌진/빈틈/후퇴, 머리 위 도약, 번갈아 공격 간격)
+  standoff:200,biteRange:240,biteTell:.4,lungeTime:.18,lungeDistance:170,recover:.5,retreatTime:.35,retreatDistance:150,leapTell:.35,leapTime:.7,leapHeight:210,leapRange:340,landGap:170,soloWait:1.4,pairWait:1.1,turnHold:1.5,swapEvery:8};
  function makeRaptor(id,hp,x){return{id,x,y:FLOOR,hp,max:hp,phase:raptorPhase,speed:RAPTOR.speeds[raptorPhase],state:'walk',timer:0,dir:-1,vx:0,vy:0,elapsed:0,jumpAt:10,rollAt:5,robot:false,hit:0,dead:false,spin:0,hudReveal:id==='ally'?0:1}}
  function raptorRect(r){const ball=r.state==='roll';return{x:r.x-(ball?29:38),y:r.y-(ball?58:64),w:ball?58:76,h:ball?58:64}}
  function raptorState(r,state,seconds=0){r.state=state;r.timer=seconds;r.vx=0}
+ function resetPack(){packWait=packReserve=0;packNext='';packLead='main';packSwap=8}
+ const ROLLING=['rollTell','rollJump','roll'],BITING=['biteTell','bite'];
+ function raptorMates(r){return raptors.filter(o=>o!==r&&!o.dead&&!['emerge','howl'].includes(o.state))}
+ // 정해진 점프·구르기 예약 시각은 절대 밀리지 않게, 남은 시간이 충분할 때만 새 행동을 시작한다.
+ function raptorCanAct(r,kind){
+  if((r.robot?r.rollAt:r.jumpAt)-r.elapsed<(kind==='bite'?1.6:1.2))return false;
+  if(raptors.some(o=>o!==r&&!o.dead&&ROLLING.includes(o.state)))return false;
+  if(kind!=='bite')return true;
+  if(packWait>0||raptors.some(o=>o!==r&&!o.dead&&BITING.includes(o.state)))return false;
+  return !raptorMates(r).length||packReserve<=0||packNext===r.id;
+ }
+ function landingFits(x){return x>=1610&&x<=2675}
+ // 미끼는 지금 쪽에서 간을 보고, 사냥꾼은 플레이어 반대편을 노린다.
+ function packPlan(r){
+  const side=r.x<player.x?-1:1,lead=raptorMates(r).find(o=>o.id===packLead);
+  if(!lead||r.id===packLead)return{side,gap:RAPTOR.standoff,leap:false};
+  const leadSide=lead.x<player.x?-1:1,want=-leadSide;
+  if(side===want)return{side,gap:RAPTOR.standoff,leap:false};
+  if(!landingFits(player.x+want*RAPTOR.landGap))return{side,gap:RAPTOR.standoff+110,leap:false};
+  return{side:want,gap:RAPTOR.standoff,leap:true};
+ }
+ function packAfterBite(r){const pair=raptorMates(r).length>0;packWait=pair?RAPTOR.pairWait:RAPTOR.soloWait;packReserve=packWait+RAPTOR.turnHold;packNext=pair?raptorMates(r)[0].id:r.id}
+ function startLeap(r,side){r.leapSide=side;r.dir=player.x<r.x?-1:1;raptorState(r,'leapTell',RAPTOR.leapTell);tone(330,.16,'triangle',.025)}
+ function tryPackSwap(){
+  const pair=raptors.filter(o=>!o.dead);if(pair.length<2||!summoned)return;
+  if(pair.some(o=>o.state!=='walk'))return;
+  const sides=pair.map(o=>o.x<player.x?-1:1);
+  if(packSwap>0||sides[0]===sides[1])return;
+  if(!pair.every((o,i)=>raptorCanAct(o,'leap')&&Math.abs(player.x-o.x)<=RAPTOR.leapRange&&landingFits(player.x-sides[i]*RAPTOR.landGap)))return;
+  pair.forEach((o,i)=>startLeap(o,-sides[i]));packLead=packLead==='main'?'ally':'main';packSwap=RAPTOR.swapEvery;message('교차 도약','두 랩터가 머리 위로 자리를 바꾼다',1.4);
+ }
+ function biteRect(r){return{x:r.dir>0?r.x+20:r.x-82,y:r.y-62,w:62,h:40}}
  function checkRaptorPhases(){
   const main=raptors[0];
   if(raptorPhase===1&&main.hp<=RAPTOR.summonHP){raptorPhase=2;howlRemaining=RAPTOR.howlDuration;for(const r of raptors){r.phase=2;r.speed=RAPTOR.speeds[2]}if(!main.dead){main.y=FLOOR;main.vy=0;raptorState(main,'howl',howlRemaining)}message('초음파의 부름','벽 너머에서 발톱 소리가 들린다',2.2);tone(1200,1.5,'sine',.035)}
@@ -239,6 +273,8 @@ function setState(s,t){boss.state=s;boss.timer=t}
    if(!arena)return;
    if(stageCleared){clearTimer-=dt;if(!clearDismissed&&clearTimer<=0&&mode==='playing'){mode='won';$('winStats').textContent=`${attempt}번째 도전 · ${durationLabel(runTime)} · 받은 피해 ${damageTaken}회`;layers('win')}return}
   checkRaptorPhases();
+  packWait=Math.max(0,packWait-dt);packReserve=Math.max(0,packReserve-dt);
+  if(raptors.filter(o=>!o.dead&&!['emerge','howl'].includes(o.state)).length===2){packSwap=Math.max(0,packSwap-dt);tryPackSwap()}
   if(howlRemaining>0){howlRemaining=Math.max(0,howlRemaining-dt);if(howlRemaining===0&&!summoned){summoned=true;const ally=makeRaptor('ally',500,2730);raptorState(ally,'emerge',.9);raptors.push(ally);burst(2770,FLOOR-40,40,C.mist,260);shake=12;if(!boss.dead&&boss.state==='howl')raptorState(boss,'walk');checkRaptorPhases()}}
   for(const r of raptors){r.hudReveal=Math.min(1,r.hudReveal+dt/.7);r.hit=Math.max(0,r.hit-dt);if(r.dead)continue;
    if(r.state==='howl')continue;
@@ -246,10 +282,20 @@ function setState(s,t){boss.state=s;boss.timer=t}
    r.elapsed+=dt;r.timer-=dt;
    if(r.state==='jumpTell'||r.state==='rollTell'){r.dir=player.x<r.x?-1:1;const gap=Math.abs(player.x-r.x);r.vx=gap>12?r.dir*r.speed:0;r.x=clamp(r.x+r.dir*Math.min(r.speed*dt,Math.max(0,gap-12)),1575,2710);if(r.timer<=0){const rolling=r.state==='rollTell';r.dir=player.x<r.x?-1:1;r.vy=-1550;raptorState(r,rolling?'rollJump':'jump');r.vx=r.dir*r.speed;tone(rolling?380:260,.18,'triangle')}continue}
    if(r.state==='jump'||r.state==='rollJump'){r.vy+=(r.vy<0?6500:11000)*dt;r.x=clamp(r.x+r.vx*dt,1575,2710);r.y+=r.vy*dt;if(r.y>=FLOOR){r.y=FLOOR;r.vy=0;burst(r.x,FLOOR-3,16,C.mist,180);shake=Math.max(shake,4);noise(.1,.04);if(r.state==='rollJump'){raptorState(r,'roll',RAPTOR.rollDuration);r.vx=r.dir*RAPTOR.rollSpeed;noise(.2,.07)}else raptorState(r,'walk')}continue}
+   if(r.state==='biteTell'||r.state==='leapTell'){r.dir=player.x<r.x?-1:1;if(r.timer<=0){r.from=r.x;if(r.state==='biteTell'){r.to=clamp(r.x+r.dir*Math.min(RAPTOR.lungeDistance,Math.max(0,Math.abs(player.x-r.x)-20)),1575,2710);raptorState(r,'bite',RAPTOR.lungeTime);r.vx=(r.to-r.from)/RAPTOR.lungeTime;tone(520,.12,'sawtooth',.03)}else{r.to=clamp(player.x+r.leapSide*RAPTOR.landGap,1600,2685);r.dir=r.to<r.x?-1:1;raptorState(r,'leap',RAPTOR.leapTime);r.vx=(r.to-r.from)/RAPTOR.leapTime;tone(300,.2,'triangle')}}continue}
+   if(r.state==='bite'){const q=clamp(1-r.timer/RAPTOR.lungeTime,0,1);r.x=lerp(r.from,r.to,1-(1-q)*(1-q));if(mode==='playing'&&overlap(biteRect(r),{x:player.x-13,y:player.y-45,w:26,h:45}))hurtRaptor(r);if(r.timer<=0){r.x=r.to;raptorState(r,'recover',RAPTOR.recover);packAfterBite(r)}continue}
+   if(r.state==='recover'){if(r.timer<=0){r.from=r.x;r.to=clamp(r.x-(player.x<r.x?-1:1)*RAPTOR.retreatDistance,1575,2710);raptorState(r,'retreat',RAPTOR.retreatTime)}continue}
+   if(r.state==='retreat'||r.state==='leap'){const span=r.state==='leap'?RAPTOR.leapTime:RAPTOR.retreatTime,q=clamp(1-r.timer/span,0,1);r.x=lerp(r.from,r.to,q);r.y=FLOOR-(r.state==='leap'?4*RAPTOR.leapHeight*q*(1-q):Math.sin(Math.PI*q)*38);if(r.state==='retreat')r.dir=player.x<r.x?-1:1;if(r.timer<=0){if(r.state==='leap'){burst(r.to,FLOOR-3,16,C.mist,180);noise(.1,.04)}r.x=r.to;r.y=FLOOR;r.vy=0;raptorState(r,'walk');r.dir=player.x<r.x?-1:1}continue}
    if(r.state==='roll'){const travel=Math.min(dt,Math.max(0,r.timer+dt)),delta=player.x-r.x;r.dir=delta<0?-1:delta>0?1:r.dir;r.vx=delta===0?0:r.dir*RAPTOR.rollSpeed;const before=r.x;r.x=clamp(r.x+r.dir*Math.min(RAPTOR.rollSpeed*travel,Math.abs(delta)),1575,2710);r.spin+=(r.x-before)/29;if(r.timer<=0)raptorState(r,'walk');continue}
    if(r.robot&&r.elapsed+1e-8>=r.rollAt){r.rollAt+=RAPTOR.rollEvery;r.dir=player.x<r.x?-1:1;raptorState(r,'rollTell',.65);tone(700,.25,'sawtooth',.025);continue}
    if(!r.robot&&r.elapsed+1e-8>=r.jumpAt){r.jumpAt+=RAPTOR.jumpEvery;r.dir=player.x<r.x?-1:1;raptorState(r,'jumpTell',.55);continue}
-   r.dir=player.x<r.x?-1:1;const distance=Math.abs(player.x-r.x);r.vx=distance>24?r.dir*r.speed:0;r.x=clamp(r.x+r.dir*Math.min(r.speed*dt,Math.max(0,distance-24)),1575,2710);
+   r.dir=player.x<r.x?-1:1;const distance=Math.abs(player.x-r.x),plan=packPlan(r);
+   if(distance<=RAPTOR.biteRange&&raptorCanAct(r,'bite')){raptorState(r,'biteTell',RAPTOR.biteTell);tone(760,.14,'square',.02);continue}
+   if(plan.leap&&distance<=RAPTOR.leapRange&&raptorCanAct(r,'leap')){startLeap(r,plan.side);continue}
+   // 간보기: 일정 거리를 두고 어슬렁거린다. 반대편으로 넘어가야 하는 사냥꾼은 미끼 뒤에서 다가온다.
+   const side=plan.leap?(r.x<player.x?-1:1):plan.side,gap=plan.leap?RAPTOR.standoff+90:plan.gap;
+   const goal=clamp(player.x+side*gap+Math.sin(r.elapsed*1.8+(r.id==='ally'?2:0))*30,1575,2710),move=goal-r.x;
+   r.vx=Math.abs(move)>1?Math.sign(move)*r.speed:0;r.x=clamp(r.x+Math.sign(move)*Math.min(r.speed*dt,Math.abs(move)),1575,2710);
   }
   victory();
  }
@@ -555,21 +601,23 @@ function drawPtera(){
 }
 function drawRaptor(r){
  g.save();g.translate(r.x,r.y);if(r.dead){g.globalAlpha=.25;g.scale(1,.35)}
- ellipse(0,3,42,6,'#0006');const mech=r.robot,ball=r.state==='roll',curl=r.state==='rollJump',tell=['jumpTell','rollTell'].includes(r.state),howl=r.state==='howl',upgrade=r.state==='upgrade';
+ ellipse(0,3,42,6,'#0006');const mech=r.robot,ball=r.state==='roll',curl=r.state==='rollJump',tell=['jumpTell','rollTell','biteTell','leapTell'].includes(r.state),howl=r.state==='howl',biting=r.state==='bite',recovering=r.state==='recover',leaping=r.state==='leap',upgrade=r.state==='upgrade';
  if(ball||curl){g.save();g.translate(0,-29);g.rotate(r.spin+(curl?time*8:0));ellipse(0,0,29,29,'#273d47');g.strokeStyle='#c8dacd';g.lineWidth=5;g.beginPath();g.arc(0,0,25,0,Math.PI*2);g.stroke();for(let i=0;i<6;i++){g.save();g.rotate(i*Math.PI/3);path([[12,-6],[27,-9],[32,1],[23,7],[12,5]],'#7c9699','#172e3a',2);line([[19,-3],[26,-2]],'#9fffe3',2);g.restore()}ellipse(0,0,13,13,'#132b35');ellipse(0,0,7,7,'#a8ffe0');line([[-10,0],[10,0]],'#e9f8d2',2);g.restore();if(ball){line([[r.dir*-40,-12],[r.dir*-66,-12]],'#a0e3d688',3);line([[r.dir*-44,-25],[r.dir*-79,-25]],'#a0e3d655',2)}}
- else{g.scale(r.dir,1);const gait=['walk','emerge'].includes(r.state)?Math.sin(time*14+r.x*.01)*9:0,crouch=tell?9:0;g.translate(0,crouch);
+ else{g.scale(r.dir,1);const gait=['walk','emerge'].includes(r.state)?Math.sin(time*14+r.x*.01)*9:0,crouch=tell?9:0;g.translate(biting?8:0,crouch+(recovering?4:0));if(leaping)g.rotate(lerp(-.35,.35,clamp(1-r.timer/RAPTOR.leapTime,0,1)));
  const skin=mech?'#7a959b':r.id==='ally'?'#ae9170':'#729b82',dark=mech?'#354e60':'#3e655c';
  path([[-22,-37],[-87,-29],[-56,-44],[-23,-51]],dark,'#132b35',2);ellipse(-4,-40,29,17,skin);path([[-26,-48],[-5,-62],[21,-46],[9,-37]],skin,'#18343a',2);
  for(const side of [-1,1]){const shift=side*gait;line([[side*10,-31],[-14+shift,-18],[shift,-5]],side===1?skin:dark,9);path([[shift-4,-9],[shift+15,-5],[shift+19,-1],[shift-7,-1]],mech?'#afc4bf':'#b9bc91');path([[shift+7,-8],[shift+8,-18],[shift+14,-8]],'#ecdfba');if(mech){ellipse(-14+shift,-18,5,5,'#b3f6dc');line([[side*10,-32],[-14+shift,-18]],'#c0d2c5',2)}}
  line([[8,-44],[23,-29],[32,-33]],dark,5);path([[29,-34],[38,-34],[31,-28]],'#ece5c7');
- g.save();g.translate(18,-48);if(howl)g.rotate(-1.1);path([[-8,1],[0,-20],[22,-22],[45,-13],[44,-1],[18,5]],skin,'#132b35',2);path([[17,0],[43,-2],[38,7],[20,7]],dark);line([[21,1],[39,0]],'#e4e7c7',2);ellipse(16,-13,5,4,'#163039');ellipse(18,-14,2,2,mech?'#a2ffe5':'#ffdb8b');if(mech){path([[-5,-8],[0,-20],[23,-22],[20,-16],[4,-13]],'#c0d0bc');line([[24,-14],[40,-10]],'#9fffe3',2)}g.restore();
+ g.save();g.translate(18,-48);if(howl)g.rotate(-1.1);if(r.state==='biteTell')g.rotate(.18);if(recovering)g.rotate(.32);if(biting){g.rotate(-.12);path([[16,2],[47,12],[41,19],[17,10]],dark,'#132b35',2);line([[22,4],[26,10],[30,6],[34,12],[38,8],[42,13]],'#ece5c7',2)}path([[-8,1],[0,-20],[22,-22],[45,-13],[44,-1],[18,5]],skin,'#132b35',2);path([[17,0],[43,-2],[38,7],[20,7]],dark);line([[21,1],[39,0]],'#e4e7c7',2);ellipse(16,-13,5,4,'#163039');ellipse(18,-14,2,2,mech?'#a2ffe5':'#ffdb8b');if(r.state==='biteTell')glow(18,-14,16,'#ff6a4aaa');if(mech){path([[-5,-8],[0,-20],[23,-22],[20,-16],[4,-13]],'#c0d0bc');line([[24,-14],[40,-10]],'#9fffe3',2)}g.restore();
  if(mech){path([[-24,-46],[-5,-56],[12,-46],[1,-32],[-19,-34]],'#526f82','#b6c9b5',2);ellipse(-4,-43,5,5,'#a6ffe3');for(let i=0;i<3;i++)line([[-40-i*10,-40],[-46-i*10,-35]],'#bbd4c6',2)}
  if(howl){for(let i=0;i<4;i++){const q=(time*1.8+i*.25)%1;g.globalAlpha=1-q;g.strokeStyle='#c4fff1';g.lineWidth=2;g.beginPath();g.ellipse(20,-90-q*135,12+q*50,5+q*15,0,0,Math.PI*2);g.stroke()}g.globalAlpha=1}
  }
+ if(biting){g.save();g.scale(r.dir,1);g.globalAlpha=.7;g.strokeStyle='#ffe2b0';g.lineWidth=3;g.beginPath();g.arc(48,-42,30,-1.1,1.1);g.stroke();g.restore()}
  if(r.hit>0)glow(0,-35,55,'#fff4cc88');
  if(upgrade){glow(0,-40,85,'#aaffdf44');for(let i=0;i<3;i++){g.strokeStyle='#aaffdf';g.lineWidth=2;g.beginPath();g.ellipse(0,-36,48+i*10,15+i*13,time*3+i,0,Math.PI*1.6);g.stroke()}}
  g.restore();
- if(tell){const span=r.state==='rollTell'?.65:.55,q=clamp(1-r.timer/span,0,1);g.fillStyle='#dfae6655';g.fillRect(r.x-42,FLOOR+7,84,5);g.fillStyle=r.state==='rollTell'?'#afffe1':C.gold;g.fillRect(r.x-42,FLOOR+7,84*q,5);line([[r.x,FLOOR-87],[r.x+r.dir*50,FLOOR-105],[r.x+r.dir*90,FLOOR-85]],'#e6dab388',2)}
+ if(tell){const span={jumpTell:.55,rollTell:.65,biteTell:RAPTOR.biteTell,leapTell:RAPTOR.leapTell}[r.state],q=clamp(1-r.timer/span,0,1);g.fillStyle='#dfae6655';g.fillRect(r.x-42,FLOOR+7,84,5);g.fillStyle={rollTell:'#afffe1',biteTell:'#ff8f6b',leapTell:'#f2d7a0'}[r.state]||C.gold;g.fillRect(r.x-42,FLOOR+7,84*q,5);
+  if(r.state==='leapTell'){const to=clamp(player.x+r.leapSide*RAPTOR.landGap,1600,2685),mid=(r.x+to)/2;line([[r.x,FLOOR-70],[lerp(r.x,mid,.5),FLOOR-215],[mid,FLOOR-250],[lerp(mid,to,.5),FLOOR-215],[to,FLOOR-70]],'#f2d7a088',2)}else if(r.state!=='biteTell')line([[r.x,FLOOR-87],[r.x+r.dir*50,FLOOR-105],[r.x+r.dir*90,FLOOR-85]],'#e6dab388',2)}
 }
 function drawDinosaur(){const b=boss,s=bossSize(),trans=b.state==='transform';g.save();g.translate(b.x,FLOOR);g.scale(b.dir,1);ellipse(0,3,100,12,'#0005');
  if(b.dead){g.globalAlpha=Math.max(0,b.timer/2.3);g.rotate(-.15);g.translate(0,14)}

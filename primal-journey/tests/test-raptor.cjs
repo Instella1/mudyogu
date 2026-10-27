@@ -111,4 +111,36 @@ check('reset and retry restore main 800 only, full player HP, clocks and spear c
 check('pause and settings freeze stage 2 timers',()=>{fresh();t.updateBoss(2);t.pause();t.step(2);assert.equal(t.b.elapsed,2);t.pause();t.openSettings();t.step(2);assert.equal(t.b.elapsed,2);t.closeSettings();assert.equal(t.mode,'playing')});
 check('records isolation, best stars/time, recent10, stage1 legacy migration and persistence',()=>{const legacy={clears:3,bestStars:4,bestTime:42,recent:[{at:Date.now(),hp:5,stars:4,seconds:42}]};const store={'primalJourney.records.v1':JSON.stringify(legacy)},e=boot(store),q=e.t;assert.equal(q.records[1].clears,3);assert.equal(q.records[2].clears,0);for(let i=0;i<12;i++){q.startStage(2);q.p.x=1661;q.updatePlayer(0);q.p.hp=i===0?6:2;q.setTime(100-i);q.damageRaptor(q.b,800);q.updateBoss(1.61);q.damageRaptor(q.rs[1],500);q.victory()}assert.equal(q.records[2].clears,12);assert.equal(q.records[2].bestStars,5);assert.equal(q.records[2].bestTime,89);assert.equal(q.records[2].recent.length,10);assert.equal(q.records[1].clears,3);assert.equal(store['primalJourney.records.v1'],JSON.stringify(legacy));q.startStage(1);q.victory();assert.equal(q.records[1].clears,4);assert.equal(q.records[2].clears,12);const reload=boot(store);assert.equal(reload.t.records[1].clears,4);assert.equal(reload.t.records[2].clears,12);assert.equal(reload.t.records[2].bestTime,89);assert.equal(reload.t.loadRecords(1).bestTime,0);assert.equal(reload.t.loadRecords(2).recent.length,10);assert.equal(JSON.parse(store['primalJourney.records.v2']).unlockedStage2,true);assert.equal(typeof e.elements.continueJourney.onclick,'function')});
 check('both render paths and original stage1 HP survive region changes',()=>{t.startStage(1);assert.equal(t.b.hp,1080);assert.equal(t.mode,'cutscene');t.render();t.startStage(2);t.render();t.goHome();t.render()});
+// 치고 빠지기 · 협공
+const FLOORY=602,DT=1/120;
+function runUntil(r,state,limit=10){for(let i=0;i<limit/DT&&r.state!==state;i++)t.updateBoss(DT);assert.equal(r.state,state,`reached ${state}`)}
+check('hit-and-run: stalks at distance, .4 bite tell, short lunge, .5 opening, hop back',()=>{
+ const r=fresh();t.p.x=2100;t.p.inv=0;t.p.hp=6;
+ runUntil(r,'biteTell');const gap=Math.abs(t.p.x-r.x);assert(gap<=240&&gap>=150,`stalk gap ${gap}`);near(r.timer,.4,'bite tell');
+ runUntil(r,'bite');const from=r.x;runUntil(r,'recover');
+ const lunge=Math.abs(r.x-from);assert(lunge>100&&lunge<=170,`lunge ${lunge}`);assert(Math.abs(t.p.x-r.x)>=19.9,'lunge stops in front of the player');
+ assert.equal(t.p.hp,5,'bite deals 1');const hold=r.x;t.updateBoss(.49);assert.equal(r.state,'recover');assert.equal(r.x,hold,'stands still during opening');
+ t.updateBoss(.02);assert.equal(r.state,'retreat');runUntil(r,'walk');assert.equal(r.y,FLOORY);assert(Math.abs(t.p.x-r.x)>=140,'backs away after biting');
+});
+for(const guard of ['inv','dash'])check('bite respects '+guard,()=>{const r=fresh();t.p.x=2100;t.p.inv=0;t.p.hp=6;runUntil(r,'biteTell');t.p[guard]=guard==='inv'?5:.5;runUntil(r,'recover');assert.equal(t.p.hp,6)});
+check('contact damage stays 1 in every new raptor state',()=>{for(const state of ['biteTell','bite','recover','retreat','leapTell','leap']){const r=fresh();r.state=state;r.timer=9;r.from=r.to=t.p.x;r.leapSide=1;r.x=t.p.x;r.y=FLOORY;t.p.inv=0;t.p.dash=0;t.p.hp=6;t.updatePlayer(.001);assert.equal(t.p.hp,5,state)}});
+check('pair alternates bites, never bites together, and holds a pincer around an idle player',()=>{
+ readyPair();t.p.x=2100;const order=[];let opposite=0,frames=0;
+ for(let i=0;i<30/DT;i++){const prev=t.rs.map(r=>r.state);t.updateBoss(DT);
+  assert(t.rs.filter(r=>['biteTell','bite'].includes(r.state)).length<=1,'only one biter at a time');
+  t.rs.forEach((r,k)=>{if(r.state==='biteTell'&&prev[k]!=='biteTell')order.push(r.id)});
+  if(t.rs.every(r=>r.state==='walk')){frames++;if(Math.sign(t.rs[0].x-t.p.x)!==Math.sign(t.rs[1].x-t.p.x))opposite++}}
+ assert(order.filter(id=>id==='main').length>=4&&order.filter(id=>id==='ally').length>=4,`both bite: ${order}`);
+ let swaps=0;for(let i=1;i<order.length;i++)if(order[i]!==order[i-1])swaps++;assert(swaps/(order.length-1)>=.7,`alternation ${order}`);
+ assert(opposite/frames>=.6,`pincer ratio ${opposite/frames}`);
+});
+check('crossing leap swaps both raptors over the player without touching an idle player',()=>{
+ readyPair();t.p.x=2100;t.p.inv=0;t.p.hp=6;let crossed=false;
+ for(let i=0;i<20/DT&&!crossed;i++){const prev=t.rs.map(r=>r.state);t.updateBoss(DT);
+  if(t.rs.every((r,k)=>r.state==='leapTell'&&prev[k]!=='leapTell')){crossed=true;const sides=t.rs.map(r=>Math.sign(r.x-t.p.x));
+   for(let j=0;j<1.2/DT;j++){t.updateBoss(DT);t.p.hp=6;t.p.inv=0;t.updatePlayer(0);if(t.rs.some(r=>r.state==='leap'))assert.equal(t.p.hp,6,'leap arc clears a standing player')}
+   t.rs.forEach((r,k)=>{assert.equal(Math.sign(r.x-t.p.x),-sides[k],'landed on the other side');assert.equal(r.y,FLOORY)})}}
+ assert(crossed,'crossing leap happened within 20 seconds');
+});
+check('bites never delay the 10-second jump schedule of phase 1',()=>{const r=fresh();t.p.x=2100;const starts=[];for(let i=1;i<=25/DT;i++){const prev=r.state;t.updateBoss(DT);if(r.state==='jumpTell'&&prev!=='jumpTell')starts.push(r.elapsed)}assert.equal(starts.length,2);starts.forEach((e,i)=>assert(Math.abs(e-10*(i+1))<DT+1e-8,`jump at ${e}`))});
 console.log(`All ${checks} raptor checks passed`);
