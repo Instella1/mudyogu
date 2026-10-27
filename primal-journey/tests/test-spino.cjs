@@ -70,9 +70,24 @@ check('fin hunt in the same pool: untargetable while submerged, .7s ripples, bre
  until(t,'surfaced',2,()=>{t.p.x=POOL1;t.p.breath=0});assert.equal(t.p.hp,5);assert(t.bossRect().w>0,'surfaced is targetable')});
 check('stepping out of the ripple ring avoids the breach',()=>{
  const {t}=arena();t.b.x=2620;t.p.x=POOL1;t.b.nextAt=0;until(t,'breachTell',5,()=>{t.p.x=POOL1;guard(t);t.p.breath=0});t.p.inv=0;t.p.hp=6;t.p.x=2150;until(t,'surfaced',2,()=>{t.p.x=2150;t.p.breath=0});assert.equal(t.p.hp,6)});
-check('phase2 inhale drags a land player toward the pool at 170 and walking against it holds ground',()=>{
- const e=phase(arena(),2),t=e.t;guard(t);t.b.x=2620;t.p.x=2950;t.b.count=1;t.b.nextAt=0;t.b.state='swim';t.updateBoss(DT);assert.equal(t.b.state,'inhaleTell');until(t,'inhale',1,()=>{t.p.x=2950});
- const x=t.p.x;t.updateBoss(.5);near(x-t.p.x,85,1,'pull');t.keys.right=true;const held=t.p.x;for(let i=0;i<60;i++){t.updateBoss(DT);t.updatePlayer(DT)}t.keys.right=false;assert(t.p.x>held,'walking against the current wins')});
+check('faster in water (300) than on land (170), and 1.5x faster while it is dark',()=>{
+ const e=phase(arena(),2),t=e.t;guard(t);const speed=(x,px,dark)=>{t.b.state='swim';t.b.nextAt=999;t.b.x=x;t.b.dark=dark?'on':'off';t.b.darkT=0;t.b.darkAt=999;t.b.floodAt=999;t.p.x=px;const a=t.b.x;t.updateBoss(.05);return Math.abs(t.b.x-a)/.05};
+ near(speed(2250,2650,false),300,1,'water');near(speed(1900,1600,false),170,1,'land');near(speed(2250,2650,true),450,1,'dark water');near(speed(1900,1600,true),255,1,'dark land')});
+check('no electric water or current-pull pattern in any phase',()=>{
+ for(const n of [1,2,3]){const e=phase(arena(),n),t=e.t;const seen=new Set();run(t,40,(s)=>{guard(t);t.p.breath=0;t.p.x=s<20?POOL1:LAND2;seen.add(t.b.state)});for(const st of ['shock','shockTell','inhale','inhaleTell'])assert(!seen.has(st),n+' '+st)}});
+check('flood from phase2: 1s tell, waterfalls at both ends push a grounded player inward at 160 for 5s, every 16s',()=>{
+ const one=arena().t;run(one,20,()=>guard(one));assert.equal(one.b.flood,'off');
+ const e=phase(arena(),2),t=e.t;const seen=[];let last='off';run(t,26,(s)=>{guard(t);t.p.breath=0;t.p.x=1600;if(t.b.flood!==last){seen.push([t.b.flood,+s.toFixed(2)]);last=t.b.flood}});
+ assert.deepEqual(seen.slice(0,4).map(x=>x[0]),['tell','on','fade','off']);near(seen[0][1],8,.02,'first');near(seen[1][1]-seen[0][1],1,.02,'tell');near(seen[2][1]-seen[1][1],5,.02,'flow');near(seen[4][1]-seen[0][1],16,.02,'cycle')});
+check('flood pushes inward from each side, jumping or dashing avoids it, the boss keeps moving',()=>{
+ const e=phase(arena(),2),t=e.t;guard(t);t.b.flood='on';t.b.floodT=1.25;t.b.floodReach=400;t.b.floodAt=999;t.b.darkAt=999;
+ t.p.x=1700;t.p.y=602;let x=t.p.x;t.updateBoss(.1);near(t.p.x-x,16,.5,'left side pushed right');
+ t.p.x=4500;x=t.p.x;t.updateBoss(.1);near(x-t.p.x,16,.5,'right side pushed left');
+ t.p.x=3000;x=t.p.x;t.updateBoss(.1);assert.equal(t.p.x,x,'middle untouched until the water arrives');
+ t.p.x=1700;t.p.y=520;x=t.p.x;t.updateBoss(.1);assert.equal(t.p.x,x,'airborne not pushed');t.p.y=602;t.p.dash=.1;x=t.p.x;t.updateBoss(.05);assert.equal(t.p.x,x,'dash not pushed');t.p.dash=0;
+ t.b.state='swim';t.b.nextAt=999;t.b.x=2250;t.p.x=2650;const bx=t.b.x;t.updateBoss(.1);assert(Math.abs(t.b.x-bx)>20,'boss keeps moving during flood')});
+check('flood clears on retry and does not run after victory',()=>{const e=phase(arena(),2),t=e.t;guard(t);run(t,10);assert.notEqual(t.b.flood,'off');t.retry();assert.equal(t.b.flood,'off');assert.equal(t.b.floodAt,Infinity);
+ const v=phase(arena(),2).t;guard(v);run(v,9);v.victory();v.updateBoss(.5);assert.equal(v.b.flood,'off')});
 check('darkness only from phase2: 1s flicker then 5s dark, every 12s, boss keeps attacking',()=>{
  const one=arena().t;run(one,12,()=>guard(one));assert.equal(one.b.dark,'off');
  const e=phase(arena(),2),t=e.t;const seen=[];let last='off',busy=0;
@@ -80,8 +95,6 @@ check('darkness only from phase2: 1s flicker then 5s dark, every 12s, boss keeps
  assert.deepEqual(seen.slice(0,6).map(x=>x[0]),['tell','on','off','tell','on','off']);near(seen[0][1],4,.02,'first');near(seen[1][1]-seen[0][1],1,.02,'tell');near(seen[2][1]-seen[1][1],5,.02,'dark');near(seen[3][1]-seen[0][1],12,.02,'cycle');assert(busy>0,'attacks continue in the dark')});
 check('darkness renders a small light circle and keeps hints above it without exceptions',()=>{
  const e=phase(arena(),3),t=e.t;guard(t);t.b.dark='on';t.b.darkT=1;for(const st of ['swim','lungeTell','fin','breachTell','shock','inhale','beached','swipe','roar']){t.b.state=st;t.b.timer=.3;t.render()}e.draws.length=0;t.b.state='lungeTell';t.render();assert(e.draws.some(d=>d.text.includes('고개가 들렸다')))});
-check('phase3 shock hurts a swimming player in either pool, never on land, respects dash',()=>{
- const e=phase(arena(),3),t=e.t;t.b.state='shock';t.b.timer=5;t.p.inv=0;t.p.hp=6;t.p.x=LAND2;t.updateBoss(DT);assert.equal(t.p.hp,6,'land safe');t.p.x=POOL2;t.p.dash=.2;t.updateBoss(DT);assert.equal(t.p.hp,6,'dash');t.p.dash=0;t.updateBoss(DT);assert.equal(t.p.hp,5,'far pool shocked');t.p.inv=0;t.p.x=POOL1;t.updateBoss(DT);assert.equal(t.p.hp,4,'near pool shocked')});
 check('phase3 tide: both pools widen by 150 over 2s, hold 4s, recede 2s, every 16s',()=>{
  const e=phase(arena(),3),t=e.t;const edge=[];run(t,24,(s)=>{guard(t);t.p.breath=0;edge.push([s,t.pools()[0][1],t.pools()[1][0]])});
  const at=s=>edge.find(x=>x[0]>=s-1e-9);near(at(4.9)[1],2700,1);near(at(6)[1],2775,3);near(at(7.5)[1],2850,1);near(at(7.5)[2],3150,1);near(at(10.5)[1],2850,1);near(at(12)[1],2775,3);near(at(13.5)[1],2700,1);near(at(21.5)[1],2737.5,3,'second tide rising');near(at(23.5)[1],2850,1);

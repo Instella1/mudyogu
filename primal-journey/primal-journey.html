@@ -196,7 +196,7 @@ function debugPhase(n){
   }else if(stage===3){
    boss=makePtera();boss.hp=[0,PTERA.hp,PTERA.robotHP,PTERA.laserHP][n];boss.phase=n;boss.robot=n>=2;
   }else if(stage===4){
-   boss=makeSpino();boss.hp=[0,SPINO.hp,SPINO.robotHP,SPINO.stormHP][n];boss.phase=n;boss.robot=n>=2;if(n>=2)boss.darkAt=SPINO.darkFirst;if(n>=3)boss.tideAt=SPINO.tideFirst;
+   boss=makeSpino();boss.hp=[0,SPINO.hp,SPINO.robotHP,SPINO.stormHP][n];boss.phase=n;boss.robot=n>=2;if(n>=2){boss.darkAt=SPINO.darkFirst;boss.floodAt=SPINO.floodFirst}if(n>=3)boss.tideAt=SPINO.tideFirst;
   }else{
   Object.assign(boss,{x:2450,y:FLOOR,hp:[0,1080,720,360][n],max:BOSS_HP,phase:n,state:'walk',timer:0,dir:-1,vx:0,elapsed:0,guardAt:9,diveAt:DIVE_INTERVAL,chargeCD:1.8,hit:0,transform:0,dead:false,kick:0,laserDelay:-1,laserTime:0,laserAngle:0,laserWarm:0,stompAt:TRI.stompFirst,stompsLeft:0,counterUsed:false,counterHit:false,waves:[]});
  }
@@ -434,14 +434,15 @@ function setState(s,t){boss.state=s;boss.timer=t}
  // 스피노는 물웅덩이와 땅을 오가며 플레이어를 쫓는다. 몸통 판정은 더블점프로 넉넉히 뛰어넘을 수 있는 크기(150×85).
  // 2·3페이즈는 약 12초마다 어둠(주인공 주변 작은 원만 보임). 눈빛·발광 지느러미·물결 예고는 어둠 위에도 보인다.
  const SPINO={hp:1300,robotHP:870,stormHP:430,right:4750,pools:[[2200,2700],[3300,3800]],tide:150,scale:.6,w:150,h:85,swimSink:35,deepSink:110,
-  swimSpeed:170,landSpeed:170,gap:[0,1.6,1.3,1.1],lungeTell:.6,lungeTime:.35,lungeReach:520,lungeMax:520,jaw:135,beached:2,clawRange:170,clawTell:.45,swipe:.15,swipeGap:.35,clawRecover:.7,
-  submerge:.5,finSpeed:260,finMax:3,breachTell:.7,breach:.35,surfaced:.8,inhaleTell:.7,inhale:2,pull:170,shockTell:1,shock:2,roar:1.4,
+  swimSpeed:300,landSpeed:170,darkBoost:1.5,gap:[0,1.6,1.3,1.1],lungeTell:.6,lungeTime:.35,lungeReach:520,lungeMax:520,jaw:135,beached:2,clawRange:170,clawTell:.45,swipe:.15,swipeGap:.35,clawRecover:.7,
+  submerge:.5,finSpeed:380,finMax:3,breachTell:.7,breach:.35,surfaced:.8,roar:1.4,
+  floodFirst:8,floodEvery:16,floodTell:1,flood:5,floodFade:.6,floodSpeed:320,floodPush:160,floodHeight:30,
   darkFirst:4,darkEvery:12,darkTell:1,dark:5,radius:[0,0,120,95],tideFirst:5,tideEvery:16,tideRise:2,tideHold:4,swim:150,swimJump:-470,breath:4,drownEvery:2};
- const SUBMERGED=['submerge','fin','breachTell'],SPINO_TELLS=['lungeTell','clawTell','clawGap','inhaleTell','shockTell','breachTell','roar'];
- const SPINO_HINTS={body:'몸통도 무기다. 두 번 뛰어 넘어가라.',bite:'물가에서 고개가 들리면, 덮치기 전에 물러서라.',claw:'앞발은 두 번 휘두른다. 첫 번째 뒤의 틈을 기다려라.',breach:'물결이 원을 그리면, 그 자리에서 벗어나라.',shock:'지느러미가 번쩍이면 물 밖으로.',drown:'숨이 다하기 전에 물 밖으로 나와라.'};
+ const SUBMERGED=['submerge','fin','breachTell'],SPINO_TELLS=['lungeTell','clawTell','clawGap','breachTell','roar'];
+ const SPINO_HINTS={body:'몸통도 무기다. 두 번 뛰어 넘어가라.',bite:'물가에서 고개가 들리면, 덮치기 전에 물러서라.',claw:'앞발은 두 번 휘두른다. 첫 번째 뒤의 틈을 기다려라.',breach:'물결이 원을 그리면, 그 자리에서 벗어나라.',drown:'숨이 다하기 전에 물 밖으로 나와라.'};
  // 4지역 전투장은 다른 지역보다 오른쪽으로 2000 더 길다. 클리어 뒤 길·엔딩 좌표도 함께 민다.
  function regionShift(){return stage===4?SPINO.right-2750:0}
- function makeSpino(){return{x:2450,y:FLOOR,hp:SPINO.hp,max:SPINO.hp,phase:1,robot:false,state:'swim',timer:0,dir:-1,sink:SPINO.swimSink,elapsed:0,nextAt:2,count:0,hit:0,dead:false,from:2450,to:2450,lockX:2450,struck:false,dark:'off',darkT:0,darkAt:Infinity,tide:'off',tideT:0,tideAt:Infinity}}
+ function makeSpino(){return{x:2450,y:FLOOR,hp:SPINO.hp,max:SPINO.hp,phase:1,robot:false,state:'swim',timer:0,dir:-1,sink:SPINO.swimSink,elapsed:0,nextAt:2,count:0,hit:0,dead:false,from:2450,to:2450,lockX:2450,struck:false,dark:'off',darkT:0,darkAt:Infinity,tide:'off',tideT:0,tideAt:Infinity,flood:'off',floodT:0,floodAt:Infinity,floodReach:0}}
  // 밀물 때 두 물웅덩이가 양쪽으로 넓어지고 땅이 좁아진다.
  function tideAmount(){const b=boss;if(stage!==4||!b||!b.tide||b.tide==='off')return 0;const q=clamp(b.tideT/(b.tide==='hold'?SPINO.tideHold:SPINO.tideRise),0,1);return SPINO.tide*(b.tide==='rise'?q:b.tide==='hold'?1:1-q)}
  function pools(){const t=tideAmount();return SPINO.pools.map(([a,c])=>[a-t,c+t])}
@@ -463,8 +464,6 @@ function setState(s,t){boss.state=s;boss.timer=t}
   return best??player.x+side*(SPINO.clawRange-20)}
  function chooseSpinoAttack(){const b=boss,pi=poolAt(b.x),pp=poolAt(player.x),d=Math.abs(player.x-b.x);b.dir=player.x<b.x?-1:1;
   const go=(state,seconds,f,v,type='triangle')=>{b.count++;spinoState(state,seconds);tone(f,.5,type,v);return true};
-  if(b.phase>=3&&pi>=0&&b.count%3===2)return go('shockTell',SPINO.shockTell,900,.03,'sawtooth');
-  if(b.phase>=2&&pi>=0&&pp<0&&d<720&&b.count%4===1)return go('inhaleTell',SPINO.inhaleTell,160,.05);
   if(pp>=0&&pp===pi){b.count++;spinoState('submerge',SPINO.submerge);noise(.25,.06);return true}
   if(pp<0&&pi>=0&&d<=SPINO.lungeReach)return go('lungeTell',SPINO.lungeTell,130,.04,'sawtooth');
   if(pi<0&&d<=SPINO.clawRange+30)return go('clawTell',SPINO.clawTell,300,.04);
@@ -473,6 +472,7 @@ function setState(s,t){boss.state=s;boss.timer=t}
   if(SUBMERGED.includes(b.state))b.sink=SPINO.swimSink;
   spinoState('roar',SPINO.roar);shake=14;burst(b.x,FLOOR-80,50,next===3?'#ffb06a':'#9fe9df',320);noise(.5,.12);
   if(b.darkAt===Infinity)b.darkAt=b.elapsed+SPINO.darkFirst;
+  if(b.floodAt===Infinity)b.floodAt=b.elapsed+SPINO.floodFirst;
   if(next===3)b.tideAt=b.elapsed+SPINO.tideFirst;
   message(next===3?'폭풍의 물가':'강철 지느러미',next===3?'물이 차오르고, 물속엔 번개가 흐른다':'달이 가라앉으면, 빛나는 지느러미를 보라',2.4)}
  // 어둠과 밀물은 보스 행동과 독립된 시계. 보스는 그동안에도 평소처럼 공격한다.
@@ -480,8 +480,14 @@ function setState(s,t){boss.state=s;boss.timer=t}
   if(b.phase>=2){if(b.dark==='off'){if(b.elapsed>=b.darkAt){b.dark='tell';b.darkT=0;b.darkAt+=SPINO.darkEvery;tone(90,.9,'sine',.05)}}
    else{b.darkT+=dt;if(b.dark==='tell'&&b.darkT>=SPINO.darkTell){b.dark='on';b.darkT=0}else if(b.dark==='on'&&b.darkT>=SPINO.dark){b.dark='off';b.darkT=0}}}
   if(b.phase>=3){if(b.tide==='off'){if(b.elapsed>=b.tideAt){b.tide='rise';b.tideT=0;b.tideAt+=SPINO.tideEvery;message('밀물','물가가 좁아진다',1.6)}}
-   else{b.tideT+=dt;const span=b.tide==='hold'?SPINO.tideHold:SPINO.tideRise;if(b.tideT>=span){b.tideT=0;b.tide={rise:'hold',hold:'fall',fall:'off'}[b.tide]}}}}
- function hurtSpino(kind='body'){if(player.inv>0||player.dash>0||boss.dead||stageCleared)return false;player.hp=Math.max(0,player.hp-1);damageTaken++;player.inv=1.05;player.hurt=.25;player.vx=(player.x<boss.x?-1:1)*350;player.vy=-240;player.ground=false;player.jumps=Math.max(1,player.jumps);player.coyote=0;player.atk=0;shake=10;flash=.13;burst(player.x,player.y-30,16,kind==='shock'?'#9fe9ff':C.red);noise(.18,.1);if(kind==='shock')tone(1200,.2,'square',.04);if(!player.hp){die();$('deathHint').textContent=SPINO_HINTS[kind]||SPINO_HINTS.body}return true}
+   else{b.tideT+=dt;const span=b.tide==='hold'?SPINO.tideHold:SPINO.tideRise;if(b.tideT>=span){b.tideT=0;b.tide={rise:'hold',hold:'fall',fall:'off'}[b.tide]}}}
+  if(b.phase>=2){if(b.flood==='off'){if(b.elapsed>=b.floodAt){b.flood='tell';b.floodT=0;b.floodReach=0;b.floodAt+=SPINO.floodEvery;message('범람','양쪽 끝에서 물이 쏟아진다',1.6);noise(.6,.08)}}
+   else{b.floodT+=dt;if(b.flood==='on')b.floodReach=Math.min(floodHalf(),b.floodT*SPINO.floodSpeed);const span={tell:SPINO.floodTell,on:SPINO.flood,fade:SPINO.floodFade}[b.flood];if(b.floodT>=span){b.floodT=0;b.flood={tell:'on',on:'fade',fade:'off'}[b.flood];if(b.flood==='off')b.floodReach=0}}
+   if(b.flood==='on'&&mode==='playing'&&player.dash<=0&&player.y>=FLOOR-SPINO.floodHeight){const push=floodPush(player.x);player.x+=push*SPINO.floodPush*dt}}}
+ function floodHalf(){return (SPINO.right-1535)/2}
+ // 물살이 닿은 쪽: 왼쪽 물살은 오른쪽으로, 오른쪽 물살은 왼쪽으로 민다(가운데서 만나면 상쇄).
+ function floodPush(x){const b=boss;if(stage!==4||!b||b.flood!=='on')return 0;return (x<1535+b.floodReach?1:0)-(x>SPINO.right-b.floodReach?1:0)}
+ function hurtSpino(kind='body'){if(player.inv>0||player.dash>0||boss.dead||stageCleared)return false;player.hp=Math.max(0,player.hp-1);damageTaken++;player.inv=1.05;player.hurt=.25;player.vx=(player.x<boss.x?-1:1)*350;player.vy=-240;player.ground=false;player.jumps=Math.max(1,player.jumps);player.coyote=0;player.atk=0;shake=10;flash=.13;burst(player.x,player.y-30,16,C.red);noise(.18,.1);if(!player.hp){die();$('deathHint').textContent=SPINO_HINTS[kind]||SPINO_HINTS.body}return true}
  // 숨 피해는 회피·무적과 상관없이 들어간다(물속에 오래 있으면 숨이 찬다).
  function drown(){player.hp=Math.max(0,player.hp-1);damageTaken++;flash=.12;shake=5;burst(player.x,player.y-40,12,'#bfe6f0',90);tone(180,.25,'sine',.05);if(!player.hp){die();$('deathHint').textContent=SPINO_HINTS.drown}}
  function spinoContacts(){if(!arena||boss.dead||mode!=='playing')return;const r=playerRect(),a=spinoAttackRect();
@@ -489,11 +495,11 @@ function setState(s,t){boss.state=s;boss.timer=t}
   if(mode==='playing'&&spinoTargetable()&&overlap(r,spinoBodyRect()))hurtSpino('body')}
  function updateSpino(dt){
   const b=boss;if(!arena)return;
-  if(b.dead){b.dark='off';b.tide='off';b.timer-=dt;if(!clearDismissed&&b.timer<=0&&mode==='playing'){mode='won';$('winStats').textContent=`${attempt}번째 도전 · ${durationLabel(runTime)} · 받은 피해 ${damageTaken}회`;layers('win')}return}
+  if(b.dead){b.dark='off';b.tide='off';b.flood='off';b.floodReach=0;b.timer-=dt;if(!clearDismissed&&b.timer<=0&&mode==='playing'){mode='won';$('winStats').textContent=`${attempt}번째 도전 · ${durationLabel(runTime)} · 받은 피해 ${damageTaken}회`;layers('win')}return}
   checkSpinoPhases();b.hit=Math.max(0,b.hit-dt);b.elapsed+=dt;spinoEnvironment(dt);b.timer-=dt;
-  const st=b.state,wet=poolAt(b.x)>=0,face=()=>{b.dir=player.x<b.x?-1:1},sinkTo=v=>{b.sink+=clamp(v-b.sink,-260*dt,260*dt)},lo=1620,hi=SPINO.right-60;
+  const st=b.state,wet=poolAt(b.x)>=0,boost=b.dark==='on'?SPINO.darkBoost:1,face=()=>{b.dir=player.x<b.x?-1:1},sinkTo=v=>{b.sink+=clamp(v-b.sink,-260*dt,260*dt)},lo=1620,hi=SPINO.right-60;
   // 추격: 물웅덩이와 땅을 오가며 플레이어 쪽으로. 공격 조건이 맞으면 공격.
-  if(st==='swim'){sinkTo(wet?SPINO.swimSink:0);face();const goal=clamp(spinoGoal(),lo,hi),move=goal-b.x;b.x+=Math.sign(move)*Math.min((wet?SPINO.swimSpeed:SPINO.landSpeed)*dt,Math.abs(move));if(b.elapsed>=b.nextAt)chooseSpinoAttack();return}
+  if(st==='swim'){sinkTo(wet?SPINO.swimSink:0);face();const goal=clamp(spinoGoal(),lo,hi),move=goal-b.x;b.x+=Math.sign(move)*Math.min((wet?SPINO.swimSpeed:SPINO.landSpeed)*boost*dt,Math.abs(move));if(b.elapsed>=b.nextAt)chooseSpinoAttack();return}
   // 물가 매복 덮치기: 고개를 들고(예고) → 물가로 길게 덮쳐 문다. 빗나가 땅에 엎어지면 2초 허우적거림.
   if(st==='lungeTell'){sinkTo(20);face();if(b.timer<=0){b.from=b.x;const reach=clamp((player.x-b.dir*(SPINO.jaw-15)-b.x)*b.dir,0,SPINO.lungeMax);b.to=clamp(b.x+b.dir*reach,lo,hi);spinoState('lunge',SPINO.lungeTime);shake=6;noise(.25,.1)}return}
   if(st==='lunge'){const q=clamp(1-b.timer/SPINO.lungeTime,0,1);b.x=lerp(b.from,b.to,1-(1-q)*(1-q));b.sink=wet?20:0;if(b.timer<=0){b.x=b.to;if(poolAt(b.x)<0&&!b.struck){spinoState('beached',SPINO.beached);shake=10;burst(b.x+b.dir*120,FLOOR-10,30,'#9fd0e0',240);noise(.3,.1)}else goSwim()}return}
@@ -504,16 +510,10 @@ function setState(s,t){boss.state=s;boss.timer=t}
   if(st==='clawRecover'){if(b.timer<=0)goSwim();return}
   // 지느러미 추적: 잠수 → 지느러미만 다가옴(같은 웅덩이 안) → 물결 원(예고) → 솟구쳐 물기.
   if(st==='submerge'){sinkTo(SPINO.deepSink);if(b.timer<=0){b.sink=SPINO.deepSink;spinoState('fin',SPINO.finMax)}return}
-  if(st==='fin'){const ps=pools(),pi=Math.max(0,poolAt(b.x)),goal=clamp(player.x,ps[pi][0]+30,ps[pi][1]-30),move=goal-b.x;b.x+=Math.sign(move)*Math.min(SPINO.finSpeed*dt,Math.abs(move));if(Math.abs(goal-b.x)<15||b.timer<=0){b.lockX=b.x;spinoState('breachTell',SPINO.breachTell);tone(220,.5,'sine',.05)}return}
+  if(st==='fin'){const ps=pools(),pi=Math.max(0,poolAt(b.x)),goal=clamp(player.x,ps[pi][0]+30,ps[pi][1]-30),move=goal-b.x;b.x+=Math.sign(move)*Math.min(SPINO.finSpeed*boost*dt,Math.abs(move));if(Math.abs(goal-b.x)<15||b.timer<=0){b.lockX=b.x;spinoState('breachTell',SPINO.breachTell);tone(220,.5,'sine',.05)}return}
   if(st==='breachTell'){if(b.timer<=0){spinoState('breach',SPINO.breach);shake=12;burst(b.lockX,FLOOR-20,40,'#9fd0e0',300);noise(.35,.12)}return}
   if(st==='breach'){b.sink=SPINO.deepSink*clamp(b.timer/SPINO.breach,0,1);if(b.timer<=0){b.sink=0;spinoState('surfaced',SPINO.surfaced)}return}
   if(st==='surfaced'){sinkTo(SPINO.swimSink);if(b.timer<=0)goSwim();return}
-  // 2페이즈~: 물살 끌어당기기 (반대로 걸으면 버틸 수 있음).
-  if(st==='inhaleTell'){sinkTo(SPINO.swimSink);face();if(b.timer<=0)spinoState('inhale',SPINO.inhale);return}
-  if(st==='inhale'){face();if(mode==='playing'&&player.dash<=0&&Math.abs(player.x-b.x)>110)player.x+=Math.sign(b.x-player.x)*SPINO.pull*dt;if(b.timer<=0)goSwim();return}
-  // 3페이즈: 전기 지느러미 — 어느 웅덩이든 물속에 있으면 피해.
-  if(st==='shockTell'){sinkTo(SPINO.swimSink);if(b.timer<=0)spinoState('shock',SPINO.shock);return}
-  if(st==='shock'){if(mode==='playing'&&isSwimming())hurtSpino('shock');if(b.timer<=0)goSwim();return}
   if(st==='roar'){sinkTo(wet?SPINO.swimSink:0);if(b.timer<=0)goSwim();return}
  }
  // 방어·엎드린 돌진 예약이 발 구르기 때문에 밀리지 않게 한다.
@@ -676,20 +676,30 @@ function drawWaterBack(){const mx=930-cam*.04+cam,ps=pools();
   for(let i=0;i<7;i++){const y=FLOOR-14+i*12,w=60-i*6+Math.sin(time*2+i)*7;if(mx-w>a&&mx+w<c)line([[mx-w,y],[mx+w,y]],'#d6e2d655',2)}}
  // 땅 구간의 갈대.
  for(let i=0;i<46;i++){const x=1540+i*70;if(x<SPINO.right&&poolAt(x)<0&&poolAt(x+12)<0){line([[x,FLOOR],[x+3,FLOOR-34-(i%3)*10]],'#3d5b4c',2);line([[x+6,FLOOR],[x+11,FLOOR-24]],'#3d5b4c',2)}}}
-function drawWaterFront(){const b=boss,shock=arena&&!b.dead&&['shock','shockTell'].includes(b.state);g.save();
+function drawWaterFront(){const b=boss;g.save();
  for(const [a,c] of pools()){g.globalAlpha=1;g.fillStyle='rgba(10,34,48,.74)';g.fillRect(a,FLOOR-22,c-a,200);
   g.beginPath();for(let x=a;x<=c;x+=20)g.lineTo(x,FLOOR-22+Math.sin(time*2.2+x*.03)*2);g.strokeStyle='#9cc7cf88';g.lineWidth=2;g.stroke();
-  if(shock){g.globalAlpha=b.state==='shock'?.9:.35+.3*Math.abs(Math.sin(time*25));for(let i=0;i<6;i++){const y=FLOOR-14+i*16;g.beginPath();for(let x=a;x<=c;x+=26)g.lineTo(x,y+((x/26+i+Math.floor(time*20))%2?-7:7));g.strokeStyle='#9ff1ff';g.lineWidth=2;g.stroke()}}}
+  }
+ g.restore();drawFlood()}
+// 범람: 양쪽 벽에서 폭포 → 땅을 따라 안쪽으로 흐르는 물살과 거품 머리.
+function drawFlood(){const b=boss;if(stage!==4||!arena||b.dead||!b.flood||b.flood==='off')return;
+ const a=b.flood==='fade'?1-b.floodT/SPINO.floodFade:b.flood==='tell'?.4+.4*(b.floodT/SPINO.floodTell):1,reach=b.floodReach;g.save();g.globalAlpha=clamp(a,0,1);
+ for(const [wall,dir] of [[1535,1],[SPINO.right,-1]]){
+  for(let i=0;i<6;i++){const x=wall+dir*(6+i*7),q=(time*2.4+i*.17)%1;g.fillStyle=i%2?'#9fd3e0aa':'#d4eef288';g.fillRect(x-3,120,6,FLOOR-120);ellipse(x,120+q*(FLOOR-140),4,10,'#eef9fbcc')}
+  glow(wall+dir*20,FLOOR-10,70,'#cfeef455');
+  if(reach>0){const end=wall+dir*reach;g.fillStyle='rgba(120,190,210,.55)';g.fillRect(Math.min(wall,end),FLOOR-SPINO.floodHeight*.55,Math.abs(end-wall),SPINO.floodHeight*.55);
+   for(let i=0;i<Math.abs(end-wall)/40;i++){const x=wall+dir*(i*40+((time*SPINO.floodSpeed)%40));line([[x,FLOOR-12],[x+dir*18,FLOOR-15]],'#e6f6f8aa',2)}
+   if(b.flood==='on'){ellipse(end,FLOOR-14,22,16,'#eef9fbdd');ellipse(end-dir*14,FLOOR-8,18,10,'#d4eef2cc')}}}
  g.restore()}
 function drawSpinoFin(x,alpha=1){g.save();g.globalAlpha=alpha;g.translate(x,FLOOR-22);g.scale(.7,.7);const robot=boss.robot;path([[-75,0],[-45,-58],[-5,-92],[35,-70],[70,0]],robot?'#4d6b7c':'#7a3f3a','#14262c',3);for(const k of [-45,-20,5,30])line([[k,0],[k*.8,-60+Math.abs(k)*.5]],'#d9c9a5aa',2);if(robot)line([[-45,-58],[-5,-92],[35,-70]],'#8ff0ff',2);
  for(let i=0;i<3;i++){const q=(time*1.3+i/3)%1;g.globalAlpha=alpha*(1-q)*.6;g.strokeStyle='#bfe0e6';g.lineWidth=2;g.beginPath();g.ellipse(40+q*60,2,20+q*40,3+q*3,0,0,Math.PI*2);g.stroke()}g.restore()}
 function drawSpino(){const b=boss;if(!arena&&!stageCleared){drawSpinoFin(2450+Math.sin(time*.35)*160,.55);return}
  const st=b.state;if(st==='fin'||st==='breachTell'||st==='submerge'&&b.sink>SPINO.deepSink*.8){drawSpinoFin(b.x);if(st==='breachTell')spinoRipples();return}
- const robot=b.robot,storm=b.phase>=3,tell=SPINO_TELLS.includes(st),open=['lungeTell','lunge','roar','inhale','inhaleTell','breach'].includes(st),swipe=st==='swipe'||st==='swipe2',k=SPINO.scale;
+ const robot=b.robot,storm=b.phase>=3,tell=SPINO_TELLS.includes(st),open=['lungeTell','lunge','roar','breach'].includes(st),swipe=st==='swipe'||st==='swipe2',k=SPINO.scale;
  const skin=robot?'#6f8791':'#3d5a52',belly=robot?'#9fb0ae':'#7d927c',sail=robot?'#4d6b7c':'#8a4b42',dark='#14262c';
  g.save();g.translate(b.x,FLOOR+b.sink);g.scale(b.dir*k,k);if(b.dead)g.globalAlpha=.25;
  if(st==='beached'){g.translate(0,30);g.rotate(.13+Math.sin(time*16)*.05)}
- const glowSail=robot&&(tell||st==='shock')||st==='inhale';
+ const glowSail=robot&&tell;
  if(glowSail)glow(-5,-190,170,storm?'#ffd27a55':'#7fe6ff55');
  path([[-120,-95],[-260,-75],[-335,-42],[-250,-58],[-120,-60]],skin,dark,3);
  const gait=st==='swim'&&poolAt(b.x)<0?Math.sin(time*10)*12:0;
@@ -701,9 +711,13 @@ function drawSpino(){const b=boss;if(!arena&&!stageCleared){drawSpinoFin(2450+Ma
  ellipse(-10,-92,148,52,skin);ellipse(10,-70,112,26,belly);
  if(robot){path([[-70,-128],[-10,-140],[50,-128],[40,-100],[-60,-100]],'#526f82','#c8d9d8',2);ellipse(-10,-115,9,9,storm?'#ffbc75':'#8ff0ff')}
  // 앞발.
- if(swipe){line([[90,-95],[170,-100],[235,-70]],skin,11);for(let i=0;i<3;i++)line([[235,-70],[255+i*4,-82+i*12]],'#ece5c7',3)}else{line([[90,-90],[130,-62],[150,-40]],skin,10);for(let i=0;i<3;i++)line([[150,-40],[160+i*3,-30+i*3]],'#ece5c7',2)}
+ const arm=swipe?[[86,-100],[168,-108],[232,-78]]:[[86,-96],[128,-70],[150,-46]],[wx,wy]=arm[2],reachDir=swipe?0:.9;
+ line(arm,dark,26);line(arm,skin,19);ellipse(arm[0][0],arm[0][1],18,16,skin);ellipse(arm[1][0],arm[1][1],12,11,skin);
+ if(robot){line([arm[0],arm[1]],'#c8d9d8',4);line([arm[1],arm[2]],storm?'#ffbc75':'#8ff0ff',3);ellipse(arm[1][0],arm[1][1],6,6,storm?'#ffbc75':'#8ff0ff')}
+ // 엄지의 큰 갈고리 발톱 + 발톱 셋.
+ g.save();g.translate(wx,wy);g.rotate(reachDir);path([[-4,-8],[34,-22],[50,-6],[30,-12],[4,4]],'#efe6c4',dark,2);for(let i=0;i<3;i++)path([[0,-2+i*7],[30,4+i*9],[36,16+i*9],[22,10+i*8],[-2,6+i*7]],'#e3d9b5',dark,2);g.restore();
  // 목과 긴 주둥이.
- g.save();g.translate(120,-112);g.rotate(st==='beached'?.4:st==='lungeTell'||st==='roar'?-.3:st==='lunge'?.28:st==='inhale'?-.1:0);
+ g.save();g.translate(120,-112);g.rotate(st==='beached'?.4:st==='lungeTell'||st==='roar'?-.3:st==='lunge'?.28:0);
  path([[-12,12],[40,-28],[72,-22],[32,24]],skin,dark,2);
  path([[40,-38],[92,-44],[188,-24],[192,-12],[60,-6],[34,-16]],skin,dark,3);
  if(open){g.save();g.translate(52,-8);g.rotate(.32);path([[0,0],[132,8],[128,18],[4,10]],belly,dark,2);g.restore();path([[60,-8],[180,-14],[60,4]],'#3a1418')}else line([[60,-8],[186,-14]],dark,3);
@@ -714,7 +728,6 @@ function drawSpino(){const b=boss;if(!arena&&!stageCleared){drawSpinoFin(2450+Ma
  g.restore();
  if(st==='roar'){g.save();for(let i=0;i<5;i++){const q=(time*1.6+i*.2)%1;g.globalAlpha=1-q;g.strokeStyle='#e7f3ee';g.lineWidth=3;g.beginPath();g.ellipse(b.x+b.dir*143,FLOOR+b.sink-124-q*120,10+q*45,4+q*12,0,0,Math.PI*2);g.stroke()}g.restore()}
  if(swipe){g.save();g.strokeStyle='#ffe6b8';g.lineWidth=5;g.globalAlpha=.8;g.beginPath();g.arc(b.x+b.dir*124,FLOOR-50,60,st==='swipe'?-1.2:.2,st==='swipe'?.4:1.6);g.stroke();g.restore()}
- if(st==='inhale'){g.save();for(let i=0;i<8;i++){const q=(time*1.8+i/8)%1,x=lerp(player.x,b.x+b.dir*143,q),y=FLOOR-40-Math.sin(i)*30;g.globalAlpha=(1-q)*.6;line([[x,y],[x+(b.x-player.x>0?30:-30),y]],'#bfe0e6',2)}g.restore()}
  if(['lungeTell','clawTell'].includes(st)){const span=st==='lungeTell'?SPINO.lungeTell:SPINO.clawTell,q=clamp(1-b.timer/span,0,1);g.fillStyle='#dfae6655';g.fillRect(b.x-60,FLOOR+8,120,5);g.fillStyle='#ff8f6b';g.fillRect(b.x-60,FLOOR+8,120*q,5)}
 }
 function spinoRipples(){const b=boss,q=clamp(1-b.timer/SPINO.breachTell,0,1);g.save();for(let i=0;i<3;i++){const r=(q*3+i)%3/3;g.globalAlpha=(1-r)*.9;g.strokeStyle=b.robot?'#8ff0ff':'#e9d6a6';g.lineWidth=3;g.beginPath();g.ellipse(b.lockX,FLOOR-20,24+r*60,5+r*8,0,0,Math.PI*2);g.stroke()}glow(b.lockX,FLOOR-20,70,'#bfe0e644');g.restore()}
@@ -725,12 +738,13 @@ function drawDarkness(){const b=boss;if(!arena||b.dead||!b.dark||b.dark==='off')
  g.save();const grad=g.createRadialGradient(px,py,r*.55,px,py,r);grad.addColorStop(0,'rgba(2,5,9,0)');grad.addColorStop(1,`rgba(2,5,9,${a})`);g.fillStyle=grad;g.fillRect(0,0,W,H);
  g.translate(-cam,0);g.globalAlpha=clamp(a*1.05,0,1);const st=b.state,y=FLOOR+b.sink;
  if(!SUBMERGED.includes(st)){const ex=b.x+b.dir*124,ey=y-90;glow(ex,ey,22,'#ff7a4a99');ellipse(ex,ey,3,3,'#ffd0a0')}
- if(b.robot&&(SPINO_TELLS.includes(st)||st==='shock')){glow(b.x,y-118,100,b.phase>=3?'#ffd27a44':'#7fe6ff44');line([[-112,-150],[-72,-215],[-20,-252],[30,-246],[80,-202],[112,-140]].map(([x,yy])=>[b.x+x*k*b.dir,y+yy*k]),b.phase>=3?'#ffd27a':'#aaf6ff',4)}
+ if(b.robot&&SPINO_TELLS.includes(st)){glow(b.x,y-118,100,b.phase>=3?'#ffd27a44':'#7fe6ff44');line([[-112,-150],[-72,-215],[-20,-252],[30,-246],[80,-202],[112,-140]].map(([x,yy])=>[b.x+x*k*b.dir,y+yy*k]),b.phase>=3?'#ffd27a':'#aaf6ff',4)}
  if(st==='breachTell')spinoRipples();
+ if(b.flood==='on')for(const [wall,dir] of [[1535,1],[SPINO.right,-1]])if(b.floodReach>0){const end=wall+dir*b.floodReach;ellipse(end,FLOOR-14,22,16,'#eef9fb88')}
  if(st==='fin'){g.globalAlpha*=.5;for(let i=0;i<2;i++){const q=(time*1.3+i/2)%1;g.strokeStyle='#bfe0e6';g.lineWidth=2;g.beginPath();g.ellipse(b.x,FLOOR-20,20+q*40,3+q*3,0,0,Math.PI*2);g.stroke()}}
  g.restore()}
 function spinoHint(){const b=boss,st=b.state;if(b.dark==='tell')return '달이 가라앉는다 · 눈빛과 지느러미를 보라';
- return st==='beached'?'물 밖에 엎어졌다 · 공격 기회':st==='surfaced'?'떠올랐다 · 공격 기회':st==='lungeTell'?'고개가 들렸다 · 물가에서 물러서라':st==='clawTell'||st==='clawGap'?'앞발 · 두 번 휘두른다':st==='submerge'||st==='fin'?'지느러미가 다가온다 · 물 밖으로':st==='breachTell'?'물결이 원을 그린다 · 그 자리를 벗어나라':st==='inhaleTell'||st==='inhale'?'물살이 당긴다 · 반대로 버텨라':st==='shockTell'||st==='shock'?'번개 지느러미 · 물 밖으로':isSwimming()?'숨이 다하기 전에 물 밖으로':'땅과 물을 건너며 싸워라 · 두 번 뛰면 넘어간다'}
+ return st==='beached'?'물 밖에 엎어졌다 · 공격 기회':st==='surfaced'?'떠올랐다 · 공격 기회':st==='lungeTell'?'고개가 들렸다 · 물가에서 물러서라':st==='clawTell'||st==='clawGap'?'앞발 · 두 번 휘두른다':st==='submerge'||st==='fin'?'지느러미가 다가온다 · 물 밖으로':st==='breachTell'?'물결이 원을 그린다 · 그 자리를 벗어나라':b.flood==='tell'?'양쪽 끝에서 물이 쏟아진다 · 뛰어오를 준비':b.flood==='on'&&floodPush(player.x)?'물살이 밀어낸다 · 뛰어오르면 버틴다':isSwimming()?'숨이 다하기 전에 물 밖으로':'땅과 물을 건너며 싸워라 · 두 번 뛰면 넘어간다'}
 function spinoHud(){const b=boss;if(arena&&!b.dead){g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('스피노사우루스 · '+(b.phase>=3?'폭풍의 물가':b.robot?'강철 지느러미':'물가의 그림자'),640,31);g.fillStyle='#10303a';g.fillRect(350,49,580,9);g.strokeStyle='#c2d7d4';g.strokeRect(348,47,584,13);g.fillStyle=b.phase>=3?'#f0b27a':b.robot?'#8dd9f5':'#7fb7a4';g.fillRect(350,49,580*b.hp/b.max,9);g.font='12px sans-serif';g.fillStyle='#e5ede0';g.fillText(spinoHint(),640,83)}
  // 숨 게이지(주인공 머리 위).
  const br=player.breath||0;if(arena&&!stageCleared&&(isSwimming()||br>0)){const x=player.x-cam,y=player.y-80,left=1-clamp(br/SPINO.breath,0,1);g.fillStyle='#0b1b26cc';g.fillRect(x-24,y,48,6);g.fillStyle=left>0?'#8fd8ff':'#ff7a5a';g.fillRect(x-24,y,48*(left>0?left:1),6);g.font='10px sans-serif';g.textAlign='center';g.fillStyle=left>0?'#cfeaf2':'#ffb3a0';g.fillText(left>0?'숨':'숨이 차다',x,y-4)}}
