@@ -390,7 +390,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v31`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v32`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포
@@ -425,6 +425,7 @@ IndexedDB → `localstore` 데이터베이스에서 `progress_*` 박스를 직�
 | LIFE: 엔딩에서 부상 상태 오버롤 / 마지막 주 부상 | 원본 로직 | 맨 아래 `lifeFixes` 에서 `dayStart`·`rEnd` 감싸기 (12/24~ 부상 금지, 엔딩 때 부상 해제) |
 | LIFE: '친구와 시간' 멤버가 탭 오갈 때마다 바뀜 | `rChoice()` 가 그릴 때마다 `ctxNow()` 로 무작위 재선택 | 하루 동안 고정 (`T.mudFr`) |
 | **새 계정에 원래 계정 게임 기록이 그대로 보임 / 다른 기기에서 로그인 안 됨** | 계정이 이 기기에만 저장 + 게임은 localStorage 하나를 모든 계정이 같이 씀 + 저장 코드 미러도 공용 | Supabase 온라인 계정 + 계정별 localStorage 보관함(vault) + 계정별 미러 |
+| **오프라인에서 앱은 켜지는데 게임이 안 됨** (추정) | 서비스워커 설치가 파일 받기 실패를 무시하고 끝난 뒤 옛 캐시를 지움 → 업데이트 중 인터넷이 끊기면 게임 파일이 빠짐. 게임 폰트도 게임 캐시에 없었음 | 앱·게임 파일은 `addAll`(전부 받아야 설치 완료, 실패 시 옛 버전 유지), 게임 폰트도 게임 캐시에, 게임 파일은 모든 캐시에서 찾기 |
 | LIFE: MY TEAM 무한 복사 | 엔딩 화면이 뜨자마자 자동 등록 → 저장 안 하고 12/29 로 돌아가 반복 | 엔딩 뒤 슬롯 저장 때만 등록 + `runId` 로 같은 1학년은 한 번만 |
 | **LIFE 아래가 잘림 (스크롤 안 됨)** | iframe 에 `scrolling="no"` | 속성 제거. 스크롤 막기는 게임 CSS 에서 |
 | 한일전: 12 를 깨면 13·14 가 같이 열림 | 원본 `renderStageMenu` 의 `(i === 14 && maxUnlockedStage >= 13)` | 빌더 TAIL_JS `lockStage14` 가 메뉴를 그린 뒤 14 버튼을 다시 잠금 (13 클리어·최고 14 이상·14 클리어 기록이면 열림) |

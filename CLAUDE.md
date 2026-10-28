@@ -18,7 +18,7 @@ Flutter PWA 미니게임 허브. HTML 게임 4개를 iframe 으로 얹어 돌린
 - 화면 맞춤은 배치를 바꾸지 말고 통째로 CSS `zoom` (한일전 `fitToScreen`, LIFE/포케퀴즈는 첫 화면이 창 높이에 맞게)
 - 게임에 외부 URL 금지 (폰트·라이브러리는 로컬). 예외: 포케퀴즈 포켓몬 그림(PokeAPI sprites, 저작권·용량),
   타워 크래시 전체 랭킹(Supabase — 온라인일 때만, 게임은 오프라인 그대로. SQL 은 `docs/supabase-ranking.sql`)
-- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v31`)
+- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v32`)
 - `flutter build web` 만 돌리지 말고 `./build.sh` (patch_web.py 포함)
 
 ## 게임 4개

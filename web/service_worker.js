@@ -11,7 +11,7 @@
  *       (예: https://example.com/mudyogu/) 에서도 그대로 동작합니다.
  * ------------------------------------------------------------------ */
 
-const VERSION = 'mudyogu-v31';
+const VERSION = 'mudyogu-v32';
 const SHELL_CACHE = `${VERSION}-shell`;
 const GAME_CACHE = `${VERSION}-games`;
 
@@ -75,31 +75,28 @@ const PRECACHE_FONTS = [
 ];
 
 self.addEventListener('install', (event) => {
+  // ⚠️ 핵심 파일(앱 + 게임)은 '전부 받아졌을 때만' 설치를 끝낸다 (addAll 은 하나라도 실패하면 실패).
+  //    예전엔 실패를 무시하고 설치를 끝낸 뒤 옛 캐시를 지워 버려서, 업데이트 중에 인터넷이 끊기면
+  //    게임 파일이 빠진 채로 남아 오프라인에서 앱은 켜지는데 게임은 안 열리는 일이 생길 수 있었다.
+  //    설치가 실패하면 옛 서비스워커와 옛 캐시가 그대로 남고, 다음에 다시 시도한다.
   event.waitUntil(
     (async () => {
       const shell = await caches.open(SHELL_CACHE);
-      await Promise.all(
-        PRECACHE_SHELL.map((url) =>
-          shell.add(new Request(url, { cache: 'reload' })).catch(() => null)
-        )
-      );
+      await shell.addAll(PRECACHE_SHELL.map((url) => new Request(url, { cache: 'reload' })));
 
-      // 폰트/그래픽 엔진도 셸 캐시에 함께 넣습니다.
-      await Promise.all(
-        PRECACHE_FONTS.map((url) =>
-          shell.add(new Request(url, { cache: 'reload' })).catch(() => null)
-        )
-      );
-
+      const gameUrls = PRECACHE_SHELL.concat(PRECACHE_FONTS).filter((u) => u.startsWith('games/'));
       const games = await caches.open(GAME_CACHE);
+      await games.addAll(gameUrls.map((url) => new Request(url, { cache: 'reload' })));
+
+      // 앱 폰트 / 그래픽 엔진: 용량이 커서 실패해도 설치는 계속 (보통은 이미 받아져 있음)
       await Promise.all(
-        PRECACHE_SHELL.filter((u) => u.startsWith('games/')).map((url) =>
-          games.add(new Request(url, { cache: 'reload' })).catch(() => null)
+        PRECACHE_FONTS.filter((u) => !u.startsWith('games/')).map((url) =>
+          shell.add(new Request(url, { cache: 'reload' })).catch(() => null)
         )
       );
+      self.skipWaiting();
     })()
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -172,7 +169,10 @@ self.addEventListener('fetch', (event) => {
 
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request, { ignoreSearch: true });
+  // 게임 캐시에 없으면 다른 캐시(앱 셸 등)에서라도 찾는다
+  const cached =
+    (await cache.match(request, { ignoreSearch: true })) ||
+    (await caches.match(request, { ignoreSearch: true }));
   if (cached) return cached;
   try {
     const response = await fetch(request);
