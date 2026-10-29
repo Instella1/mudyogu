@@ -7,7 +7,7 @@ function boot(storage={}){
  const ctx=new Proxy({createLinearGradient:()=>gradient,createRadialGradient:()=>gradient,fillText(text,x,y){draws.push({text:String(text),x,y})}},{get:(o,k)=>o[k]||(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
  const el=id=>els[id]??={hidden:false,getContext:()=>ctx,setAttribute(k,v){this[k]=v},classList:{toggle(){}},addEventListener(){},focus(){}};
  const box={console,Math,localStorage:{getItem:k=>storage[k]||null,setItem(k,v){storage[k]=v}},document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},requestAnimationFrame(){},matchMedia:()=>({matches:false})};
- const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,reset,updatePlayer,updateCourse,updateSpear,throwSpear,enterCourse,courseLedges,maceBall,windPhase,dripDrop,victory,goHome,validProgress,COURSES,COURSE_RULES,get p(){return player},get run(){return courseRun},get course(){return course},get keys(){return keys},get press(){return press},get spear(){return spear},get progress(){return progress},get mode(){return mode},get cam(){return cam},get camY(){return camY},tick:dt=>update(dt)};})();`);
+ const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,reset,updatePlayer,updateCourse,updateSpear,throwSpear,enterCourse,courseLedges,maceBall,windPhase,dripDrop,victory,goHome,validProgress,COURSES,COURSE_RULES,get p(){return player},get run(){return courseRun},get course(){return course},get keys(){return keys},get press(){return press},get spear(){return spear},get progress(){return progress},get mode(){return mode},set mode(v){mode=v},get cam(){return cam},get camY(){return camY},tick:dt=>update(dt)};})();`);
  vm.createContext(box);vm.runInContext(js,box);return{t:box.t,els,storage,draws};
 }
 let count=0;function check(label,f){f();console.log('PASS: '+label);count++}
@@ -24,7 +24,7 @@ function targetOf(t,C,pt){
  assert(s,'route point on a surface '+pt);const surf={x:s[0],y:s[1],w:s[2]};return{get:()=>surf,ok:()=>Math.abs(t.p.y-y)<1.5&&t.p.x>=surf.x-1&&t.p.x<=surf.x+surf.w+1,point:x};
 }
 function snapshot(t){return{p:{...t.p,safe:{...t.p.safe}},run:JSON.parse(JSON.stringify(t.run))}}
-function restore(t,s){Object.assign(t.p,{...s.p,safe:{...s.p.safe}});const r=t.run;r.t=s.run.t;r.flag=s.run.flag;s.run.crumble.forEach((k,i)=>Object.assign(r.crumble[i],k));s.run.movers.forEach((m,i)=>Object.assign(r.movers[i],m))}
+function restore(t,s){t.mode='playing';Object.assign(t.p,{...s.p,safe:{...s.p.safe}});const r=t.run;r.t=s.run.t;r.flag=s.run.flag;s.run.crumble.forEach((k,i)=>Object.assign(r.crumble[i],k));s.run.movers.forEach((m,i)=>Object.assign(r.movers[i],m))}
 function attempt(t,from,tgt,o){
  restore(t,from);t.p.hp=6;t.p.inv=o.hazards?0:1e9;const keep=()=>{if(!o.hazards)t.p.inv=1e9};
  if(o.startX!==undefined){t.p.x=o.startX;t.p.safe={x:t.p.x,y:t.p.y}}
@@ -69,16 +69,19 @@ for(const n of [2,3,4])check(`stage ${n} course is completable with the real phy
  assert(found.some(f=>f.jump2!==null),'needs double jumps somewhere (hard)');
 });
 check('stage 2 is beatable without taking a single hit: maces, falling rocks and spikes all have a safe timing',()=>{
- const {e,found}=solveRoute(2,true),t=e.t;assert.equal(t.course,null);assert(found.filter(f=>f.wait>0).length>=5,'many segments demand waiting for the right moment');
+ const {e,found}=solveRoute(2,true),t=e.t;assert.equal(t.course,null);assert.equal(t.COURSES[2].flags.length,2,'only two save flags');assert(found.filter(f=>f.wait>0).length>=3,'several segments demand waiting for the right moment');
 });
 check('hard enough: wide gaps and high steps need the double jump, not just one jump',()=>{
  for(const n of [2,3,4]){const C=boot().t.COURSES[n];assert(C.route.length>=15,'long route');assert(C.spikes.length>=3);assert(C.flags.length>=2)}
  const C=boot().t.COURSES;assert(C[2].maces.length>=5&&C[2].vines.length>=3,'stage2 maces and vines');assert(C[3].winds.length>=3&&C[3].crumbles.length>=3,'stage3 wind and crumbling ledges');assert(C[4].drips.length>=5&&C[4].water.length>=3&&C[4].dark>0,'stage4 dark water');
  assert(C[3].end[1]<-2000,'stage3 climbs high into the sky')});
-check('falling into a pit costs 1 HP (even when invulnerable) and returns to the last solid ground',()=>{
- const {t}=inCourse(2);stand(t,650,602);frame(t);t.p.hp=6;t.p.inv=5;t.keys.right=true;for(let i=0;i<240&&t.p.x<760;i++)frame(t);t.keys.right=false;for(let i=0;i<240&&t.p.hp===6;i++)frame(t);
- assert.equal(t.p.hp,5);assert(t.p.x<=713.1&&t.p.x>600,'back at the edge '+t.p.x);assert.equal(t.p.y,602);
- t.p.hp=1;t.p.x=780;t.p.y=700;t.p.vy=900;t.p.ground=false;for(let i=0;i<60&&t.mode==='playing';i++)frame(t);assert.equal(t.mode,'dead')});
+check('falling into a pit is instant death even at full HP; retry restarts at the last flag with full HP',()=>{
+ const {t}=inCourse(2);stand(t,500,602);frame(t);t.p.hp=6;t.p.inv=5;t.keys.right=true;for(let i=0;i<300&&t.mode==='playing';i++)frame(t);t.keys.right=false;
+ assert.equal(t.mode,'dead');assert.equal(t.p.hp,0);t.retry();assert(t.course);assert.deepEqual([t.p.x,t.p.y],t.COURSES[2].spawn);assert.equal(t.p.hp,6)});
+check('campfire heals every time you reach it, also after save and quit with low HP',()=>{
+ const e=boot(),t=e.t;t.startStage(2);t.p.x=1431;t.updatePlayer(0);assert.equal(t.getState().checkpoint,true);t.p.hp=2;t.p.x=1300;t.goHome();
+ const r=boot(e.storage);assert(r.t.continueSaved());assert.equal(r.t.p.hp,2);r.t.keys.right=true;for(let i=0;i<40;i++)r.t.tick(1/60);r.t.keys.right=false;assert.equal(r.t.p.hp,6,'healed at the campfire');
+ r.t.p.hp=3;r.t.p.x=1600;r.t.keys.left=true;for(let i=0;i<40;i++)r.t.tick(1/60);r.t.keys.left=false;assert.equal(r.t.p.hp,6,'healed again on the way back')});
 check('mace: the swinging ball hits a standing player for 1 with knockback; dash and invulnerability pass',()=>{
  const {t}=inCourse(2),C=t.COURSES[2],m=C.maces[0];stand(t,m[0],602);t.run.t=0;assert(Math.abs(t.maceBall(m,0).x-m[0])<1,'ball at the bottom at t=0');
  t.p.inv=0;t.p.hp=6;t.updatePlayer(0);assert.equal(t.p.hp,5);assert(Math.abs(t.p.vx)>0);

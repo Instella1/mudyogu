@@ -468,7 +468,7 @@ const COURSES={
   maces:[[1050,160,380,1.05,2.4,0],[1325,160,380,1.05,2.2,1.2],[3150,160,100,1.2,1.3,0],[3350,160,100,1.2,1.3,1.6],[5080,160,300,1,2,0],[6280,160,380,1.05,2.4,0],[6440,160,380,1.05,2.4,2.1],[6600,160,380,1.05,2.4,4.2],[7720,160,380,1.05,2.3,1],[7980,160,380,1.05,2.3,3],[9750,160,95,1.3,1.1,0],[9950,160,95,1.3,1.1,2],[10150,160,95,1.3,1.1,4]],
   vines:[[380,250,140,338],[2070,250,310,338],[5520,250,260,338],[7450,250,850,338]],
   drips:[[2240,1.5,.4],[3720,1.6,0],[3900,1.6,.5],[4080,1.6,1],[4920,1.7,.3],[5170,1.7,1.1],[7600,1.5,.6],[7860,1.5,0],[8530,1.4,.2],[8670,1.4,.9],[9560,1.3,.5]],
-  flags:[[2420,500],[4330,602],[7330,602],[8770,602]],winds:[],water:[],lights:[],
+  flags:[[4330,602],[7330,602]],winds:[],water:[],lights:[],
   route:[[300,602],[1050,602],[1550,602],['m',0],[2110,602],[2260,602],[2380,602],[2500,500],[2725,380],[2895,270],[3050,270],[3450,270],['c',0],['c',1],['c',2],['c',3],[4400,602],['m',1],['m',2],['m',3],[5560,602],[5700,602],[6250,602],[6620,602],[6700,440],[6900,440],[7400,602],[7550,602],[7700,602],[7950,602],[8300,602],['c',4],['c',5],[8850,602],[9120,480],['c',6],[9460,260],[9700,260],[9800,260],[9950,260],[10150,260]]},
  3:{name:'하늘로 오르는 절벽',left:0,right:1280,top:-2800,bottom:2000,spawn:[150,602],end:[250,-2400,400,130],dark:0,
   enter:['하늘로 오르는 절벽','바람을 거슬러, 구름 위까지'],finish:['구름 위의 불씨','절벽 끝, 하늘의 전장이 열린다'],
@@ -492,7 +492,7 @@ const COURSES={
   flags:[[1150,602],[2960,380]],
   route:[[300,602],[750,480],[925,420],[1080,470],[1150,602],[1220,602],[1330,602],[1630,450],['c',0],[2010,430],[2160,470],[2240,602],[2400,602],[2650,602],[2740,500],[2860,500],[3050,380],[3270,270],[3500,470],['c',1],[3820,460],[3950,602],[4120,602],[4250,460]]}
 };
-const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'떨어지면 마지막으로 밟은 땅으로 돌아간다.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.',rock:'천장 돌이 흔들리면 그 아래를 피하라.'};
+const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'떨어지면 끝이다. 마지막 깃발에서 다시.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.',rock:'천장 돌이 흔들리면 그 아래를 피하라.'};
 function courseCamX(x){const c=course;return clamp(x-560,c.left,Math.max(c.left,c.right-W))}
 function courseCamY(y){const c=course;return clamp(y-430,c.top,0)}
 function moverPos(m,t){const k=Math.sin(Math.PI*2*t/m[5]+(m[6]||0));return{x:m[0]+m[3]*k,y:m[1]+m[4]*k}}
@@ -519,13 +519,15 @@ function courseMove(p,dt){const c=course,run=courseRun,body=()=>({x:p.x-13,y:p.y
  const prevX=p.x,prev=p.y;p.x+=p.vx*dt;
  for(const [bx,by,bw,bh] of c.blocks){if(p.y>by+2&&overlap(body(),{x:bx,y:by,w:bw,h:bh})){p.x=p.x>prevX||p.x===prevX&&p.x<bx+bw/2?bx-13.01:bx+bw+13.01;p.vx=0}}
  p.y+=p.vy*dt;p.ground=false;p.wet=false;p.mover=-1;p.crumble=-1;p.solidGround=false;
- for(const [bx,by,bw,bh] of c.blocks){if(overlap(body(),{x:bx,y:by,w:bw,h:bh})){if(p.vy>=0&&prev<=by+2){p.y=by;p.vy=0;p.ground=true;p.jumps=0;p.solidGround=true}else if(p.vy<0){p.y=by+bh+45.01;p.vy=0}}}
+ // 위아래는 지나온 구간 전체로 판정한다(긴 프레임에도 바닥을 뚫지 않게).
+ for(const [bx,by,bw,bh] of c.blocks){if(p.x+13<=bx||p.x-13>=bx+bw)continue;if(p.vy>=0&&prev<=by+2&&p.y>=by){p.y=by;p.vy=0;p.ground=true;p.jumps=0;p.solidGround=true}else if(p.vy<0&&prev-45>=by+bh-2&&p.y-45<by+bh){p.y=by+bh+45.01;p.vy=0}}
  if(p.dropTime<=0&&!p.ground)for(const f of courseLedges())if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0;if(f.kind==='water')p.wet=true;if(f.kind==='mover')p.mover=f.i;if(f.kind==='crumble')p.crumble=f.i;break}
  p.x=clamp(p.x,c.left+13,c.right-13);
  // 마지막으로 밟은 단단한 땅: 물·움직이는 발판·무너지는 발판·가시 위는 제외.
  if(p.ground&&!p.wet&&p.mover<0&&p.crumble<0&&!c.spikes.some(([sx,sy,sw])=>Math.abs(p.y-sy)<1&&p.x+13>sx&&p.x-13<sx+sw))p.safe={x:p.x,y:p.y}}
 function hurtCourse(kind,srcX){const p=player;if(p.inv>0||p.dash>0)return false;p.hp=Math.max(0,p.hp-1);damageTaken++;p.inv=1.05;p.hurt=.25;p.vx=(p.x<srcX?-1:1)*320;p.vy=-300;p.ground=false;p.jumps=Math.max(1,p.jumps);p.coyote=0;p.atk=0;shake=10;flash=.13;burst(p.x,p.y-30,16,C.red);noise(.18,.1);if(!p.hp){die();$('deathHint').textContent=COURSE_HINTS[kind]}return true}
-function courseFall(){const p=player;p.hp=Math.max(0,p.hp-1);damageTaken++;flash=.2;shake=8;noise(.3,.1);if(!p.hp){p.y=course.bottom;die();$('deathHint').textContent=COURSE_HINTS.fall;return}Object.assign(p,{x:p.safe.x,y:p.safe.y,vx:0,vy:0,ground:true,jumps:0,inv:1.2,hurt:0,dash:0});burst(p.x,p.y-30,14,C.mist,140)}
+// 낭떠러지 추락은 즉사. 다시 하기는 마지막 깃발에서.
+function courseFall(){const p=player;damageTaken+=p.hp;p.hp=0;p.y=course.bottom;flash=.25;shake=10;noise(.4,.12);die();$('deathHint').textContent=COURSE_HINTS.fall}
 function courseContacts(p,dt){const c=course,run=courseRun,t=run.t;
  if(p.wet){const w=c.water.find(([x,,ww])=>p.x>=x&&p.x<=x+ww);if(w&&w[3]&&p.dash<=0)p.x=clamp(p.x+w[3]*dt,c.left+13,c.right-13)}
  for(const w of c.winds)if(windPhase(w,t)==='on'&&p.dash<=0&&overlap(playerRect(),{x:w[0],y:w[1],w:w[2],h:w[3]}))p.x=clamp(p.x+w[4]*dt,c.left+13,c.right-13);
@@ -699,6 +701,7 @@ function updatePlayer(dt){
   if(p.dropTime<=0)for(const f of activePlatforms()){if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0}}
   p.x=clamp(p.x,arena?1535:35,stageCleared?worldEnd()-30:2750+regionShift());
   if(!checkpoint&&p.x>1400){checkpoint=true;message('불씨를 기억했다','체력이 회복되었습니다',2.3);p.hp=p.max;if(progress){progress.checkpoint='camp';saveProgress()}tone(660,.4,'triangle')}
+  else if(!arena&&!stageCleared&&p.hp<p.max&&Math.abs(p.x-1430)<60){p.hp=p.max;message('모닥불의 온기','체력이 회복되었습니다',1.8);tone(660,.3,'triangle');burst(1430,FLOOR-30,14,C.gold,120)}
    if(!arena&&p.x>1660){arena=true;checkpoint=true;boss.elapsed=0;boss.guardAt=9;boss.chargeCD=1.5;boss.stompAt=TRI.stompFirst;boss.waves=[];p.hp=p.max;message(stage===4?'스피노사우루스':stage===3?'프테라노돈':stage===2?'울림의 동굴':'트리케라톱스',stage===4?'물가에 서면, 물속을 보라':stage===3?'큰 입이 열리면, 옆으로 피하라':stage===2?'어둠 속 발톱이 깨어난다':'계곡의 문지기',3);tone(90,.8,'sawtooth',.07)}
    if(stageCleared&&clearDismissed){if(stage<4&&p.x>2890&&progress.checkpoint!=='passage'){progress.checkpoint='passage';saveProgress();message(stage===1?'물소리가 흐르는 길':stage===2?'하늘로 열린 길':'달빛이 내려앉은 길',stage===1?'고사리 사이로 동굴의 숨결이 닿는다':stage===2?'절벽 너머로 구름과 바람이 흐른다':'바람이 잦아들고, 물비린내가 번진다',3)}if(stage<4&&p.x>3600){const next=stage+1;progress.stage=next;progress.checkpoint='entry';enterRegion(next);saveProgress();return}if(stage===4&&p.x>3170+regionShift()&&progress.checkpoint!=='ending'){progress.checkpoint='ending';saveProgress();message('잠시, 고요 속에서','물결이 잦아들고, 달빛만이 길을 비춘다.',6)}}}
  if((course||stage===4&&arena&&!stageCleared)&&mode==='playing'){if(isSwimming(p)){p.breath=Math.min(SPINO.breath,(p.breath||0)+dt);if(p.breath>=SPINO.breath){p.drownClock=(p.drownClock||0)-dt;if(p.drownClock<=0){p.drownClock=SPINO.drownEvery;drown()}}}else{p.breath=Math.max(0,(p.breath||0)-dt*2);p.drownClock=0}if(mode!=='playing')return}
