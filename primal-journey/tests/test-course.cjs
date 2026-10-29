@@ -69,12 +69,14 @@ for(const n of [2,3,4])check(`stage ${n} course is completable with the real phy
  const {e,found}=solveRoute(n),t=e.t;assert.equal(t.course,null);t.updatePlayer(0);assert.equal(t.p.x,1430);assert.equal(t.progress.checkpoint,'camp');assert(!t.getState().arena);
  assert(found.some(f=>f.jump2!==null),'needs double jumps somewhere (hard)');
 });
+check('stage 4 is beatable without taking a single hit in the dark: drips and spikes have safe timings',()=>{
+ const {e}=solveRoute(4,true);assert.equal(e.t.course,null)});
 check('stage 2 is beatable without taking a single hit: maces, falling rocks and spikes all have a safe timing',()=>{
  const {e,found}=solveRoute(2,true),t=e.t;assert.equal(t.course,null);assert.equal(t.COURSES[2].flags.length,2,'only two save flags');assert(found.filter(f=>f.wait>0).length>=3,'several segments demand waiting for the right moment');
 });
 check('hard enough: wide gaps and high steps need the double jump, not just one jump',()=>{
  for(const n of [2,3,4]){const C=boot().t.COURSES[n];assert(C.route.length>=15,'long route');assert(C.spikes.length>=3);assert(C.flags.length>=2)}
- const C=boot().t.COURSES;assert(C[2].maces.length>=5&&C[2].vines.length>=3,'stage2 maces and vines');assert(C[3].winds.length>=3&&C[3].crumbles.length>=3,'stage3 wind and crumbling ledges');assert(C[4].drips.length>=5&&C[4].water.length>=3&&C[4].dark>0,'stage4 dark water');
+ const C=boot().t.COURSES;assert(C[2].maces.length>=5&&C[2].vines.length>=3,'stage2 maces and vines');assert(C[3].winds.length>=3&&C[3].crumbles.length>=3,'stage3 wind and crumbling ledges');assert(C[4].right>=10000&&C[4].drips.length>=20&&C[4].water.length>=4&&C[4].dark<=200,'stage4 long dark water');assert.equal(C[4].flags.length,2);
  assert(C[3].end[1]<-5000,'stage3 climbs very high into the sky');assert(C[3].blinks.length>=4&&C[3].crumbles.length>=8&&C[3].winds.length>=6,'stage3 cloud platforms, crumbles, gusts');assert.equal(C[3].flags.length,2)});
 check('falling into a pit is instant death even at full HP; retry restarts at the last flag with full HP',()=>{
  const {t}=inCourse(2);stand(t,500,602);frame(t);t.p.hp=6;t.p.inv=5;t.keys.right=true;for(let i=0;i<300&&t.mode==='playing';i++)frame(t);t.keys.right=false;
@@ -133,11 +135,11 @@ check('spear: lands on course blocks, and a spear lost in a pit returns to hand'
  const {t}=inCourse(2);stand(t,200,602);t.p.dir=1;t.p.inv=1e9;assert(t.throwSpear());for(let i=0;i<300&&t.spear&&t.spear.state==='flying';i++)t.updateSpear(.01);assert.equal(t.spear.state,'ground');assert(t.spear.y<602,'rests on the block top');
  stand(t,t.spear.x,602);t.updateSpear(.4);assert.equal(t.spear,null,'picked up');
  stand(t,600,602);assert(t.throwSpear());Object.assign(t.spear,{x:790,y:640,vx:0,vy:0});for(let i=0;i<400&&t.spear;i++)t.updateSpear(.01);assert.equal(t.spear,null,'pit spear returned')});
-check('stage3 cloud platforms vanish on a cycle (you fall through), and a long fall is fatal',()=>{
+check('stage3 cloud platforms vanish on a cycle (you fall through); falling from height is not damage',()=>{
  const {t}=inCourse(3),C=t.COURSES[3],b=C.blinks[0];const tOn=-b[4]+.1,tOff=-b[4]+b[3]*.8;assert.equal(t.blinkPhase(b,tOn),'on');assert.equal(t.blinkPhase(b,-b[4]+b[3]*.6-.2),'warn');assert.equal(t.blinkPhase(b,tOff),'off');
  stand(t,b[0]+b[2]/2,b[1]);t.run.t=tOn;frame(t,0);assert.equal(t.p.blink,0);t.run.t=tOff;t.p.inv=1e9;for(let i=0;i<5;i++)frame(t,.01);assert(t.p.y>b[1]+1,'fell through the vanished cloud');
- const e2=inCourse(3),q=e2.t;stand(q,1262,-200);q.p.ground=false;q.p.peakY=-200;q.p.vy=0;for(let i=0;i<400&&q.mode==='playing';i++)frame(q);assert.equal(q.mode,'dead','fell 800 and died');
- const e3=inCourse(3),r=e3.t;const [lx,ly,lw]=C.ledges[0];stand(r,lx+lw/2,ly);r.p.peakY=ly-200;r.p.ground=false;r.p.vy=10;for(let i=0;i<60&&!r.p.ground;i++)frame(r);assert.equal(r.mode,'playing','a normal jump drop is fine')});
+ // 높은 곳에서 떨어지는 건 추락 피해가 없다(즉사는 구멍뿐).
+ const e2=inCourse(3),q=e2.t;stand(q,1262,-200);q.p.ground=false;q.p.vy=0;q.p.hp=6;for(let i=0;i<400&&!q.p.ground;i++)frame(q);assert.equal(q.mode,'playing');assert.equal(q.p.hp,6);assert.equal(q.p.y,602)});
 check('debug: course button restarts the current region course without saving',()=>{
  const e=boot(),t=e.t;t.start();t.finishIntro();const saved=e.storage[PROG];t.toggleDebug();t.debugStage(3);assert(!t.course);e.els.debugCourse.onclick();assert(t.course);assert.equal(t.getState().stage,3);t.closeDebug();const [fx,fy]=t.COURSES[3].flags[0];stand(t,fx,fy);t.updatePlayer(0);assert.equal(e.storage[PROG],saved)});
 check('courses never show the boss arena or its HUD, and every course renders without exceptions',()=>{
