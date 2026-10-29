@@ -7,7 +7,7 @@ function boot(storage={}){
  const ctx=new Proxy({createLinearGradient:()=>gradient,createRadialGradient:()=>gradient,fillText(text,x,y){draws.push({text:String(text),x,y})}},{get:(o,k)=>o[k]||(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
  const el=id=>els[id]??={hidden:false,getContext:()=>ctx,setAttribute(k,v){this[k]=v},classList:{toggle(){}},addEventListener(){},focus(){}};
  const box={console,Math,localStorage:{getItem:k=>storage[k]||null,setItem(k,v){storage[k]=v}},document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},requestAnimationFrame(){},matchMedia:()=>({matches:false})};
- const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,reset,updatePlayer,updateCourse,updateSpear,throwSpear,enterCourse,courseLedges,maceBall,windPhase,dripDrop,victory,goHome,validProgress,COURSES,COURSE_RULES,get p(){return player},get run(){return courseRun},get course(){return course},get keys(){return keys},get press(){return press},get spear(){return spear},get progress(){return progress},get mode(){return mode},set mode(v){mode=v},get cam(){return cam},get camY(){return camY},tick:dt=>update(dt)};})();`);
+ const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,reset,updatePlayer,updateCourse,updateSpear,throwSpear,enterCourse,courseLedges,maceBall,windPhase,dripDrop,blinkPhase,victory,goHome,validProgress,COURSES,COURSE_RULES,get p(){return player},get run(){return courseRun},get course(){return course},get keys(){return keys},get press(){return press},get spear(){return spear},get progress(){return progress},get mode(){return mode},set mode(v){mode=v},get cam(){return cam},get camY(){return camY},tick:dt=>update(dt)};})();`);
  vm.createContext(box);vm.runInContext(js,box);return{t:box.t,els,storage,draws};
 }
 let count=0;function check(label,f){f();console.log('PASS: '+label);count++}
@@ -20,6 +20,7 @@ function stand(t,x,y){Object.assign(t.p,{x,y,vx:0,vy:0,ground:true,jumps:0,coyot
 function targetOf(t,C,pt){
  if(pt[0]==='m')return{dyn:true,get:()=>{const q=t.run.movers[pt[1]];return{x:q.x,w:C.movers[pt[1]][2],y:q.y}},ok:()=>t.p.mover===pt[1]};
  if(pt[0]==='c')return{get:()=>{const c=C.crumbles[pt[1]];return{x:c[0],w:c[2],y:c[1]}},ok:()=>t.p.crumble===pt[1]};
+ if(pt[0]==='b')return{dyn:true,get:()=>{const c=C.blinks[pt[1]];return{x:c[0],w:c[2],y:c[1]}},ok:()=>t.p.blink===pt[1]};
  const [x,y]=pt,all=[...C.blocks.map(b=>[b[0],b[1],b[2]]),...C.ledges,...C.water.map(w=>[w[0],w[1],w[2]])],s=all.find(([sx,sy,sw])=>Math.abs(sy-y)<1&&x>=sx&&x<=sx+sw);
  assert(s,'route point on a surface '+pt);const surf={x:s[0],y:s[1],w:s[2]};return{get:()=>surf,ok:()=>Math.abs(t.p.y-y)<1.5&&t.p.x>=surf.x-1&&t.p.x<=surf.x+surf.w+1,point:x};
 }
@@ -43,7 +44,7 @@ function attempt(t,from,tgt,o){
 function solveRoute(n,hazards=false){
  const e=inCourse(n),t=e.t,C=t.COURSES[n];t.p.inv=hazards?0:1e9;
  stand(t,C.spawn[0],C.spawn[1]);
- const steps=[...C.route.slice(1),'end'];let deepest=0,where='';
+ const steps=[...C.route.slice(1),'end'];let deepest=-1,where='';
  // 구간마다 통하는 입력을 쉬운 것부터 하나씩 내놓는다(다음 구간이 막히면 다른 타이밍으로 되돌아가 다시 시도).
  function* options(cur,pt){
   restore(t,cur);
@@ -74,7 +75,7 @@ check('stage 2 is beatable without taking a single hit: maces, falling rocks and
 check('hard enough: wide gaps and high steps need the double jump, not just one jump',()=>{
  for(const n of [2,3,4]){const C=boot().t.COURSES[n];assert(C.route.length>=15,'long route');assert(C.spikes.length>=3);assert(C.flags.length>=2)}
  const C=boot().t.COURSES;assert(C[2].maces.length>=5&&C[2].vines.length>=3,'stage2 maces and vines');assert(C[3].winds.length>=3&&C[3].crumbles.length>=3,'stage3 wind and crumbling ledges');assert(C[4].drips.length>=5&&C[4].water.length>=3&&C[4].dark>0,'stage4 dark water');
- assert(C[3].end[1]<-2000,'stage3 climbs high into the sky')});
+ assert(C[3].end[1]<-5000,'stage3 climbs very high into the sky');assert(C[3].blinks.length>=4&&C[3].crumbles.length>=8&&C[3].winds.length>=6,'stage3 cloud platforms, crumbles, gusts');assert.equal(C[3].flags.length,2)});
 check('falling into a pit is instant death even at full HP; retry restarts at the last flag with full HP',()=>{
  const {t}=inCourse(2);stand(t,500,602);frame(t);t.p.hp=6;t.p.inv=5;t.keys.right=true;for(let i=0;i<300&&t.mode==='playing';i++)frame(t);t.keys.right=false;
  assert.equal(t.mode,'dead');assert.equal(t.p.hp,0);t.retry();assert(t.course);assert.deepEqual([t.p.x,t.p.y],t.COURSES[2].spawn);assert.equal(t.p.hp,6)});
@@ -95,12 +96,12 @@ check('moving platform carries the player; crumbling ledge falls after .45s and 
  const {t}=inCourse(2),C=t.COURSES[2];frame(t);const q=t.run.movers[0];stand(t,q.x+45,q.y);t.p.mover=0;frame(t);assert.equal(t.p.mover,0);const x0=t.p.x,m0=q.x;for(let i=0;i<30;i++)frame(t);near(t.p.x-x0,q.x-m0,1,'carried');
  const c=C.crumbles[0];stand(t,c[0]+40,c[1]);t.p.crumble=0;frame(t);for(let i=0;i<Math.round(.42/DT);i++)frame(t);assert.equal(t.run.crumble[0].down,0);for(let i=0;i<6;i++)frame(t);assert(t.run.crumble[0].down>0,'fell');
  for(let i=0;i<20;i++)frame(t);assert(t.p.y>c[1]+5,'player dropped');for(let i=0;i<Math.round(3.1/DT);i++)t.updateCourse(DT);assert.equal(t.run.crumble[0].down,0,'returned')});
-check('stage3 wind gusts push 230/s only while blowing, after a .6s tell; dash ignores them',()=>{
+check('stage3 wind gusts push only while blowing, after a .6s tell; dash ignores them',()=>{
  const {t}=inCourse(3),C=t.COURSES[3],w=C.winds[0];const on=-w[6]+.1,tell=-w[6]+w[5]-.3,off=-w[6]+w[5]*.75;
  assert.equal(t.windPhase(w,on),'on');assert.equal(t.windPhase(w,tell),'tell');assert.equal(t.windPhase(w,off),'off');
- const l=C.ledges[5];for(const [time,moved] of [[on,true],[tell,false],[off,false]]){stand(t,l[0]+l[2]/2,l[1]);t.run.t=time;t.p.inv=1e9;const x=t.p.x;t.updatePlayer(.1);moved?near(x-t.p.x,23,.5,'pushed'):near(t.p.x,x,.01,'calm')}
+ const l=C.ledges.find(([x,y,ww])=>y-45<w[1]+w[3]&&y>w[1]);assert(l,'a ledge inside the first gust');for(const [time,moved] of [[on,true],[tell,false],[off,false]]){stand(t,l[0]+l[2]/2,l[1]);t.run.t=time;t.p.inv=1e9;const x=t.p.x;t.updatePlayer(.1);moved?near(t.p.x-x,w[4]*.1,.5,'pushed'):near(t.p.x,x,.01,'calm')}
  stand(t,l[0]+l[2]/2,l[1]);t.run.t=on;t.p.dash=.1;const x=t.p.x;t.updatePlayer(.01);assert(Math.abs(t.p.x-x-t.p.dir*8.5)<.01,'dash only')});
-check('stage3 camera climbs with the player',()=>{const {t}=inCourse(3);stand(t,760,-1645);for(let i=0;i<240;i++){t.p.inv=1e9;t.tick(DT)}assert.equal(t.p.y,-1645);assert(t.camY<-1500,'camera up '+t.camY);assert.equal(t.cam,0)});
+check('stage3 camera climbs with the player',()=>{const {t}=inCourse(3);const [hx,hy,hw]=t.COURSES[3].ledges.find(l=>l[1]<-3000);stand(t,hx+hw/2,hy);for(let i=0;i<240;i++){t.p.inv=1e9;t.p.x=hx+hw/2;t.p.y=hy;t.p.vy=0;t.tick(DT)}assert(t.camY<hy+300,'camera up '+t.camY);assert.equal(t.cam,0)});
 check('stage4 drips: a forming drop warns at the ceiling, then a falling drop hits for 1',()=>{
  const {t}=inCourse(4),C=t.COURSES[4],d=C.drips[1];const tell=t.dripDrop(d,-d[2]+.3);assert(tell&&!tell.falling);const fall=-d[2]+C.drips[1][1]*0+.6+(560-C.ceil)/800;const q=t.dripDrop(d,fall);assert(q&&q.falling);
  stand(t,d[0],602);t.run.t=fall;t.p.inv=0;t.p.hp=6;t.updatePlayer(0);assert.equal(t.p.hp,5)});
@@ -132,6 +133,11 @@ check('spear: lands on course blocks, and a spear lost in a pit returns to hand'
  const {t}=inCourse(2);stand(t,200,602);t.p.dir=1;t.p.inv=1e9;assert(t.throwSpear());for(let i=0;i<300&&t.spear&&t.spear.state==='flying';i++)t.updateSpear(.01);assert.equal(t.spear.state,'ground');assert(t.spear.y<602,'rests on the block top');
  stand(t,t.spear.x,602);t.updateSpear(.4);assert.equal(t.spear,null,'picked up');
  stand(t,600,602);assert(t.throwSpear());Object.assign(t.spear,{x:790,y:640,vx:0,vy:0});for(let i=0;i<400&&t.spear;i++)t.updateSpear(.01);assert.equal(t.spear,null,'pit spear returned')});
+check('stage3 cloud platforms vanish on a cycle (you fall through), and a long fall is fatal',()=>{
+ const {t}=inCourse(3),C=t.COURSES[3],b=C.blinks[0];const tOn=-b[4]+.1,tOff=-b[4]+b[3]*.8;assert.equal(t.blinkPhase(b,tOn),'on');assert.equal(t.blinkPhase(b,-b[4]+b[3]*.6-.2),'warn');assert.equal(t.blinkPhase(b,tOff),'off');
+ stand(t,b[0]+b[2]/2,b[1]);t.run.t=tOn;frame(t,0);assert.equal(t.p.blink,0);t.run.t=tOff;t.p.inv=1e9;for(let i=0;i<5;i++)frame(t,.01);assert(t.p.y>b[1]+1,'fell through the vanished cloud');
+ const e2=inCourse(3),q=e2.t;stand(q,1262,-200);q.p.ground=false;q.p.peakY=-200;q.p.vy=0;for(let i=0;i<400&&q.mode==='playing';i++)frame(q);assert.equal(q.mode,'dead','fell 800 and died');
+ const e3=inCourse(3),r=e3.t;const [lx,ly,lw]=C.ledges[0];stand(r,lx+lw/2,ly);r.p.peakY=ly-200;r.p.ground=false;r.p.vy=10;for(let i=0;i<60&&!r.p.ground;i++)frame(r);assert.equal(r.mode,'playing','a normal jump drop is fine')});
 check('debug: course button restarts the current region course without saving',()=>{
  const e=boot(),t=e.t;t.start();t.finishIntro();const saved=e.storage[PROG];t.toggleDebug();t.debugStage(3);assert(!t.course);e.els.debugCourse.onclick();assert(t.course);assert.equal(t.getState().stage,3);t.closeDebug();const [fx,fy]=t.COURSES[3].flags[0];stand(t,fx,fy);t.updatePlayer(0);assert.equal(e.storage[PROG],saved)});
 check('courses never show the boss arena or its HUD, and every course renders without exceptions',()=>{

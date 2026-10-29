@@ -453,7 +453,9 @@ function setState(s,t){boss.state=s;boss.timer=t}
 // 데이터: blocks[x,y,w,h](단단한 땅/벽) ledges[x,y,w](아래서 통과하는 발판) crumbles[x,y,w](밟으면 .45초 뒤 무너지고 3초 뒤 복구)
 // movers[x,y,w,dx,dy,주기] spikes[x,y,w] maces[축x,축y,길이,진폭,주기,위상] vines[x,y,w,h](시야 가림) flags[x,y]
 // winds[x,y,w,h,힘,주기,위상] water[x,수면y,w,물살] drips[x,주기,위상] lights[x,y,r] end[x,y,w,h] route=완주 경로(검사용)
-const COURSE_RULES={crumble:.45,crumbleBack:3,dripTell:.6,dripSpeed:800,spikeH:14,maceR:26,windTell:.6};
+const COURSE_RULES={crumble:.45,crumbleBack:3,dripTell:.6,dripSpeed:800,spikeH:14,maceR:26,windTell:.6,blinkOn:.6,blinkTell:.5,fatalFall:600};
+// 구름 발판 blinks[x,y,w,주기,위상]: 주기의 60% 동안만 있다(사라지기 .5초 전 깜빡임). 600 넘게 떨어져 착지하면 낙사.
+function blinkPhase(b,t){const u=((t+b[4])%b[3]+b[3])%b[3],on=b[3]*COURSE_RULES.blinkOn;return u<on?(u>on-COURSE_RULES.blinkTell?'warn':'on'):'off'}
 const COURSES={
  2:{name:'마른 덩굴 길',left:0,right:10500,top:0,bottom:1000,ceil:160,spawn:[120,602],end:[10330,140,150,120],dark:0,
   enter:['마른 덩굴 길','덩굴 너머로 철퇴가 흔들린다'],finish:['동굴의 불씨','덩굴을 지나, 울림의 끝에 닿았다'],
@@ -470,16 +472,19 @@ const COURSES={
   drips:[[2240,1.5,.4],[3720,1.6,0],[3900,1.6,.5],[4080,1.6,1],[4920,1.7,.3],[5170,1.7,1.1],[7600,1.5,.6],[7860,1.5,0],[8530,1.4,.2],[8670,1.4,.9],[9560,1.3,.5]],
   flags:[[4330,602],[7330,602]],winds:[],water:[],lights:[],
   route:[[300,602],[1050,602],[1550,602],['m',0],[2110,602],[2260,602],[2380,602],[2500,500],[2725,380],[2895,270],[3050,270],[3450,270],['c',0],['c',1],['c',2],['c',3],[4400,602],['m',1],['m',2],['m',3],[5560,602],[5700,602],[6250,602],[6620,602],[6700,440],[6900,440],[7400,602],[7550,602],[7700,602],[7950,602],[8300,602],['c',4],['c',5],[8850,602],[9120,480],['c',6],[9460,260],[9700,260],[9800,260],[9950,260],[10150,260]]},
- 3:{name:'하늘로 오르는 절벽',left:0,right:1280,top:-2800,bottom:2000,spawn:[150,602],end:[250,-2400,400,130],dark:0,
+ 3:{name:'하늘로 오르는 절벽',left:0,right:1280,top:-6172,bottom:2000,spawn:[150,602],end:[350,-5608,400,130],dark:0,
   enter:['하늘로 오르는 절벽','바람을 거슬러, 구름 위까지'],finish:['구름 위의 불씨','절벽 끝, 하늘의 전장이 열린다'],
+  // 약 6000 높이. 위로 갈수록 발판이 좁아진다(130→85). 무너지는 발판·움직이는 발판·나타났다 사라지는 구름 발판·돌풍·꺾이는 발판 바깥 가시.
+  // 배치 규칙: 한 칸 위로 128~132, 옆으로 230~290. 바꾸면 완주 봇 검사로 확인할 것.
   blocks:[[0,602,1280,400]],
-  ledges:[[220,480,160],[500,355,140],[235,230,130],[510,105,140],[800,-20,120],[1035,-145,150],[275,-520,130],[40,-645,140],[640,-895,120],[945,-1020,110],[415,-1270,130],[165,-1395,110],[715,-1645,90],[985,-1770,110],[1125,-1895,110],[585,-2145,130],[200,-2270,500]],
-  crumbles:[[810,-270,100],[550,-395,100],[710,-1145,100],[435,-1520,90]],
-  movers:[[325,-770,110,110,0,3.2],[875,-2020,110,90,0,2.6]],
-  spikes:[[275,-520,40],[165,-1395,35],[1060,-1770,35]],maces:[],vines:[],
-  flags:[[1110,-145],[480,-1270]],
-  winds:[[0,-230,1280,220,-230,4,0],[0,-1110,1280,170,230,3.5,1.2],[0,-1990,1280,160,-230,3,2]],water:[],drips:[],lights:[],
-  route:[[300,602],[300,480],[570,355],[300,230],[580,105],[860,-20],[1110,-145],['c',0],['c',1],[360,-520],[110,-645],['m',0],[700,-895],[1000,-1020],['c',2],[480,-1270],[240,-1395],['c',3],[760,-1645],[1010,-1770],[1180,-1895],['m',1],[650,-2145],[450,-2270]]},
+  ledges:[[235,480,130],[485,348,130],[760,220,130],[530,92,130],[240,-40,130],[750,-296,130],[475,-428,130],[245,-556,130],[545,-944,130],[800,-1332,110],[525,-1460,140],[290,-1592,110],[795,-1848,110],[505,-1980,110],[245,-2108,110],[540,-2496,110],[768,-2884,95],[262,-3144,95],[812,-3400,95],[540,-3532,140],[808,-3920,95],[548,-4048,95],[298,-4176,95],[518,-4564,85],[258,-4696,85],[552,-5084,85],[262,-5212,85],[300,-5478,500]],
+  crumbles:[[500,-168,130],[535,-684,130],[510,-1204,110],[565,-1720,110],[495,-2236,110],[510,-2756,110],[552,-3272,95],[518,-3788,95],[572,-4308,95],[508,-4824,85],[522,-5340,85]],
+  movers:[[795,-816,130,70,0,2.6],[250,-2624,110,70,0,2.2],[808,-4436,85,70,0,3]],
+  blinks:[[280,-1072,110,3,0.0],[770,-2368,110,2.6,0.7],[492,-3012,95,3.4,1.4],[288,-3660,95,3,2.1],[782,-4952,85,2.6,2.8]],
+  spikes:[[862,220,28],[240,-40,28],[852,-296,28],[245,-556,28],[882,-1332,28],[290,-1592,28],[877,-1848,28],[245,-2108,28],[835,-2884,28],[262,-3144,28],[879,-3400,28],[875,-3920,28],[298,-4176,28]],maces:[],vines:[],
+  flags:[[595,-1460],[610,-3532]],
+  winds:[[0,0,1280,200,-240,3.6,0.0],[0,-560,1280,200,240,3,0.9],[0,-1120,1280,200,-240,3.2,1.8],[0,-1680,1280,200,240,2.8,2.7],[0,-2240,1280,200,-240,3.6,3.6],[0,-2800,1280,200,240,3,4.5],[0,-3360,1280,200,-240,3.2,5.4],[0,-3920,1280,200,240,2.8,6.3],[0,-4480,1280,200,-240,3.6,7.2],[0,-5040,1280,200,240,3,8.1],[0,-5600,1280,200,-240,3.2,9.0]],water:[],drips:[],lights:[],
+  route:[[300,602],[300,480],[550,348],[825,220],[595,92],[305,-40],['c',0],[815,-296],[540,-428],[310,-556],['c',1],['m',0],[610,-944],['b',0],['c',2],[855,-1332],[595,-1460],[345,-1592],['c',3],[850,-1848],[560,-1980],[300,-2108],['c',4],['b',1],[595,-2496],['m',1],['c',5],[815,-2884],['b',2],[310,-3144],['c',6],[860,-3400],[610,-3532],['b',3],['c',7],[855,-3920],[595,-4048],[345,-4176],['c',8],['m',2],[560,-4564],[300,-4696],['c',9],['b',4],[595,-5084],[305,-5212],['c',10],[550,-5478]]},
  4:{name:'검은 물길',left:0,right:4400,top:0,bottom:1000,ceil:170,spawn:[100,602],end:[4250,310,150,150],dark:230,
   enter:['검은 물길','어둠 속, 물소리를 따라'],finish:['물가의 불씨','검은 물길 끝, 달이 잠긴 물가에 닿았다'],
   blocks:[[0,602,600,400],[1100,602,400,400],[1760,595,70,400],[2010,595,70,400],[2200,602,250,400],[2600,602,100,400],[2700,500,200,500],[2950,380,200,620],[3900,602,250,400],[4150,460,250,542]],
@@ -492,7 +497,7 @@ const COURSES={
   flags:[[1150,602],[2960,380]],
   route:[[300,602],[750,480],[925,420],[1080,470],[1150,602],[1220,602],[1330,602],[1630,450],['c',0],[2010,430],[2160,470],[2240,602],[2400,602],[2650,602],[2740,500],[2860,500],[3050,380],[3270,270],[3500,470],['c',1],[3820,460],[3950,602],[4120,602],[4250,460]]}
 };
-const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'떨어지면 끝이다. 마지막 깃발에서 다시.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.',rock:'천장 돌이 흔들리면 그 아래를 피하라.'};
+const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'떨어지면 끝이다. 구름 발판은 깜빡이면 곧 사라진다.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.',rock:'천장 돌이 흔들리면 그 아래를 피하라.'};
 function courseCamX(x){const c=course;return clamp(x-560,c.left,Math.max(c.left,c.right-W))}
 function courseCamY(y){const c=course;return clamp(y-430,c.top,0)}
 function moverPos(m,t){const k=Math.sin(Math.PI*2*t/m[5]+(m[6]||0));return{x:m[0]+m[3]*k,y:m[1]+m[4]*k}}
@@ -504,11 +509,11 @@ function courseLedges(){const c=course,run=courseRun,out=[];if(!c)return out;
  c.ledges.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'ledge',i}));
  c.crumbles.forEach(([x,y,w],i)=>{if(run.crumble[i].down<=0)out.push({x,y,w,kind:'crumble',i})});
  c.movers.forEach((m,i)=>{const q=run.movers[i];out.push({x:q.x,y:q.y,w:m[2],kind:'mover',i})});
- c.water.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'water',i}));return out}
+ c.water.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'water',i}));(c.blinks||[]).forEach((b,i)=>{if(blinkPhase(b,run.t)!=='off')out.push({x:b[0],y:b[1],w:b[2],kind:'blink',i})});return out}
 function enterCourse(which,at){const c=COURSES[which];if(!c)return false;course=c;
  courseRun={t:0,flag:at?at.flag??-1:-1,crumble:c.crumbles.map(()=>({stand:0,down:0})),movers:c.movers.map(m=>({...moverPos(m,0),ddx:0,ddy:0}))};
  arena=false;checkpoint=false;spear=null;const [x,y]=at?[at.x,at.y]:c.spawn;
- Object.assign(player,{x,y,vx:0,vy:0,ground:true,jumps:0,coyote:.1,dropTime:0,wet:false,mover:-1,crumble:-1,solidGround:true,safe:{x,y},breath:0,drownClock:0});
+ Object.assign(player,{x,y,vx:0,vy:0,ground:true,jumps:0,coyote:.1,dropTime:0,wet:false,mover:-1,crumble:-1,blink:-1,peakY:y,solidGround:true,safe:{x,y},breath:0,drownClock:0});
  cam=courseCamX(x);camY=courseCamY(y);if(!at||at.flag===undefined)message(c.enter[0],c.enter[1],2.6);return true}
 function courseRespawn(){const c=course||COURSES[stage],f=courseRun?courseRun.flag:-1;return f>=0?{x:c.flags[f][0],y:c.flags[f][1],flag:f}:{x:c.spawn[0],y:c.spawn[1],flag:-1}}
 function updateCourse(dt){const c=course,run=courseRun;run.t+=dt;
@@ -516,15 +521,16 @@ function updateCourse(dt){const c=course,run=courseRun;run.t+=dt;
  run.crumble.forEach((k,i)=>{if(k.down>0){k.down-=dt;if(k.down<=0){k.down=0;k.stand=0}}else if(k.stand>0||player.ground&&player.crumble===i){k.stand+=dt;if(k.stand>=COURSE_RULES.crumble){k.down=COURSE_RULES.crumbleBack;k.stand=0;burst(c.crumbles[i][0]+c.crumbles[i][2]/2,c.crumbles[i][1],14,stage===3?'#dfe8e4':'#a28e6c',140);noise(.18,.05)}}})}
 function courseMove(p,dt){const c=course,run=courseRun,body=()=>({x:p.x-13,y:p.y-45,w:26,h:45});
  if(p.ground&&p.mover>=0){const m=run.movers[p.mover];p.x+=m.ddx;p.y+=m.ddy}
- const prevX=p.x,prev=p.y;p.x+=p.vx*dt;
+ const prevX=p.x,prev=p.y,wasGround=p.ground;p.x+=p.vx*dt;
  for(const [bx,by,bw,bh] of c.blocks){if(p.y>by+2&&overlap(body(),{x:bx,y:by,w:bw,h:bh})){p.x=p.x>prevX||p.x===prevX&&p.x<bx+bw/2?bx-13.01:bx+bw+13.01;p.vx=0}}
- p.y+=p.vy*dt;p.ground=false;p.wet=false;p.mover=-1;p.crumble=-1;p.solidGround=false;
+ p.y+=p.vy*dt;p.ground=false;p.wet=false;p.mover=-1;p.crumble=-1;p.blink=-1;p.solidGround=false;
  // 위아래는 지나온 구간 전체로 판정한다(긴 프레임에도 바닥을 뚫지 않게).
  for(const [bx,by,bw,bh] of c.blocks){if(p.x+13<=bx||p.x-13>=bx+bw)continue;if(p.vy>=0&&prev<=by+2&&p.y>=by){p.y=by;p.vy=0;p.ground=true;p.jumps=0;p.solidGround=true}else if(p.vy<0&&prev-45>=by+bh-2&&p.y-45<by+bh){p.y=by+bh+45.01;p.vy=0}}
- if(p.dropTime<=0&&!p.ground)for(const f of courseLedges())if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0;if(f.kind==='water')p.wet=true;if(f.kind==='mover')p.mover=f.i;if(f.kind==='crumble')p.crumble=f.i;break}
+ if(p.dropTime<=0&&!p.ground)for(const f of courseLedges())if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0;if(f.kind==='water')p.wet=true;if(f.kind==='mover')p.mover=f.i;if(f.kind==='crumble')p.crumble=f.i;if(f.kind==='blink')p.blink=f.i;break}
  p.x=clamp(p.x,c.left+13,c.right-13);
  // 마지막으로 밟은 단단한 땅: 물·움직이는 발판·무너지는 발판·가시 위는 제외.
- if(p.ground&&!p.wet&&p.mover<0&&p.crumble<0&&!c.spikes.some(([sx,sy,sw])=>Math.abs(p.y-sy)<1&&p.x+13>sx&&p.x-13<sx+sw))p.safe={x:p.x,y:p.y}}
+ if(p.ground){if(!wasGround&&p.y-(p.peakY??p.y)>COURSE_RULES.fatalFall){courseFall();return}p.peakY=p.y}else p.peakY=Math.min(p.peakY??p.y,p.y);
+ if(p.ground&&!p.wet&&p.mover<0&&p.crumble<0&&p.blink<0&&!c.spikes.some(([sx,sy,sw])=>Math.abs(p.y-sy)<1&&p.x+13>sx&&p.x-13<sx+sw))p.safe={x:p.x,y:p.y}}
 function hurtCourse(kind,srcX){const p=player;if(p.inv>0||p.dash>0)return false;p.hp=Math.max(0,p.hp-1);damageTaken++;p.inv=1.05;p.hurt=.25;p.vx=(p.x<srcX?-1:1)*320;p.vy=-300;p.ground=false;p.jumps=Math.max(1,p.jumps);p.coyote=0;p.atk=0;shake=10;flash=.13;burst(p.x,p.y-30,16,C.red);noise(.18,.1);if(!p.hp){die();$('deathHint').textContent=COURSE_HINTS[kind]}return true}
 // 낭떠러지 추락은 즉사. 다시 하기는 마지막 깃발에서.
 function courseFall(){const p=player;damageTaken+=p.hp;p.hp=0;p.y=course.bottom;flash=.25;shake=10;noise(.4,.12);die();$('deathHint').textContent=COURSE_HINTS.fall}
@@ -875,6 +881,7 @@ function drawCourseBack(){const c=course,run=courseRun,t=run.t,s=stage;
  const plank=(x,y,w,fill,edge)=>{path([[x,y],[x+w,y],[x+w-10,y+16],[x+w*.6,y+24],[x+10,y+15]],fill);line([[x,y],[x+w,y]],edge,3)};
  for(const [x,y,w] of c.ledges)plank(x,y,w,s===3?'#617f8b':s===4?'#1c3138':'#2b4246',s===3?'#e3eee9':trim);
  c.crumbles.forEach(([x,y,w],i)=>{const k=run.crumble[i];if(k.down>0){g.save();g.globalAlpha=.25;g.setLineDash([6,6]);line([[x,y],[x+w,y]],'#d9cfb4',2);g.setLineDash([]);g.restore();return}const sh=k.stand>0?Math.sin(time*70)*2.5:0;plank(x+sh,y,w,s===3?'#8a7d6a':'#5a4a33',k.stand>0?'#ffb07a':'#c9b48c');for(let j=1;j<4;j++)line([[x+sh+j*w/4,y+2],[x+sh+j*w/4-5,y+14]],'#2a2016',1.5)});
+ (c.blinks||[]).forEach((b,i)=>{const ph=blinkPhase(b,t),[x,y,w]=b;if(ph==='off'){g.save();g.globalAlpha=.18;g.setLineDash([5,7]);line([[x,y],[x+w,y]],'#ffffff',2);g.setLineDash([]);g.restore();return}g.save();g.globalAlpha=ph==='warn'?.35+.45*Math.abs(Math.sin(time*26)):.92;for(let k=0;k<4;k++)ellipse(x+w*(k+.5)/4,y+6-(k%2)*5,w/4+8,12,'#f4f8f7');line([[x+4,y],[x+w-4,y]],'#ffffff',3);g.restore()});
  c.movers.forEach((m,i)=>{const q=run.movers[i];if(s!==3){line([[q.x+8,q.y],[q.x+8,(c.ceil||q.y-300)]],'#6b5d48',2);line([[q.x+m[2]-8,q.y],[q.x+m[2]-8,(c.ceil||q.y-300)]],'#6b5d48',2)}else glow(q.x+m[2]/2,q.y+10,70,'#ffffff33');plank(q.x,q.y,m[2],s===3?'#7d97a3':'#3d3426','#e8dcb6')});
  for(const [x,y,w] of c.spikes){for(let k=x;k<x+w;k+=10)path([[k,y],[k+5,y-COURSE_RULES.spikeH],[k+10,y]],s===4?'#9fb7b0':'#d8ccae','#3a2e24',1)}
  c.flags.forEach(([x,y],i)=>{const lit=i<=run.flag;line([[x,y],[x,y-58]],'#7b6448',4);path([[x,y-58],[x+30,y-50],[x,y-40]],lit?'#e7a65a':'#5b5246');if(lit){glow(x,y-30,60,'#f9aa4733');drawFire(x+14,y)}});
