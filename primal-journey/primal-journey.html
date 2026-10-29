@@ -453,8 +453,8 @@ function setState(s,t){boss.state=s;boss.timer=t}
 // 데이터: blocks[x,y,w,h](단단한 땅/벽) ledges[x,y,w](아래서 통과하는 발판) crumbles[x,y,w](밟으면 .45초 뒤 무너지고 3초 뒤 복구)
 // movers[x,y,w,dx,dy,주기] spikes[x,y,w] maces[축x,축y,길이,진폭,주기,위상] vines[x,y,w,h](시야 가림) flags[x,y]
 // winds[x,y,w,h,힘,주기,위상] water[x,수면y,w,물살] drips[x,주기,위상] lights[x,y,r] end[x,y,w,h] route=완주 경로(검사용)
-const COURSE_RULES={crumble:.45,crumbleBack:3,dripTell:.6,dripSpeed:800,spikeH:14,maceR:26,windTell:.6,blinkOn:.6,blinkTell:.5};
-// 구름 발판 blinks[x,y,w,주기,위상]: 주기의 60% 동안만 있다(사라지기 .5초 전 깜빡임).
+const COURSE_RULES={crumble:.45,crumbleBack:3,dripTell:.6,dripSpeed:800,spikeH:14,maceR:26,windTell:.6,blinkOn:.6,blinkTell:.5,fatalFall:1000};
+// 구름 발판 blinks[x,y,w,주기,위상]: 주기의 60% 동안만 있다(사라지기 .5초 전 깜빡임). 1000 넘게 떨어져 착지하면 낙사(사용자 지시).
 function blinkPhase(b,t){const u=((t+b[4])%b[3]+b[3])%b[3],on=b[3]*COURSE_RULES.blinkOn;return u<on?(u>on-COURSE_RULES.blinkTell?'warn':'on'):'off'}
 const COURSES={
  2:{name:'마른 덩굴 길',left:0,right:10500,top:0,bottom:1000,ceil:160,spawn:[120,602],end:[10330,140,150,120],dark:0,
@@ -500,7 +500,7 @@ const COURSES={
   flags:[[2960,380],[7450,602]],
   route:[[300,602],[750,480],[925,420],[1080,470],[1150,602],[1220,602],[1330,602],[1630,450],['c',0],[2010,430],[2160,470],[2240,602],[2400,602],[2650,602],[2740,500],[2860,500],[3050,380],[3270,270],[3500,470],['c',1],[3820,460],[3950,602],[4120,602],[4250,460],['c',2],[4715,450],['m',0],['c',3],[5335,480],['c',4],[5800,602],[6135,470],['c',5],[6535,460],[6755,390],['c',6],[7185,400],[7360,460],[7500,602],[7940,602],[8400,602],[8900,602],[9075,500],[9300,390],[9475,280],['c',7],[9950,460]]}
 };
-const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'구멍에 떨어지면 끝이다. 마지막 깃발에서 다시.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.',rock:'천장 돌이 흔들리면 그 아래를 피하라.'};
+const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'구멍에 빠지거나 너무 높이서 떨어지면 끝이다. 마지막 깃발에서 다시.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.',rock:'천장 돌이 흔들리면 그 아래를 피하라.'};
 function courseCamX(x){const c=course;return clamp(x-560,c.left,Math.max(c.left,c.right-W))}
 function courseCamY(y){const c=course;return clamp(y-430,c.top,0)}
 function moverPos(m,t){const k=Math.sin(Math.PI*2*t/m[5]+(m[6]||0));return{x:m[0]+m[3]*k,y:m[1]+m[4]*k}}
@@ -532,6 +532,7 @@ function courseMove(p,dt){const c=course,run=courseRun,body=()=>({x:p.x-13,y:p.y
  if(p.dropTime<=0&&!p.ground)for(const f of courseLedges())if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0;if(f.kind==='water')p.wet=true;if(f.kind==='mover')p.mover=f.i;if(f.kind==='crumble')p.crumble=f.i;if(f.kind==='blink')p.blink=f.i;break}
  p.x=clamp(p.x,c.left+13,c.right-13);
  // 마지막으로 밟은 단단한 땅: 물·움직이는 발판·무너지는 발판·가시 위는 제외.
+ if(p.ground){if(!wasGround&&p.y-(p.peakY??p.y)>COURSE_RULES.fatalFall){courseFall();return}p.peakY=p.y}else p.peakY=Math.min(p.peakY??p.y,p.y);
  if(p.ground&&!p.wet&&p.mover<0&&p.crumble<0&&p.blink<0&&!c.spikes.some(([sx,sy,sw])=>Math.abs(p.y-sy)<1&&p.x+13>sx&&p.x-13<sx+sw))p.safe={x:p.x,y:p.y}}
 function hurtCourse(kind,srcX){const p=player;if(p.inv>0||p.dash>0)return false;p.hp=Math.max(0,p.hp-1);damageTaken++;p.inv=1.05;p.hurt=.25;p.vx=(p.x<srcX?-1:1)*320;p.vy=-300;p.ground=false;p.jumps=Math.max(1,p.jumps);p.coyote=0;p.atk=0;shake=10;flash=.13;burst(p.x,p.y-30,16,C.red);noise(.18,.1);if(!p.hp){die();$('deathHint').textContent=COURSE_HINTS[kind]}return true}
 // 낭떠러지 추락은 즉사. 다시 하기는 마지막 깃발에서.
