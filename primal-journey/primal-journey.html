@@ -455,15 +455,21 @@ function setState(s,t){boss.state=s;boss.timer=t}
 // winds[x,y,w,h,힘,주기,위상] water[x,수면y,w,물살] drips[x,주기,위상] lights[x,y,r] end[x,y,w,h] route=완주 경로(검사용)
 const COURSE_RULES={crumble:.45,crumbleBack:3,dripTell:.6,dripSpeed:800,spikeH:14,maceR:26,windTell:.6};
 const COURSES={
- 2:{name:'마른 덩굴 길',left:0,right:4600,top:0,bottom:1000,ceil:160,spawn:[120,602],end:[4480,300,120,150],dark:0,
+ 2:{name:'마른 덩굴 길',left:0,right:10500,top:0,bottom:1000,ceil:160,spawn:[120,602],end:[10330,140,150,120],dark:0,
   enter:['마른 덩굴 길','덩굴 너머로 철퇴가 흔들린다'],finish:['동굴의 불씨','덩굴을 지나, 울림의 끝에 닿았다'],
-  blocks:[[0,602,700,400],[930,602,320,400],[1520,602,280,400],[2100,602,400,400],[2500,500,400,502],[3260,602,340,400],[4010,602,290,400],[4300,450,300,552]],
-  ledges:[],crumbles:[[3690,585,60],[3850,570,60]],movers:[[1905,570,70,80,0,2.6]],
-  spikes:[[935,602,35],[1630,602,70],[2300,602,60],[2690,500,40],[3420,602,50],[4120,602,40]],
-  maces:[[1090,330,230,1,2.2,0],[2600,240,230,1.1,2,0],[2800,240,230,1.1,2,Math.PI],[3880,340,215,.9,2,0],[4080,330,230,1,1.8,0],[4220,330,230,1,1.8,2.1],[4450,180,230,1,1.8,4.2]],
-  vines:[[380,250,140,338],[2150,250,300,338],[3300,250,200,338],[4020,250,160,338]],
-  flags:[[1560,602],[3300,602]],winds:[],water:[],drips:[],lights:[],
-  route:[[350,602],[1090,602],[1560,602],[1760,602],['m',0],[2150,602],[2400,602],[2560,500],[2650,500],[2760,500],[2870,500],[3320,602],[3550,602],['c',0],['c',1],[4060,602],[4220,602],[4350,450]]},
+  // 구간: 철퇴 낀 구덩이 → 숨은 가시 덩굴 → 높은 층(짧은 철퇴) → 낙석 아래 무너지는 다리 → 움직이는 발판 3연속
+  //       → 가시 착지 대점프 → 빠른 철퇴 3연속 → 벽 → 긴 덩굴 복도(숨은 가시·철퇴) → 무너지는 발판 → 마지막 높은 층
+  blocks:[[0,602,600,400],[900,602,300,400],[1450,602,250,400],[2050,602,350,400],[2400,500,200,502],[3000,270,500,732],[4300,602,400,400],[5500,602,300,400],[6150,602,500,400],[6650,440,300,562],[7300,602,1100,400],[8750,602,250,400],[9600,260,900,742]],
+  ledges:[[2680,380,90],[2850,270,90],[9080,480,80],[9420,260,80]],
+  crumbles:[[3600,420,60],[3780,380,60],[3960,420,60],[4140,460,60],[8500,560,50],[8640,540,50],[9250,370,80]],
+  movers:[[1830,560,70,90,0,2.2],[4790,570,80,60,0,2.4],[5040,520,80,0,70,2],[5290,570,80,60,0,2.4,Math.PI]],
+  spikes:[[900,602,20],[2180,602,40],[2300,602,40],[5600,602,50],[6150,602,30],[6760,440,40],[7600,602,40],[7850,602,40],[8100,602,40],[9850,260,30],[10050,260,30]],
+  // 천장에 매단 긴 철퇴(사슬 380): 바닥뿐 아니라 점프 높이까지 큰 호를 그려, 뛰어넘기만으로는 못 피한다.
+  maces:[[1050,160,380,1.05,2.4,0],[1325,160,380,1.05,2.2,1.2],[3150,160,100,1.2,1.3,0],[3350,160,100,1.2,1.3,1.6],[5080,160,300,1,2,0],[6280,160,380,1.05,2.4,0],[6440,160,380,1.05,2.4,2.1],[6600,160,380,1.05,2.4,4.2],[7720,160,380,1.05,2.3,1],[7980,160,380,1.05,2.3,3],[9750,160,95,1.3,1.1,0],[9950,160,95,1.3,1.1,2],[10150,160,95,1.3,1.1,4]],
+  vines:[[380,250,140,338],[2070,250,310,338],[5520,250,260,338],[7450,250,850,338]],
+  drips:[[2240,1.5,.4],[3720,1.6,0],[3900,1.6,.5],[4080,1.6,1],[4920,1.7,.3],[5170,1.7,1.1],[7600,1.5,.6],[7860,1.5,0],[8530,1.4,.2],[8670,1.4,.9],[9560,1.3,.5]],
+  flags:[[2420,500],[4330,602],[7330,602],[8770,602]],winds:[],water:[],lights:[],
+  route:[[300,602],[1050,602],[1550,602],['m',0],[2110,602],[2260,602],[2380,602],[2500,500],[2725,380],[2895,270],[3050,270],[3450,270],['c',0],['c',1],['c',2],['c',3],[4400,602],['m',1],['m',2],['m',3],[5560,602],[5700,602],[6250,602],[6620,602],[6700,440],[6900,440],[7400,602],[7550,602],[7700,602],[7950,602],[8300,602],['c',4],['c',5],[8850,602],[9120,480],['c',6],[9460,260],[9700,260],[9800,260],[9950,260],[10150,260]]},
  3:{name:'하늘로 오르는 절벽',left:0,right:1280,top:-2800,bottom:2000,spawn:[150,602],end:[250,-2400,400,130],dark:0,
   enter:['하늘로 오르는 절벽','바람을 거슬러, 구름 위까지'],finish:['구름 위의 불씨','절벽 끝, 하늘의 전장이 열린다'],
   blocks:[[0,602,1280,400]],
@@ -486,10 +492,10 @@ const COURSES={
   flags:[[1150,602],[2960,380]],
   route:[[300,602],[750,480],[925,420],[1080,470],[1150,602],[1220,602],[1330,602],[1630,450],['c',0],[2010,430],[2160,470],[2240,602],[2400,602],[2650,602],[2740,500],[2860,500],[3050,380],[3270,270],[3500,470],['c',1],[3820,460],[3950,602],[4120,602],[4250,460]]}
 };
-const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'떨어지면 마지막으로 밟은 땅으로 돌아간다.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.'};
+const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'떨어지면 마지막으로 밟은 땅으로 돌아간다.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.',rock:'천장 돌이 흔들리면 그 아래를 피하라.'};
 function courseCamX(x){const c=course;return clamp(x-560,c.left,Math.max(c.left,c.right-W))}
 function courseCamY(y){const c=course;return clamp(y-430,c.top,0)}
-function moverPos(m,t){const k=Math.sin(Math.PI*2*t/m[5]);return{x:m[0]+m[3]*k,y:m[1]+m[4]*k}}
+function moverPos(m,t){const k=Math.sin(Math.PI*2*t/m[5]+(m[6]||0));return{x:m[0]+m[3]*k,y:m[1]+m[4]*k}}
 function maceBall(m,t){const a=m[3]*Math.sin(Math.PI*2*t/m[4]+m[5]);return{x:m[0]+m[2]*Math.sin(a),y:m[1]+m[2]*Math.cos(a)}}
 function windPhase(w,t){const u=((t+w[6])%w[5]+w[5])%w[5];return u<w[5]*.5?'on':u>w[5]-COURSE_RULES.windTell?'tell':'off'}
 function dripFloor(x){const c=course;let y=Infinity;for(const [bx,by,bw] of c.blocks)if(x>=bx&&x<=bx+bw)y=Math.min(y,by);for(const [lx,ly,lw] of [...c.ledges,...c.crumbles])if(x>=lx&&x<=lx+lw)y=Math.min(y,ly);for(const [wx,wy,ww] of c.water)if(x>=wx&&x<=wx+ww)y=Math.min(y,wy);return y===Infinity?c.bottom:y}
@@ -527,7 +533,7 @@ function courseContacts(p,dt){const c=course,run=courseRun,t=run.t;
  const r=playerRect();
  for(const [sx,sy,sw] of c.spikes)if(overlap(r,{x:sx,y:sy-COURSE_RULES.spikeH,w:sw,h:COURSE_RULES.spikeH})&&hurtCourse('spike',sx+sw/2)){p.vy=-430;break}
  for(const m of c.maces){const b=maceBall(m,t),dx=b.x-clamp(b.x,r.x,r.x+r.w),dy=b.y-clamp(b.y,r.y,r.y+r.h);if(dx*dx+dy*dy<COURSE_RULES.maceR**2){hurtCourse('mace',b.x);break}}
- for(const d of c.drips){const q=dripDrop(d,t);if(q&&q.falling){const dx=d[0]-clamp(d[0],r.x,r.x+r.w),dy=q.y-clamp(q.y,r.y,r.y+r.h);if(dx*dx+dy*dy<81){hurtCourse('drip',d[0]);break}}}
+ for(const d of c.drips){const q=dripDrop(d,t);if(q&&q.falling){const dx=d[0]-clamp(d[0],r.x,r.x+r.w),dy=q.y-clamp(q.y,r.y,r.y+r.h);if(dx*dx+dy*dy<(stage===2?196:81)){hurtCourse(stage===2?'rock':'drip',d[0]);break}}}
  if(mode!=='playing')return;
  c.flags.forEach(([fx,fy],i)=>{if(i>run.flag&&Math.abs(p.x-fx)<45&&Math.abs(p.y-fy)<70){run.flag=i;p.safe={x:fx,y:fy};message('깃발에 불을 지폈다','여기서 다시 시작한다 · 체력은 그대로',2);tone(520,.3,'triangle',.05);burst(fx,fy-30,24,C.gold,180);if(progress&&!debugJourney){progress.checkpoint='course';progress.pos={x:fx,y:fy};progress.hp=p.hp;progress.flag=i;saveProgress(true)}}});
  if(overlap(r,{x:c.end[0],y:c.end[1],w:c.end[2],h:c.end[3]}))finishCourse()}
@@ -869,7 +875,8 @@ function drawCourseBack(){const c=course,run=courseRun,t=run.t,s=stage;
  c.movers.forEach((m,i)=>{const q=run.movers[i];if(s!==3){line([[q.x+8,q.y],[q.x+8,(c.ceil||q.y-300)]],'#6b5d48',2);line([[q.x+m[2]-8,q.y],[q.x+m[2]-8,(c.ceil||q.y-300)]],'#6b5d48',2)}else glow(q.x+m[2]/2,q.y+10,70,'#ffffff33');plank(q.x,q.y,m[2],s===3?'#7d97a3':'#3d3426','#e8dcb6')});
  for(const [x,y,w] of c.spikes){for(let k=x;k<x+w;k+=10)path([[k,y],[k+5,y-COURSE_RULES.spikeH],[k+10,y]],s===4?'#9fb7b0':'#d8ccae','#3a2e24',1)}
  c.flags.forEach(([x,y],i)=>{const lit=i<=run.flag;line([[x,y],[x,y-58]],'#7b6448',4);path([[x,y-58],[x+30,y-50],[x,y-40]],lit?'#e7a65a':'#5b5246');if(lit){glow(x,y-30,60,'#f9aa4733');drawFire(x+14,y)}});
- for(const d of c.drips){const q=dripDrop(d,t);ellipse(d[0],c.ceil+4,6,4,'#9fd3e066');if(!q)continue;if(!q.falling){ellipse(d[0],c.ceil+6+q.form*8,3+q.form*4,4+q.form*6,'#bfe6f0cc');glow(d[0],c.ceil+10,18+q.form*12,'#bfe6f044')}else{line([[d[0],q.y-26],[d[0],q.y]],'#bfe6f066',3);ellipse(d[0],q.y,5,8,'#d8f2f8')}}
+ if(s===2)for(const d of c.drips){const q=dripDrop(d,t);path([[d[0]-22,c.ceil],[d[0],c.ceil+30],[d[0]+22,c.ceil]],'#2b2a24');if(!q)continue;const shake=q.falling?0:Math.sin(time*60)*q.form*3;if(!q.falling){path([[d[0]-14+shake,c.ceil+4],[d[0]+shake,c.ceil+30+q.form*6],[d[0]+14+shake,c.ceil+4]],'#8a7a5c','#3a2e24',2);for(let k=0;k<3;k++)ellipse(d[0]-10+k*10,c.ceil+2,2,2,'#d8c9a5aa')}else{path([[d[0]-14,q.y-20],[d[0],q.y+12],[d[0]+14,q.y-20]],'#8a7a5c','#3a2e24',2);line([[d[0],q.y-60],[d[0],q.y-24]],'#d8c9a544',3)}}
+ else for(const d of c.drips){const q=dripDrop(d,t);ellipse(d[0],c.ceil+4,6,4,'#9fd3e066');if(!q)continue;if(!q.falling){ellipse(d[0],c.ceil+6+q.form*8,3+q.form*4,4+q.form*6,'#bfe6f0cc');glow(d[0],c.ceil+10,18+q.form*12,'#bfe6f044')}else{line([[d[0],q.y-26],[d[0],q.y]],'#bfe6f066',3);ellipse(d[0],q.y,5,8,'#d8f2f8')}}
  for(const w of c.winds){const ph=windPhase(w,t);if(ph==='off')continue;g.save();g.globalAlpha=ph==='tell'?.25+.2*Math.abs(Math.sin(time*20)):.55;const dir=Math.sign(w[4]);for(let i=0;i<14;i++){const yy=w[1]+((i*53)%w[3]),xx=w[0]+((i*211+time*Math.abs(w[4])*(ph==='on'?2.2:.4))%w[2]);line([[xx,yy],[xx+dir*70,yy]],'#f2f8f6',2)}g.restore()}
  for(const m of c.maces){const b=maceBall(m,t);line([[m[0],m[1]],[b.x,b.y]],'#6d6658',3);ellipse(m[0],m[1],6,6,'#4a4339');for(let k=0;k<8;k++){const a=k*Math.PI/4;line([[b.x,b.y],[b.x+Math.cos(a)*36,b.y+Math.sin(a)*36]],'#9a9080',4)}ellipse(b.x,b.y,COURSE_RULES.maceR,COURSE_RULES.maceR,'#55504a');ellipse(b.x-7,b.y-8,8,6,'#8d877c')}
  for(const [x,y,r] of c.lights){ellipse(x,y+38,10,5,'#173229');line([[x,y+38],[x,y+22]],'#5f8f7e',3);ellipse(x,y+18,14,9,'#7ff0c8');glow(x,y+18,r*.6,'#7ff0c844')}

@@ -26,45 +26,50 @@ function targetOf(t,C,pt){
 function snapshot(t){return{p:{...t.p,safe:{...t.p.safe}},run:JSON.parse(JSON.stringify(t.run))}}
 function restore(t,s){Object.assign(t.p,{...s.p,safe:{...s.p.safe}});const r=t.run;r.t=s.run.t;r.flag=s.run.flag;s.run.crumble.forEach((k,i)=>Object.assign(r.crumble[i],k));s.run.movers.forEach((m,i)=>Object.assign(r.movers[i],m))}
 function attempt(t,from,tgt,o){
- restore(t,from);t.p.hp=6;t.p.inv=1e9;
+ restore(t,from);t.p.hp=6;t.p.inv=o.hazards?0:1e9;const keep=()=>{if(!o.hazards)t.p.inv=1e9};
  if(o.startX!==undefined){t.p.x=o.startX;t.p.safe={x:t.p.x,y:t.p.y}}
- for(let i=0;i<Math.round(o.wait/DT);i++){frame(t);t.p.inv=1e9;if(t.p.hp<6||!t.course)return false}
+ for(let i=0;i<Math.round(o.wait/DT);i++){frame(t);keep();if(t.p.hp<6||!t.course)return false}
  let jumped2=false,dashed=false,elapsed=0;if(o.jump)t.press.jump=true;
  for(let i=0;i<Math.round(2.6/DT);i++){
   const g=tgt.get(),aim=tgt.point??g.x+g.w/2,dx=aim-t.p.x;t.keys.right=dx>14&&o.hold;t.keys.left=dx<-14&&o.hold;
   if(o.jump2!==null&&!jumped2&&!t.p.ground&&t.p.vy>=o.jump2){t.press.jump=true;jumped2=true}
   if(o.dash!==null&&!dashed&&elapsed>=o.dash){t.p.dir=dx>=0?1:-1;t.press.dash=true;dashed=true}
-  frame(t);elapsed+=DT;t.p.inv=1e9;
+  frame(t);elapsed+=DT;keep();
   if(!t.course)return 'finished';if(t.p.hp<6)return false;
   if(elapsed>.05&&t.p.ground&&tgt.ok())return true;
  }
  t.keys.right=t.keys.left=false;return false}
-function solveRoute(n){
- const e=inCourse(n),t=e.t,C=t.COURSES[n];t.p.inv=1e9;
- // 시작점에서 첫 경로점까지 걸어간다.
- const first=targetOf(t,C,C.route[0]);stand(t,C.spawn[0],C.spawn[1]);
- let snap=snapshot(t);const found=[];
- const steps=[...C.route.slice(1),'end'];
- for(const pt of steps){
+// hazards=true: 철퇴·낙석·가시 피해를 켠 채, 기다리는 타이밍까지 찾아 한 대도 안 맞고 통과해야 한다.
+function solveRoute(n,hazards=false){
+ const e=inCourse(n),t=e.t,C=t.COURSES[n];t.p.inv=hazards?0:1e9;
+ stand(t,C.spawn[0],C.spawn[1]);
+ const steps=[...C.route.slice(1),'end'];let deepest=0,where='';
+ // 구간마다 통하는 입력을 쉬운 것부터 하나씩 내놓는다(다음 구간이 막히면 다른 타이밍으로 되돌아가 다시 시도).
+ function* options(cur,pt){
+  restore(t,cur);
   const tgt=pt==='end'?{get:()=>({x:C.end[0],w:C.end[2],y:C.end[1]+C.end[3]}),ok:()=>false}:targetOf(t,C,pt);
-  const cur=snapshot(t),curSurf=cur.p;const statics=t.p.mover<0&&t.p.crumble<0;
+  const statics=t.p.mover<0&&t.p.crumble<0;
   const ledge=[...C.blocks.map(b=>[b[0],b[1],b[2]]),...C.ledges,...C.water.map(w=>[w[0],w[1],w[2]])].find(([sx,sy,sw])=>Math.abs(sy-t.p.y)<1&&t.p.x>=sx-1&&t.p.x<=sx+sw+1);
-  const spikeFree=x=>!C.spikes.some(([sx,sy,sw])=>Math.abs(sy-t.p.y)<1&&x+13>sx&&x-13<sx+sw);
+  const y=t.p.y,spikeFree=x=>!C.spikes.some(([sx,sy,sw])=>Math.abs(sy-y)<1&&x+13>sx&&x-13<sx+sw);
   const starts=statics&&ledge?[cur.p.x,ledge[0]+15,ledge[0]+ledge[2]*.25,ledge[0]+ledge[2]*.5,ledge[0]+ledge[2]*.75,ledge[0]+ledge[2]-15].filter(spikeFree):[undefined];
-  const dyn=tgt.dyn||!statics||C.winds.length,waits=dyn?[0,.25,.5,.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3]:[0];
-  let ok=false;
+  const dyn=hazards||tgt.dyn||!statics||C.winds.length,waits=dyn?[0,.25,.5,.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3]:[0];
   // 가장 쉬운 입력부터: 회피 없이 → 이단점프 없이 → 기다리지 않고.
-  search:for(const dash of [null,.15,.3,.45])for(const wait of waits)for(const jump2 of [null,-350,-200,-50,100,250])for(const startX of starts)for(const jump of jump2===null?[true,false]:[true])for(const hold of [true]){
-   const r=attempt(t,cur,tgt,{wait,startX,jump,jump2,dash,hold});if(r){ok=r;found.push({pt,wait,startX,jump,jump2,dash});break search}
-  }
-  assert(ok,`stage ${n}: cannot reach ${JSON.stringify(pt)} from (${Math.round(cur.p.x)},${Math.round(cur.p.y)})`);
-  if(ok==='finished')return{e,found};
+  for(const dash of [null,.15,.3,.45])for(const wait of waits)for(const jump2 of [null,-350,-200,-50,100,250])for(const startX of starts)for(const jump of jump2===null?[true,false]:[true]){
+   const r=attempt(t,cur,tgt,{wait,startX,jump,jump2,dash,hold:true,hazards});if(r)yield{r,snap:snapshot(t),opt:{pt,wait,startX,jump,jump2,dash}}}
  }
- assert.fail('route ended before the course end');
+ function solve(k,cur){
+  if(k>deepest){deepest=k;where=`(${Math.round(cur.p.x)},${Math.round(cur.p.y)}) -> ${JSON.stringify(steps[k])}`}
+  let tries=0;for(const o of options(cur,steps[k])){if(o.r==='finished')return[o.opt];const rest=solve(k+1,o.snap);if(rest)return[o.opt,...rest];if(++tries>=4)break}
+  return null}
+ const found=solve(0,snapshot(t));assert(found,`stage ${n}${hazards?' (hazards on)':''}: stuck at ${where}`);
+ assert.equal(t.course,null,'finished');return{e,found};
 }
 for(const n of [2,3,4])check(`stage ${n} course is completable with the real physics (route bot), and the end leads to the camp`,()=>{
  const {e,found}=solveRoute(n),t=e.t;assert.equal(t.course,null);t.updatePlayer(0);assert.equal(t.p.x,1430);assert.equal(t.progress.checkpoint,'camp');assert(!t.getState().arena);
  assert(found.some(f=>f.jump2!==null),'needs double jumps somewhere (hard)');
+});
+check('stage 2 is beatable without taking a single hit: maces, falling rocks and spikes all have a safe timing',()=>{
+ const {e,found}=solveRoute(2,true),t=e.t;assert.equal(t.course,null);assert(found.filter(f=>f.wait>0).length>=5,'many segments demand waiting for the right moment');
 });
 check('hard enough: wide gaps and high steps need the double jump, not just one jump',()=>{
  for(const n of [2,3,4]){const C=boot().t.COURSES[n];assert(C.route.length>=15,'long route');assert(C.spikes.length>=3);assert(C.flags.length>=2)}
