@@ -61,12 +61,12 @@ button{font:inherit;cursor:pointer;color:var(--bone);touch-action:manipulation}b
 </div></div>
 <div id="records" class="layer" role="dialog" aria-modal="true" aria-labelledby="recordsHeading"><div class="settings-panel"><h2 id="recordsHeading">여행 기록</h2><section class="record-card"><h3 id="valleyRecordName">???</h3><div id="titleBest" class="best-stars"></div><p id="titleRecord"></p><details id="recordDetails"><summary>최근 발자취</summary><ol id="recordList"></ol></details></section><section id="caveRecords" class="record-card"></section><section id="skyRecords" class="record-card"></section><section id="moonRecords" class="record-card"></section><p id="recordSaveNote" class="save-note">기록은 현재 브라우저에 저장됩니다.</p><button id="closeRecords" class="sub">돌아가기</button></div></div>
 <div id="dead" class="layer"><div class="panel"><p class="eyebrow">불씨는 아직 남아 있다</p><h2>다시, 일어서라.</h2><p id="deathHint">뿔이 낮아지는 순간, 두 번째 도약을 준비하라.</p><button id="retry" class="primary">모닥불에서 재도전 ↻</button><p class="note" id="retryHelp">R 또는 Enter로 즉시 재도전</p></div></div>
-<div id="pause" class="layer"><div class="panel"><p class="eyebrow">잠시 숨을 고르다</p><h2>멈춘 계곡</h2><p id="pauseControls"></p><button id="resume" class="primary">여행 계속하기 →</button><button id="returnTitle" class="sub">홈으로 돌아가기</button></div></div>
+<div id="pause" class="layer"><div class="panel"><p class="eyebrow">잠시 숨을 고르다</p><h2>멈춘 계곡</h2><p id="pauseControls"></p><button id="resume" class="primary">여행 계속하기 →</button><button id="returnTitle" class="sub">저장하고 나가기</button></div></div>
 <div id="win" class="layer"><div class="panel"><p class="eyebrow" id="winHeading">잊힌 뿔의 계곡 · 돌파</p><h2 id="winName">거인의 침묵</h2><p id="winDescription">강철의 뿔이 부서졌다.<br>당신의 창은, 아직 꺾이지 않았다.</p><div id="clearStars" class="clear-stars" role="img" aria-label="클리어 별점"></div><p id="clearRating"></p><p id="winStats"></p><button id="continueJourney" class="primary">여행 계속하기</button><button id="winHome" class="sub">처음 화면으로</button><p class="note" id="winNote">오른편의 문이 열렸습니다.</p></div></div>
 <div id="settings" class="layer"><div class="settings-panel"><p class="eyebrow">여행 준비</p><h2>설정 · 조작키</h2><p>버튼을 누른 뒤 사용할 키를 누르세요. 중복 키는 서로 교환됩니다.<br>Esc는 일시정지·설정 닫기용으로 고정됩니다.</p><div id="bindings"></div><p id="settingsStatus" role="status" aria-live="polite">변경한 키는 이 브라우저에 자동 저장됩니다.</p><div class="settings-actions"><button id="resetKeys" class="primary">기본키 복원</button><button id="closeSettings" class="primary">설정 닫기</button></div></div></div>
-<div id="homeConfirm" class="layer" style="z-index:15" role="dialog" aria-modal="true" aria-labelledby="homeQuestion"><div class="panel"><h2 id="homeQuestion">홈으로 돌아갈까요?</h2><p>진행은 마지막 체크포인트 기준으로 저장됩니다.<br>진행 중인 보스 전투는 이어하기 시 처음부터 시작합니다.</p><button id="confirmHome" class="primary">홈으로 돌아가기</button><button id="cancelHome" class="sub">취소</button></div></div>
+<div id="homeConfirm" class="layer" style="z-index:15" role="dialog" aria-modal="true" aria-labelledby="homeQuestion"><div class="panel"><h2 id="homeQuestion">저장하고 나갈까요?</h2><p>지금 있는 자리와 체력이 저장되고, 이어하기로 그 자리에서 다시 시작합니다.<br>보스 전투 중이었다면 모닥불에서 전투를 처음부터 시작합니다.</p><button id="confirmHome" class="primary">저장하고 나가기</button><button id="cancelHome" class="sub">취소</button></div></div>
 <div id="utility"><button id="homeBtn">홈</button><button id="settingsBtn">설정</button><button id="debugBtn" hidden aria-controls="debugPanel" aria-expanded="false">디버그</button><button id="sound">소리 꺼짐</button><button id="pauseBtn">일시정지</button><button id="full">전체화면</button></div>
-<section id="debugPanel" hidden role="dialog" aria-labelledby="debugHeading"><h2 id="debugHeading">디버그 · 지역 / 보스 단계</h2><p>패널을 연 동안 전투가 멈춥니다.<br>지역·단계를 변경한 여행은 기록·진행이 저장되지 않습니다.</p><p>지역 바로 이동</p><div class="debug-actions"><button id="debugStage1">1 · 트리케라톱스</button><button id="debugStage2">2 · 랩터</button><button id="debugStage3">3 · 프테라노돈</button><button id="debugStage4">4 · 스피노사우루스</button></div><p id="debugBoss"></p><div class="debug-actions"><button id="debugPhase1">1단계</button><button id="debugPhase2">2단계</button><button id="debugPhase3">3단계</button></div><p id="debugStatus" role="status" aria-live="polite"></p><button id="closeDebug">닫기 · F2 / Esc</button></section>
+<section id="debugPanel" hidden role="dialog" aria-labelledby="debugHeading"><h2 id="debugHeading">디버그 · 지역 / 보스 단계</h2><p>패널을 연 동안 전투가 멈춥니다.<br>지역·단계를 변경한 여행은 기록·진행이 저장되지 않습니다.</p><p>지역 바로 이동</p><div class="debug-actions"><button id="debugStage1">1 · 트리케라톱스</button><button id="debugStage2">2 · 랩터</button><button id="debugStage3">3 · 프테라노돈</button><button id="debugStage4">4 · 스피노사우루스</button></div><div class="debug-actions"><button id="debugCourse">현재 지역 코스 처음부터</button></div><p id="debugBoss"></p><div class="debug-actions"><button id="debugPhase1">1단계</button><button id="debugPhase2">2단계</button><button id="debugPhase3">3단계</button></div><p id="debugStatus" role="status" aria-live="polite"></p><button id="closeDebug">닫기 · F2 / Esc</button></section>
 <button id="skipIntro">도입부 건너뛰기 · Enter</button>
 <div id="touch"><div class="pad left"><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button><button data-key="drop" aria-label="발판 아래로">▼</button></div><div class="pad right"><button data-key="throw">투척</button><button data-key="dash">회피</button><button data-key="jump">도약</button><button data-key="attack">창</button></div></div>
 </div><div id="rotate">가로 화면으로 돌리면 전투를 더 넓게 볼 수 있습니다.</div>
@@ -80,6 +80,7 @@ let particles=[],texts=[],afterimages=[],player,boss,keys={},press={},audio=null
 let introTime=0,introLanded=false,introPicked=false,pausedFrom='playing',spear=null;
 let debugReturn='playing',debugUsed=false,debugJourney=false,debugSnapshot=null;
 let meteorEvent=null,meteors=[];
+let course=null,courseRun=null,camY=0;
 function clearMeteors(){meteorEvent=null;meteors=[]}
 const copyProgress=p=>p?JSON.parse(JSON.stringify(p)):null;
 function discardDebugJourney(){if(debugJourney)progress=copyProgress(debugSnapshot);debugUsed=false;debugJourney=false;debugSnapshot=null}
@@ -91,10 +92,10 @@ const TRI={stompFirst:4,stompEvery:6,stompRange:420,stompTell:.8,stompGap:.9,sto
   let stage=1,raptors=[],raptorPhase=1,summoned=false,stageCleared=false,clearTimer=0,howlRemaining=0,packWait=0,packReserve=0,packNext='',packLead='main',packSwap=8;
   const JOURNEY_KEY='primalJourney.progress.v1';
   // 전투 기록과 독립된 여정. 위치는 검증된 모닥불/지역 경계로만 복원한다.
-   function validProgress(p){return !!p&&p.version===1&&[1,2,3,4].includes(p.stage)&&['entry','camp','cleared','passage','ending'].includes(p.checkpoint)&&p.cleared&&[1,2,3,4].every(n=>typeof p.cleared[n]==='boolean')&&(!p.cleared[2]||p.cleared[1])&&(!p.cleared[3]||p.cleared[2])&&(!p.cleared[4]||p.cleared[3])&&(p.stage<2||p.cleared[1])&&(p.stage<3||p.cleared[2])&&(p.stage<4||p.cleared[3])&&(!['cleared','passage','ending'].includes(p.checkpoint)||p.cleared[p.stage])&&(p.checkpoint!=='passage'||p.stage<4)&&(p.checkpoint!=='ending'||p.stage===4)&&(!p.cleared[p.stage]||!['entry','camp'].includes(p.checkpoint))}
-   function loadProgress(){try{const p=JSON.parse(localStorage.getItem(JOURNEY_KEY)||'null');if(p?.cleared&&p.cleared[3]===undefined)p.cleared[3]=false;if(p?.cleared&&p.cleared[4]===undefined)p.cleared[4]=false;if((p?.stage===2||p?.stage===3)&&p.checkpoint==='ending')p.checkpoint='passage';return validProgress(p)?{version:1,stage:p.stage,checkpoint:p.checkpoint,cleared:{1:p.cleared[1],2:p.cleared[2],3:p.cleared[3],4:p.cleared[4]}}:null}catch(e){return null}}
+   function validProgress(p){return !!p&&p.version===1&&[1,2,3,4].includes(p.stage)&&['entry','camp','cleared','passage','ending','course'].includes(p.checkpoint)&&p.cleared&&[1,2,3,4].every(n=>typeof p.cleared[n]==='boolean')&&(!p.cleared[2]||p.cleared[1])&&(!p.cleared[3]||p.cleared[2])&&(!p.cleared[4]||p.cleared[3])&&(p.stage<2||p.cleared[1])&&(p.stage<3||p.cleared[2])&&(p.stage<4||p.cleared[3])&&(!['cleared','passage','ending'].includes(p.checkpoint)||p.cleared[p.stage])&&(p.checkpoint!=='passage'||p.stage<4)&&(p.checkpoint!=='ending'||p.stage===4)&&(!p.cleared[p.stage]||!['entry','camp','course'].includes(p.checkpoint))&&(p.checkpoint!=='course'||p.stage>=2&&!!p.pos)&&(p.pos===undefined||!!p.pos&&Number.isFinite(p.pos.x)&&Number.isFinite(p.pos.y))&&(p.hp===undefined||Number.isInteger(p.hp)&&p.hp>=1&&p.hp<=6)&&(p.flag===undefined||Number.isInteger(p.flag)&&p.flag>=-1)}
+   function loadProgress(){try{const p=JSON.parse(localStorage.getItem(JOURNEY_KEY)||'null');if(p?.cleared&&p.cleared[3]===undefined)p.cleared[3]=false;if(p?.cleared&&p.cleared[4]===undefined)p.cleared[4]=false;if((p?.stage===2||p?.stage===3)&&p.checkpoint==='ending')p.checkpoint='passage';if(!validProgress(p))return null;const q={version:1,stage:p.stage,checkpoint:p.checkpoint,cleared:{1:p.cleared[1],2:p.cleared[2],3:p.cleared[3],4:p.cleared[4]}};if(p.pos)q.pos={x:p.pos.x,y:p.pos.y};if(p.hp!==undefined)q.hp=p.hp;if(p.flag!==undefined)q.flag=p.flag;return q}catch(e){return null}}
   let progress=loadProgress(),clearDismissed=false;
-   function saveProgress(){if(debugJourney||!progress)return;try{localStorage.setItem(JOURNEY_KEY,JSON.stringify(progress));$('journeyStatus').textContent=''}catch(e){$('journeyStatus').textContent='저장 공간을 사용할 수 없어 이번 여행은 이 창에서만 이어집니다.'}refreshContinue()}
+   function saveProgress(keepPos=false){if(debugJourney||!progress)return;if(!keepPos&&progress.checkpoint!=='course'){delete progress.pos;delete progress.hp;delete progress.flag}try{localStorage.setItem(JOURNEY_KEY,JSON.stringify(progress));$('journeyStatus').textContent=''}catch(e){$('journeyStatus').textContent='저장 공간을 사용할 수 없어 이번 여행은 이 창에서만 이어집니다.'}refreshContinue()}
   function refreshContinue(){$('continue').hidden=!progress}
  function loadRecords(which=1){const empty={clears:0,bestStars:0,bestTime:null,recent:[]};try{const saved=JSON.parse(localStorage.getItem(STAGE_RECORD_KEY)||'null');const r=(which===1?JSON.parse(localStorage.getItem(RECORD_KEY)||'null'):null)||saved?.stages?.[which];if(!r||!Number.isInteger(r.clears)||r.clears<0||!Number.isInteger(r.bestStars)||r.bestStars<0||r.bestStars>5||!(r.bestTime===null||Number.isFinite(r.bestTime)&&r.bestTime>=0)||!Array.isArray(r.recent))return empty;return{clears:r.clears,bestStars:r.bestStars,bestTime:r.bestTime,recent:r.recent.filter(e=>Number.isFinite(e.seconds)&&e.seconds>=0&&Number.isInteger(e.hp)&&e.hp>=1&&e.hp<=6&&Number.isInteger(e.stars)&&e.stars>=1&&e.stars<=5&&Number.isFinite(e.at)&&e.at>0).slice(0,10)}}catch(e){return empty}}
  const stageRecords={1:loadRecords(1),2:loadRecords(2),3:loadRecords(3),4:loadRecords(4)};
@@ -123,7 +124,7 @@ function saveKeys(){try{localStorage.setItem('primalJourney.keys.v2',JSON.string
 function assignKey(action,code){if(!validKey(code)){$('settingsStatus').textContent='문자·숫자·방향키 또는 Shift, Ctrl 등 다른 키를 선택하세요.';return false}const other=Object.keys(bindings).find(a=>a!==action&&bindings[a]===code);if(other)bindings[other]=bindings[action];bindings[action]=code;waitingKey=null;keys={};press={};saveKeys();return true}
 function openSettings(){if(mode==='settings')return;if(mode==='debug')closeDebug();settingsReturn=mode;settingsLayer=mode==='title'?'title':mode==='paused'?'pause':mode==='dead'?'dead':mode==='won'?'win':'';mode='settings';keys={};press={};waitingKey=null;$('homeConfirm').hidden=true;layers('settings');refreshControls()}
 function closeSettings(){waitingKey=null;keys={};press={};mode=settingsReturn;layers(settingsLayer);refreshControls();if(mode==='playing')canvas.focus()}
-function goHome(){if(debugJourney)discardDebugJourney();else saveProgress();clearMeteors();mode='title';keys={};press={};cam=0;refreshContinue();renderRecords();layers('title');$('homeConfirm').hidden=true}
+function goHome(){if(debugJourney)discardDebugJourney();else saveField();clearMeteors();mode='title';keys={};press={};cam=0;refreshContinue();renderRecords();layers('title');$('homeConfirm').hidden=true}
 let homeReturn='playing',homeLayer='';
 function requestHome(){if(mode==='title'||mode==='home')return;if(mode==='debug')closeDebug();homeReturn=mode;homeLayer=({settings:'settings',paused:'pause',dead:'dead',won:'win',records:'records'})[mode]||'';mode='home';keys={};press={};$('homeConfirm').hidden=false;layers('homeConfirm');$('cancelHome').focus()}
 function cancelHome(){mode=homeReturn;keys={};press={};layers(homeLayer);if(mode==='playing'||mode==='cutscene')canvas.focus()}
@@ -143,22 +144,26 @@ function reset(toBoss=false){spear=null;player={x:toBoss?1660:150,y:FLOOR,vx:0,v
   if(stage===2){raptors=[makeRaptor('main',800,2400)];boss=raptors[0];if(toBoss)player.x=1750}
   if(stage===3){boss=makePtera();if(toBoss)player.x=1750}
   if(stage===4){boss=makeSpino();if(toBoss)player.x=1750}
-  player.dropTime=0;
+  player.dropTime=0;course=null;courseRun=null;camY=0;
 }
 reset();
 function start(){discardDebugJourney();progress={version:1,stage:1,checkpoint:'entry',cleared:{1:false,2:false,3:false,4:false}};enterRegion(1,true);saveProgress()}
-function enterRegion(which,cinematic=false){stage=which;records=stageRecords[stage];attempt=1;reset(false);introTime=0;introLanded=false;introPicked=false;mode=cinematic?'cutscene':'playing';layers('');canvas.focus();if(stage===2)message('울림의 동굴','물방울 소리를 따라, 안쪽으로',3);if(stage===4)message('잠긴 달의 물가','검은 물 아래, 무언가 숨 쉬고 있다',3)}
+function enterRegion(which,cinematic=false,skipCourse=false){stage=which;records=stageRecords[stage];attempt=1;reset(false);introTime=0;introLanded=false;introPicked=false;mode=cinematic?'cutscene':'playing';layers('');canvas.focus();if(!cinematic&&!skipCourse&&COURSES[which]){enterCourse(which,null);return}if(stage===2)message('울림의 동굴','물방울 소리를 따라, 안쪽으로',3);if(stage===4)message('잠긴 달의 물가','검은 물 아래, 무언가 숨 쉬고 있다',3)}
 // 개발 미리보기 전용. 타이틀에는 지역 선택 경로가 없다.
-function startStage(which=1){if(![1,2,3,4].includes(which))return false;progress={version:1,stage:which,checkpoint:'entry',cleared:{1:which>=2,2:which>=3,3:which>=4,4:false}};enterRegion(which,which===1);saveProgress();return true}
+function startStage(which=1){if(![1,2,3,4].includes(which))return false;progress={version:1,stage:which,checkpoint:'entry',cleared:{1:which>=2,2:which>=3,3:which>=4,4:false}};enterRegion(which,which===1,true);saveProgress();return true}
 function startStage3(){return startStage(3)}
-function restoreProgress(){const p=progress;if(!p)return false;stage=p.stage;records=stageRecords[stage];reset(false);if(p.checkpoint==='camp'){checkpoint=true;player.x=1430;cam=1020}if(p.cleared[stage]){stageCleared=true;clearDismissed=true;arena=checkpoint=true;player.x=(p.checkpoint==='passage'?2920:p.checkpoint==='ending'?3200:2530)+regionShift();boss.hp=0;boss.dead=true;boss.state='dead';boss.timer=0;for(const r of raptors){r.hp=0;r.dead=true;r.state='dead'}summoned=stage===2;cam=clamp(player.x-410,0,worldEnd()-W)}mode='playing';layers('');canvas.focus();return true}
+function restoreProgress(){const p=progress;if(!p)return false;stage=p.stage;records=stageRecords[stage];reset(false);if(p.checkpoint==='camp'){checkpoint=true;player.x=1430;cam=1020}if(p.cleared[stage]){stageCleared=true;clearDismissed=true;arena=checkpoint=true;player.x=(p.checkpoint==='passage'?2920:p.checkpoint==='ending'?3200:2530)+regionShift();boss.hp=0;boss.dead=true;boss.state='dead';boss.timer=0;for(const r of raptors){r.hp=0;r.dead=true;r.state='dead'}summoned=stage===2;cam=clamp(player.x-410,0,worldEnd()-W)}
+ if(p.checkpoint==='course'&&COURSES[stage]){enterCourse(stage,{x:p.pos.x,y:p.pos.y,flag:p.flag??-1});if(p.hp)player.hp=p.hp}
+ else if(p.checkpoint==='entry'&&COURSES[stage]&&!p.pos)enterCourse(stage,null);
+ else if(p.pos){player.x=clamp(p.pos.x,35,worldEnd()-30);player.y=FLOOR;if(p.hp)player.hp=p.hp;if(!stageCleared&&player.x>1400)checkpoint=true;cam=clamp(player.x-410,0,worldEnd()-W)}
+ mode='playing';layers('');canvas.focus();return true}
 function continueJourney(){if(mode==='won'){clearDismissed=true;mode='playing';keys={};press={};saveProgress();layers('');canvas.focus();message('길이 열렸다',stage===1?'오른편 문 너머로 물소리가 들린다.':stage===3?'바람이 잦아드는 쪽, 물비린내를 따라가자.':'고요한 빛을 향해 걸어가자.',3)}}
 function continueSaved(){discardDebugJourney();refreshContinue();return restoreProgress()}
 function worldEnd(){return (stageCleared?stage<4?3650:3500:2780)+regionShift()}
 function markCleared(){stageCleared=true;progress=progress||{version:1,stage,checkpoint:'entry',cleared:{1:stage>=2,2:stage>=3,3:stage>=4,4:false}};progress.stage=stage;progress.cleared[stage]=true;progress.checkpoint='cleared';saveProgress()}
 function finishIntro(){if(mode!=='cutscene')return;reset(false);mode='playing';layers('');canvas.focus();message('잊힌 뿔의 계곡','인록의 생존이 시작된다.',3)}
 function updateIntro(dt){introTime+=dt;if(introTime>=2.7&&!introLanded){introLanded=true;burst(560,FLOOR,36,C.mist,230);shake=10;noise(.3,.1);tone(75,.3,'triangle',.06)}if(introTime>=9.5&&!introPicked){introPicked=true;burst(738,FLOOR-28,18,C.gold,100);tone(440,.3,'triangle',.05);tone(660,.5,'triangle',.04,.14)}if(introTime>=13.5)finishIntro()}
-function retry(){if(stageCleared){if(mode==='won')continueJourney();else restoreProgress();return}attempt++;const atCamp=checkpoint;reset(false);if(atCamp){checkpoint=true;player.x=1430;cam=1020}mode='playing';layers('');canvas.focus();if(atCamp)message('모닥불에서','문 너머의 울림은 아직 남아 있다',2)}
+function retry(){if(stageCleared){if(mode==='won')continueJourney();else restoreProgress();return}attempt++;if(course){const at=courseRespawn(),which=stage;reset(false);enterCourse(which,at);mode='playing';layers('');canvas.focus();message('깃발에서','다시, 더 조심스럽게',1.6);return}const atCamp=checkpoint;reset(false);if(atCamp){checkpoint=true;player.x=1430;cam=1020}mode='playing';layers('');canvas.focus();if(atCamp)message('모닥불에서','문 너머의 울림은 아직 남아 있다',2)}
 function pause(){if(mode==='playing'||mode==='cutscene'){pausedFrom=mode;mode='paused';keys={};press={};layers('pause')}else if(mode==='paused'){mode=pausedFrom;layers('');canvas.focus()}}
 function refreshDebug(){
  $('debugBoss').textContent=STAGE_NAMES[stage]+' · 현재 '+(stage===2?raptorPhase:boss.phase)+'단계';
@@ -183,7 +188,7 @@ function debugPhase(n){
  if(mode!=='debug'||![1,2,3].includes(n)||stageCleared||boss.dead)return false;
  // 절대로 reset()으로 테스트 표시를 지우지 않는다. 원본 여정은 별도 복제본으로 보존한다.
  if(!debugJourney){debugSnapshot=copyProgress(progress);debugJourney=true}debugUsed=true;
-  arena=checkpoint=true;cam=1500;clearTimer=0;clearDismissed=false;howlRemaining=0;
+  course=null;courseRun=null;camY=0;arena=checkpoint=true;cam=1500;clearTimer=0;clearDismissed=false;howlRemaining=0;
   clearMeteors();
  spear=null;particles=[];texts=[];afterimages=[];shake=flash=hitstop=0;keys={};press={};
  Object.assign(player,{x:1750,y:FLOOR,vx:0,vy:0,dir:1,jumps:0,ground:true,coyote:.1,jumpBuffer:0,atk:0,atkCD:0,attackHit:false,attackHits:new Set(),inv:0,dash:0,dashCD:0,hurt:0});
@@ -218,7 +223,7 @@ document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerd
 canvas.addEventListener('pointerdown',()=>{if(mode==='playing'){keys.attack=true;press.attack=true;canvas.focus()}});window.addEventListener('pointerup',()=>{if(!matchMedia('(pointer:coarse)').matches)keys.attack=false});
   $('start').onclick=start;$('continue').onclick=continueSaved;$('retry').onclick=retry;$('continueJourney').onclick=continueJourney;$('resume').onclick=pause;$('pauseBtn').onclick=pause;
   $('skipIntro').onclick=finishIntro;
- $('debugBtn').onclick=toggleDebug;$('closeDebug').onclick=closeDebug;for(const n of [1,2,3])$('debugPhase'+n).onclick=()=>debugPhase(n);for(const n of [1,2,3,4])$('debugStage'+n).onclick=()=>debugStage(n);
+ $('debugBtn').onclick=toggleDebug;$('debugCourse').onclick=()=>debugCourse();$('closeDebug').onclick=closeDebug;for(const n of [1,2,3])$('debugPhase'+n).onclick=()=>debugPhase(n);for(const n of [1,2,3,4])$('debugStage'+n).onclick=()=>debugStage(n);
   $('winHome').onclick=goHome;$('openRecords').onclick=()=>{mode='records';renderRecords();layers('records');$('closeRecords').focus()};$('closeRecords').onclick=()=>{mode='title';layers('title');$('openRecords').focus()};refreshContinue();
  $('returnTitle').onclick=requestHome;$('homeBtn').onclick=requestHome;$('settingsBtn').onclick=()=>{if(mode!=='home')openSettings()};$('titleSettings').onclick=openSettings;$('closeSettings').onclick=closeSettings;$('confirmHome').onclick=goHome;$('cancelHome').onclick=cancelHome;$('resetKeys').onclick=()=>{bindings={...defaults};waitingKey=null;saveKeys()};$('bindings').addEventListener('click',e=>{const b=e.target.closest('[data-bind]');if(b){waitingKey=b.dataset.bind;$('settingsStatus').textContent=actionNames[waitingKey]+'에 사용할 키를 누르세요. Esc로 취소합니다.';refreshControls()}});refreshControls();$('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'소리 켜짐':'소리 꺼짐';if(sound)tone(440,.15)};
 $('full').onclick=()=>{const s=$('shell');if(document.fullscreenElement){document.exitFullscreen?.().catch(()=>{})}else if(s.requestFullscreen)s.requestFullscreen().catch(()=>message('전체화면을 사용할 수 없습니다','브라우저의 전체화면 기능을 이용하세요'));};
@@ -441,13 +446,107 @@ function setState(s,t){boss.state=s;boss.timer=t}
  const SUBMERGED=['submerge','fin','breachTell'],SPINO_TELLS=['lungeTell','clawTell','clawGap','breachTell','roar'];
  const SPINO_HINTS={body:'몸통도 무기다. 두 번 뛰어 넘어가라.',bite:'물가에서 고개가 들리면, 덮치기 전에 물러서라.',claw:'앞발은 두 번 휘두른다. 첫 번째 뒤의 틈을 기다려라.',breach:'물결이 원을 그리면, 그 자리에서 벗어나라.',drown:'숨이 다하기 전에 물 밖으로 나와라.'};
  // 4지역 전투장은 다른 지역보다 오른쪽으로 2000 더 길다. 클리어 뒤 길·엔딩 좌표도 함께 민다.
+ 
+// ── 보스 앞 코스(파쿠르) ──
+// 2·3·4지역은 보스 접근로 대신 별도 좌표의 코스를 지나 모닥불(x 1430)에 도착한다. 일반 몹은 없고 장애물만 있다.
+// 낭떠러지에 떨어지면 체력 1(무적 무시)을 잃고 마지막으로 밟은 단단한 땅으로. 깃발은 다시 시작할 자리일 뿐 체력은 채우지 않는다.
+// 데이터: blocks[x,y,w,h](단단한 땅/벽) ledges[x,y,w](아래서 통과하는 발판) crumbles[x,y,w](밟으면 .45초 뒤 무너지고 3초 뒤 복구)
+// movers[x,y,w,dx,dy,주기] spikes[x,y,w] maces[축x,축y,길이,진폭,주기,위상] vines[x,y,w,h](시야 가림) flags[x,y]
+// winds[x,y,w,h,힘,주기,위상] water[x,수면y,w,물살] drips[x,주기,위상] lights[x,y,r] end[x,y,w,h] route=완주 경로(검사용)
+const COURSE_RULES={crumble:.45,crumbleBack:3,dripTell:.6,dripSpeed:800,spikeH:14,maceR:26,windTell:.6};
+const COURSES={
+ 2:{name:'마른 덩굴 길',left:0,right:4600,top:0,bottom:1000,ceil:160,spawn:[120,602],end:[4480,300,120,150],dark:0,
+  enter:['마른 덩굴 길','덩굴 너머로 철퇴가 흔들린다'],finish:['동굴의 불씨','덩굴을 지나, 울림의 끝에 닿았다'],
+  blocks:[[0,602,700,400],[930,602,320,400],[1520,602,280,400],[2100,602,400,400],[2500,500,400,502],[3260,602,340,400],[4010,602,290,400],[4300,450,300,552]],
+  ledges:[],crumbles:[[3690,585,60],[3850,570,60]],movers:[[1905,570,70,80,0,2.6]],
+  spikes:[[935,602,35],[1630,602,70],[2300,602,60],[2690,500,40],[3420,602,50],[4120,602,40]],
+  maces:[[1090,330,230,1,2.2,0],[2600,240,230,1.1,2,0],[2800,240,230,1.1,2,Math.PI],[3880,340,215,.9,2,0],[4080,330,230,1,1.8,0],[4220,330,230,1,1.8,2.1],[4450,180,230,1,1.8,4.2]],
+  vines:[[380,250,140,338],[2150,250,300,338],[3300,250,200,338],[4020,250,160,338]],
+  flags:[[1560,602],[3300,602]],winds:[],water:[],drips:[],lights:[],
+  route:[[350,602],[1090,602],[1560,602],[1760,602],['m',0],[2150,602],[2400,602],[2560,500],[2650,500],[2760,500],[2870,500],[3320,602],[3550,602],['c',0],['c',1],[4060,602],[4220,602],[4350,450]]},
+ 3:{name:'하늘로 오르는 절벽',left:0,right:1280,top:-2800,bottom:2000,spawn:[150,602],end:[250,-2400,400,130],dark:0,
+  enter:['하늘로 오르는 절벽','바람을 거슬러, 구름 위까지'],finish:['구름 위의 불씨','절벽 끝, 하늘의 전장이 열린다'],
+  blocks:[[0,602,1280,400]],
+  ledges:[[220,480,160],[500,355,140],[235,230,130],[510,105,140],[800,-20,120],[1035,-145,150],[275,-520,130],[40,-645,140],[640,-895,120],[945,-1020,110],[415,-1270,130],[165,-1395,110],[715,-1645,90],[985,-1770,110],[1125,-1895,110],[585,-2145,130],[200,-2270,500]],
+  crumbles:[[810,-270,100],[550,-395,100],[710,-1145,100],[435,-1520,90]],
+  movers:[[325,-770,110,110,0,3.2],[875,-2020,110,90,0,2.6]],
+  spikes:[[275,-520,40],[165,-1395,35],[1060,-1770,35]],maces:[],vines:[],
+  flags:[[1110,-145],[480,-1270]],
+  winds:[[0,-230,1280,220,-230,4,0],[0,-1110,1280,170,230,3.5,1.2],[0,-1990,1280,160,-230,3,2]],water:[],drips:[],lights:[],
+  route:[[300,602],[300,480],[570,355],[300,230],[580,105],[860,-20],[1110,-145],['c',0],['c',1],[360,-520],[110,-645],['m',0],[700,-895],[1000,-1020],['c',2],[480,-1270],[240,-1395],['c',3],[760,-1645],[1010,-1770],[1180,-1895],['m',1],[650,-2145],[450,-2270]]},
+ 4:{name:'검은 물길',left:0,right:4400,top:0,bottom:1000,ceil:170,spawn:[100,602],end:[4250,310,150,150],dark:230,
+  enter:['검은 물길','어둠 속, 물소리를 따라'],finish:['물가의 불씨','검은 물길 끝, 달이 잠긴 물가에 닿았다'],
+  blocks:[[0,602,600,400],[1100,602,400,400],[1760,595,70,400],[2010,595,70,400],[2200,602,250,400],[2600,602,100,400],[2700,500,200,500],[2950,380,200,620],[3900,602,250,400],[4150,460,250,542]],
+  water:[[600,622,500,0],[1500,622,700,-70],[3300,622,600,50]],
+  ledges:[[700,480,100],[880,420,90],[1040,470,80],[1580,450,100],[1960,430,100],[2120,470,80],[3220,270,100],[3470,470,70],[3780,460,80]],
+  crumbles:[[1780,390,90],[3650,500,60]],movers:[],
+  spikes:[[1250,602,50],[2280,602,40],[2780,500,40],[4050,602,50]],maces:[],vines:[],winds:[],
+  drips:[[800,1.7,0],[1300,1.5,.5],[1650,1.9,.2],[1900,1.6,1],[2350,1.4,.3],[2550,1.2,.1],[2850,1.4,.6],[3100,1.3,.2],[3500,1.5,.7],[3700,1.8,0],[4080,1.3,.4]],
+  lights:[[300,560,90],[1150,560,90],[1800,560,80],[2250,560,90],[3000,340,90],[3950,560,90],[4300,400,110]],
+  flags:[[1150,602],[2960,380]],
+  route:[[300,602],[750,480],[925,420],[1080,470],[1150,602],[1220,602],[1330,602],[1630,450],['c',0],[2010,430],[2160,470],[2240,602],[2400,602],[2650,602],[2740,500],[2860,500],[3050,380],[3270,270],[3500,470],['c',1],[3820,460],[3950,602],[4120,602],[4250,460]]}
+};
+const COURSE_HINTS={spike:'가시는 마른 덩굴 아래에도 숨어 있다.',mace:'철퇴가 반대편 끝에 닿은 순간 지나가라.',fall:'떨어지면 마지막으로 밟은 땅으로 돌아간다.',drip:'천장에 물방울이 맺히면 그 아래를 피하라.'};
+function courseCamX(x){const c=course;return clamp(x-560,c.left,Math.max(c.left,c.right-W))}
+function courseCamY(y){const c=course;return clamp(y-430,c.top,0)}
+function moverPos(m,t){const k=Math.sin(Math.PI*2*t/m[5]);return{x:m[0]+m[3]*k,y:m[1]+m[4]*k}}
+function maceBall(m,t){const a=m[3]*Math.sin(Math.PI*2*t/m[4]+m[5]);return{x:m[0]+m[2]*Math.sin(a),y:m[1]+m[2]*Math.cos(a)}}
+function windPhase(w,t){const u=((t+w[6])%w[5]+w[5])%w[5];return u<w[5]*.5?'on':u>w[5]-COURSE_RULES.windTell?'tell':'off'}
+function dripFloor(x){const c=course;let y=Infinity;for(const [bx,by,bw] of c.blocks)if(x>=bx&&x<=bx+bw)y=Math.min(y,by);for(const [lx,ly,lw] of [...c.ledges,...c.crumbles])if(x>=lx&&x<=lx+lw)y=Math.min(y,ly);for(const [wx,wy,ww] of c.water)if(x>=wx&&x<=wx+ww)y=Math.min(y,wy);return y===Infinity?c.bottom:y}
+function dripDrop(d,t){const c=course,u=((t+d[2])%d[1]+d[1])%d[1];if(u<COURSE_RULES.dripTell)return{form:u/COURSE_RULES.dripTell,y:c.ceil};const y=c.ceil+(u-COURSE_RULES.dripTell)*COURSE_RULES.dripSpeed;return y<dripFloor(d[0])?{form:1,y,falling:true}:null}
+function courseLedges(){const c=course,run=courseRun,out=[];if(!c)return out;
+ c.ledges.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'ledge',i}));
+ c.crumbles.forEach(([x,y,w],i)=>{if(run.crumble[i].down<=0)out.push({x,y,w,kind:'crumble',i})});
+ c.movers.forEach((m,i)=>{const q=run.movers[i];out.push({x:q.x,y:q.y,w:m[2],kind:'mover',i})});
+ c.water.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'water',i}));return out}
+function enterCourse(which,at){const c=COURSES[which];if(!c)return false;course=c;
+ courseRun={t:0,flag:at?at.flag??-1:-1,crumble:c.crumbles.map(()=>({stand:0,down:0})),movers:c.movers.map(m=>({...moverPos(m,0),ddx:0,ddy:0}))};
+ arena=false;checkpoint=false;spear=null;const [x,y]=at?[at.x,at.y]:c.spawn;
+ Object.assign(player,{x,y,vx:0,vy:0,ground:true,jumps:0,coyote:.1,dropTime:0,wet:false,mover:-1,crumble:-1,solidGround:true,safe:{x,y},breath:0,drownClock:0});
+ cam=courseCamX(x);camY=courseCamY(y);if(!at||at.flag===undefined)message(c.enter[0],c.enter[1],2.6);return true}
+function courseRespawn(){const c=course||COURSES[stage],f=courseRun?courseRun.flag:-1;return f>=0?{x:c.flags[f][0],y:c.flags[f][1],flag:f}:{x:c.spawn[0],y:c.spawn[1],flag:-1}}
+function updateCourse(dt){const c=course,run=courseRun;run.t+=dt;
+ c.movers.forEach((m,i)=>{const q=run.movers[i],n=moverPos(m,run.t);q.ddx=n.x-q.x;q.ddy=n.y-q.y;q.x=n.x;q.y=n.y});
+ run.crumble.forEach((k,i)=>{if(k.down>0){k.down-=dt;if(k.down<=0){k.down=0;k.stand=0}}else if(k.stand>0||player.ground&&player.crumble===i){k.stand+=dt;if(k.stand>=COURSE_RULES.crumble){k.down=COURSE_RULES.crumbleBack;k.stand=0;burst(c.crumbles[i][0]+c.crumbles[i][2]/2,c.crumbles[i][1],14,stage===3?'#dfe8e4':'#a28e6c',140);noise(.18,.05)}}})}
+function courseMove(p,dt){const c=course,run=courseRun,body=()=>({x:p.x-13,y:p.y-45,w:26,h:45});
+ if(p.ground&&p.mover>=0){const m=run.movers[p.mover];p.x+=m.ddx;p.y+=m.ddy}
+ const prevX=p.x,prev=p.y;p.x+=p.vx*dt;
+ for(const [bx,by,bw,bh] of c.blocks){if(p.y>by+2&&overlap(body(),{x:bx,y:by,w:bw,h:bh})){p.x=p.x>prevX||p.x===prevX&&p.x<bx+bw/2?bx-13.01:bx+bw+13.01;p.vx=0}}
+ p.y+=p.vy*dt;p.ground=false;p.wet=false;p.mover=-1;p.crumble=-1;p.solidGround=false;
+ for(const [bx,by,bw,bh] of c.blocks){if(overlap(body(),{x:bx,y:by,w:bw,h:bh})){if(p.vy>=0&&prev<=by+2){p.y=by;p.vy=0;p.ground=true;p.jumps=0;p.solidGround=true}else if(p.vy<0){p.y=by+bh+45.01;p.vy=0}}}
+ if(p.dropTime<=0&&!p.ground)for(const f of courseLedges())if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0;if(f.kind==='water')p.wet=true;if(f.kind==='mover')p.mover=f.i;if(f.kind==='crumble')p.crumble=f.i;break}
+ p.x=clamp(p.x,c.left+13,c.right-13);
+ // 마지막으로 밟은 단단한 땅: 물·움직이는 발판·무너지는 발판·가시 위는 제외.
+ if(p.ground&&!p.wet&&p.mover<0&&p.crumble<0&&!c.spikes.some(([sx,sy,sw])=>Math.abs(p.y-sy)<1&&p.x+13>sx&&p.x-13<sx+sw))p.safe={x:p.x,y:p.y}}
+function hurtCourse(kind,srcX){const p=player;if(p.inv>0||p.dash>0)return false;p.hp=Math.max(0,p.hp-1);damageTaken++;p.inv=1.05;p.hurt=.25;p.vx=(p.x<srcX?-1:1)*320;p.vy=-300;p.ground=false;p.jumps=Math.max(1,p.jumps);p.coyote=0;p.atk=0;shake=10;flash=.13;burst(p.x,p.y-30,16,C.red);noise(.18,.1);if(!p.hp){die();$('deathHint').textContent=COURSE_HINTS[kind]}return true}
+function courseFall(){const p=player;p.hp=Math.max(0,p.hp-1);damageTaken++;flash=.2;shake=8;noise(.3,.1);if(!p.hp){p.y=course.bottom;die();$('deathHint').textContent=COURSE_HINTS.fall;return}Object.assign(p,{x:p.safe.x,y:p.safe.y,vx:0,vy:0,ground:true,jumps:0,inv:1.2,hurt:0,dash:0});burst(p.x,p.y-30,14,C.mist,140)}
+function courseContacts(p,dt){const c=course,run=courseRun,t=run.t;
+ if(p.wet){const w=c.water.find(([x,,ww])=>p.x>=x&&p.x<=x+ww);if(w&&w[3]&&p.dash<=0)p.x=clamp(p.x+w[3]*dt,c.left+13,c.right-13)}
+ for(const w of c.winds)if(windPhase(w,t)==='on'&&p.dash<=0&&overlap(playerRect(),{x:w[0],y:w[1],w:w[2],h:w[3]}))p.x=clamp(p.x+w[4]*dt,c.left+13,c.right-13);
+ if(p.y>c.bottom){courseFall();return}
+ const r=playerRect();
+ for(const [sx,sy,sw] of c.spikes)if(overlap(r,{x:sx,y:sy-COURSE_RULES.spikeH,w:sw,h:COURSE_RULES.spikeH})&&hurtCourse('spike',sx+sw/2)){p.vy=-430;break}
+ for(const m of c.maces){const b=maceBall(m,t),dx=b.x-clamp(b.x,r.x,r.x+r.w),dy=b.y-clamp(b.y,r.y,r.y+r.h);if(dx*dx+dy*dy<COURSE_RULES.maceR**2){hurtCourse('mace',b.x);break}}
+ for(const d of c.drips){const q=dripDrop(d,t);if(q&&q.falling){const dx=d[0]-clamp(d[0],r.x,r.x+r.w),dy=q.y-clamp(q.y,r.y,r.y+r.h);if(dx*dx+dy*dy<81){hurtCourse('drip',d[0]);break}}}
+ if(mode!=='playing')return;
+ c.flags.forEach(([fx,fy],i)=>{if(i>run.flag&&Math.abs(p.x-fx)<45&&Math.abs(p.y-fy)<70){run.flag=i;p.safe={x:fx,y:fy};message('깃발에 불을 지폈다','여기서 다시 시작한다 · 체력은 그대로',2);tone(520,.3,'triangle',.05);burst(fx,fy-30,24,C.gold,180);if(progress&&!debugJourney){progress.checkpoint='course';progress.pos={x:fx,y:fy};progress.hp=p.hp;progress.flag=i;saveProgress(true)}}});
+ if(overlap(r,{x:c.end[0],y:c.end[1],w:c.end[2],h:c.end[3]}))finishCourse()}
+// 코스 끝: 보스 앞 모닥불로. 다음 프레임 모닥불 체크포인트가 체력을 채우고 저장한다.
+function finishCourse(){const c=course;course=null;courseRun=null;camY=0;spear=null;Object.assign(player,{x:1430,y:FLOOR,vx:0,vy:0,ground:true,jumps:0,wet:false,mover:-1,crumble:-1,breath:0});checkpoint=false;arena=false;cam=clamp(1430-410,0,worldEnd()-W);message(c.finish[0],c.finish[1],3);if(progress&&!debugJourney){progress.checkpoint='camp';saveProgress()}}
+// 저장하고 나가기: 지금 자리와 체력. 코스는 마지막으로 밟은 단단한 땅, 보스전 중이면 모닥불(전투 처음부터).
+function saveField(){if(!progress||debugJourney){saveProgress();return}const p=player;
+ if(course){const dead=p.hp<=0,at=dead?courseRespawn():{x:p.safe.x,y:p.safe.y,flag:courseRun.flag};progress.checkpoint='course';progress.pos={x:Math.round(at.x),y:Math.round(at.y)};progress.hp=dead?PLAYER_HP:p.hp;progress.flag=at.flag;saveProgress(true);return}
+ if(arena&&!stageCleared){progress.checkpoint='camp';saveProgress();return}
+ progress.pos={x:Math.round(p.x),y:FLOOR};progress.hp=p.hp;saveProgress(true)}
+function debugCourse(){if(mode!=='debug'||!COURSES[stage])return false;if(!debugJourney){debugSnapshot=copyProgress(progress);debugJourney=true}debugUsed=true;const returnTo=debugReturn;reset(false);enterCourse(stage,null);mode='debug';debugReturn=returnTo;refreshDebug();return true}
+
  function regionShift(){return stage===4?SPINO.right-2750:0}
  function makeSpino(){return{x:2450,y:FLOOR,hp:SPINO.hp,max:SPINO.hp,phase:1,robot:false,state:'swim',timer:0,dir:-1,sink:SPINO.swimSink,elapsed:0,nextAt:2,count:0,hit:0,dead:false,from:2450,to:2450,lockX:2450,struck:false,dark:'off',darkT:0,darkAt:Infinity,tide:'off',tideT:0,tideAt:Infinity,flood:'off',floodT:0,floodAt:Infinity,floodReach:0}}
  // 밀물 때 두 물웅덩이가 양쪽으로 넓어지고 땅이 좁아진다.
  function tideAmount(){const b=boss;if(stage!==4||!b||!b.tide||b.tide==='off')return 0;const q=clamp(b.tideT/(b.tide==='hold'?SPINO.tideHold:SPINO.tideRise),0,1);return SPINO.tide*(b.tide==='rise'?q:b.tide==='hold'?1:1-q)}
  function pools(){const t=tideAmount();return SPINO.pools.map(([a,c])=>[a-t,c+t])}
  function poolAt(x){if(stage!==4)return -1;return pools().findIndex(([a,c])=>x>a&&x<c)}
- function isSwimming(p=player){return poolAt(p.x)>=0&&p.y>=FLOOR-1}
+ function isSwimming(p=player){if(course)return !!p.wet;return poolAt(p.x)>=0&&p.y>=FLOOR-1}
  function spinoState(state,seconds=0){boss.state=state;boss.timer=seconds;boss.struck=false}
  function spinoTargetable(){return !boss.dead&&!SUBMERGED.includes(boss.state)}
  function spinoBodyRect(){const b=boss,top=FLOOR-SPINO.h+b.sink;return{x:b.x-SPINO.w/2,y:top,w:SPINO.w,h:Math.max(0,FLOOR-top)}}
@@ -568,33 +667,35 @@ function updateSpear(dt){if(!spear)return;const s=spear;s.age+=dt;
  if(s.state==='flying'||s.state==='falling'){const ox=s.x,oy=s.y;s.vy+=650*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;if(s.state==='flying')s.angle=Math.atan2(s.vy,s.vx);else s.angle=lerp(s.angle,Math.PI/2,Math.min(1,dt*5));
    if(stage===2&&arena){for(const r of raptors)if(!r.dead&&!s.hits.has(r.id)&&segmentRect(ox,oy,s.x,s.y,raptorRect(r))){s.hits.add(r.id);damageRaptor(r,60)}}
   else if(!s.hit&&arena&&!boss.dead&&segmentRect(ox,oy,s.x,s.y,bossRect())){s.hit=true;if(boss.state==='guard'||boss.state==='transform'){burst(s.x,s.y,14,'#b4ecec',160);tone(830,.17,'triangle')}else{boss.hp=Math.max(0,boss.hp-60);boss.hit=.16;hitstop=.05;shake=8;burst(s.x,s.y,26,C.gold,270);noise(.15,.08);if(boss.hp<=0)victory()}}
-  const left=arena?1535:35,right=2750+regionShift();if(s.state==='flying'&&(s.x<=left||s.x>=right)){s.x=clamp(s.x,left+7,right-7);s.vx=0;s.vy=0;s.state='stuck';s.wallTime=3;burst(s.x,s.y,12,C.gold,120);noise(.12,.04)}
-   let floor=FLOOR-7;for(const p of activePlatforms())if(s.vy>=0&&oy<=p.y-5&&s.y>=p.y-5&&s.x>=p.x&&s.x<=p.x+p.w)floor=Math.min(floor,p.y-7);
+  const left=course?course.left:arena?1535:35,right=course?course.right:2750+regionShift();if(s.state==='flying'&&(s.x<=left||s.x>=right)){s.x=clamp(s.x,left+7,right-7);s.vx=0;s.vy=0;s.state='stuck';s.wallTime=3;burst(s.x,s.y,12,C.gold,120);noise(.12,.04)}
+   let floor=FLOOR-7;if(course){floor=Infinity;for(const [bx,by,bw,bh] of course.blocks)if(s.x>=bx&&s.x<=bx+bw&&s.y>=by-7&&s.y<=by+bh){if(oy<=by-5)floor=Math.min(floor,by-7);else if(s.state==='flying'){s.x=ox;s.y=oy;s.vx=0;s.vy=0;s.state='stuck';s.wallTime=3}}for(const f of courseLedges())if(s.vy>=0&&oy<=f.y-5&&s.y>=f.y-5&&s.x>=f.x&&s.x<=f.x+f.w)floor=Math.min(floor,f.y-7);if(s.y>course.bottom){spear=null;message('창이 낭떠러지로','손에 다시 쥐었다',1.2);return}}
+   else for(const p of activePlatforms())if(s.vy>=0&&oy<=p.y-5&&s.y>=p.y-5&&s.x>=p.x&&s.x<=p.x+p.w)floor=Math.min(floor,p.y-7);
   if(s.y>=floor){s.y=floor;s.vx=0;s.vy=0;s.state='ground';s.angle=-.1}}
  if((s.state==='ground'||s.state==='stuck')&&s.age>.35&&Math.hypot(player.x-s.x,player.y-23-s.y)<48){burst(s.x,s.y,9,C.gold,85);tone(660,.13,'triangle',.04);spear=null}
 }
 function updatePlayer(dt){
   const p=player;
   p.dropTime=Math.max(0,(p.dropTime||0)-dt);
-  if(press.drop&&p.ground&&p.y<FLOOR){p.dropTime=.24;p.y+=5;p.vy=80;p.ground=false;p.coyote=0;p.jumps=Math.max(1,p.jumps)}
+  if(press.drop&&p.ground&&(course?!p.solidGround&&!p.wet:p.y<FLOOR)){p.dropTime=.24;p.y+=5;p.vy=80;p.ground=false;p.coyote=0;p.jumps=Math.max(1,p.jumps)}
  p.inv=Math.max(0,p.inv-dt);p.hurt=Math.max(0,p.hurt-dt);p.atk=Math.max(0,p.atk-dt);p.atkCD=Math.max(0,p.atkCD-dt);p.dashCD=Math.max(0,p.dashCD-dt);
  if(press.jump)p.jumpBuffer=.13;else p.jumpBuffer=Math.max(0,p.jumpBuffer-dt);
  if(p.ground)p.coyote=.1;else p.coyote=Math.max(0,p.coyote-dt);
  const swim=isSwimming(p);
- if(swim&&p.jumpBuffer>0&&p.dash<=0&&p.hurt<=0){p.vy=SPINO.swimJump;p.jumps=2;p.ground=false;p.coyote=0;p.jumpBuffer=0;burst(p.x,FLOOR-22,10,'#9fd0e0',110);tone(300,.12,'triangle',.03)}
+ if(swim&&p.jumpBuffer>0&&p.dash<=0&&p.hurt<=0){p.vy=SPINO.swimJump;p.jumps=2;p.ground=false;p.coyote=0;p.jumpBuffer=0;burst(p.x,p.y-20,10,'#9fd0e0',110);tone(300,.12,'triangle',.03)}
  else if(p.jumpBuffer>0&&(p.coyote>0||p.jumps<2)&&p.dash<=0&&p.hurt<=0){if(p.coyote<=0&&p.jumps===0)p.jumps=1;p.vy=p.jumps===0?-600:-550;p.jumps++;p.ground=false;p.coyote=0;p.jumpBuffer=0;tone(p.jumps===2?580:360,.12,'triangle',.035);burst(p.x,p.y,10,p.jumps===2?C.gold:C.mist,100)}
  if(press.dash&&p.dashCD<=0&&p.hurt<=0){p.dash=.17;p.dashCD=.7;p.inv=Math.max(p.inv,.22);p.vy=0;tone(180,.15,'triangle',.05);noise(.08,.025)}
  const axis=(keys.right?1:0)-(keys.left?1:0);
  if(p.dash>0){p.dash-=dt;p.vx=p.dir*850;p.vy=0;afterimages.push({x:p.x,y:p.y,dir:p.dir,life:.2})}
  else{if(p.hurt<=0){p.vx=lerp(p.vx,axis*(swim?SPINO.swim:290),Math.min(1,dt*(axis?24:19)));if(axis)p.dir=axis}p.vy=Math.min(920,p.vy+1650*dt)}
+ if(course){courseMove(p,dt);courseContacts(p,dt);if(mode!=='playing'||!course)return}else{
  const prev=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.ground=false;
  if(p.y>=FLOOR){p.y=FLOOR;p.vy=0;p.ground=true;p.jumps=0}
   if(p.dropTime<=0)for(const f of activePlatforms()){if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0}}
   p.x=clamp(p.x,arena?1535:35,stageCleared?worldEnd()-30:2750+regionShift());
   if(!checkpoint&&p.x>1400){checkpoint=true;message('불씨를 기억했다','체력이 회복되었습니다',2.3);p.hp=p.max;if(progress){progress.checkpoint='camp';saveProgress()}tone(660,.4,'triangle')}
    if(!arena&&p.x>1660){arena=true;checkpoint=true;boss.elapsed=0;boss.guardAt=9;boss.chargeCD=1.5;boss.stompAt=TRI.stompFirst;boss.waves=[];p.hp=p.max;message(stage===4?'스피노사우루스':stage===3?'프테라노돈':stage===2?'울림의 동굴':'트리케라톱스',stage===4?'물가에 서면, 물속을 보라':stage===3?'큰 입이 열리면, 옆으로 피하라':stage===2?'어둠 속 발톱이 깨어난다':'계곡의 문지기',3);tone(90,.8,'sawtooth',.07)}
-   if(stageCleared&&clearDismissed){if(stage<4&&p.x>2890&&progress.checkpoint!=='passage'){progress.checkpoint='passage';saveProgress();message(stage===1?'물소리가 흐르는 길':stage===2?'하늘로 열린 길':'달빛이 내려앉은 길',stage===1?'고사리 사이로 동굴의 숨결이 닿는다':stage===2?'절벽 너머로 구름과 바람이 흐른다':'바람이 잦아들고, 물비린내가 번진다',3)}if(stage<4&&p.x>3600){const next=stage+1;progress.stage=next;progress.checkpoint='entry';enterRegion(next);saveProgress();return}if(stage===4&&p.x>3170+regionShift()&&progress.checkpoint!=='ending'){progress.checkpoint='ending';saveProgress();message('잠시, 고요 속에서','물결이 잦아들고, 달빛만이 길을 비춘다.',6)}}
- if(stage===4&&arena&&!stageCleared&&mode==='playing'){if(isSwimming(p)){p.breath=Math.min(SPINO.breath,(p.breath||0)+dt);if(p.breath>=SPINO.breath){p.drownClock=(p.drownClock||0)-dt;if(p.drownClock<=0){p.drownClock=SPINO.drownEvery;drown()}}}else{p.breath=Math.max(0,(p.breath||0)-dt*2);p.drownClock=0}if(mode!=='playing')return}
+   if(stageCleared&&clearDismissed){if(stage<4&&p.x>2890&&progress.checkpoint!=='passage'){progress.checkpoint='passage';saveProgress();message(stage===1?'물소리가 흐르는 길':stage===2?'하늘로 열린 길':'달빛이 내려앉은 길',stage===1?'고사리 사이로 동굴의 숨결이 닿는다':stage===2?'절벽 너머로 구름과 바람이 흐른다':'바람이 잦아들고, 물비린내가 번진다',3)}if(stage<4&&p.x>3600){const next=stage+1;progress.stage=next;progress.checkpoint='entry';enterRegion(next);saveProgress();return}if(stage===4&&p.x>3170+regionShift()&&progress.checkpoint!=='ending'){progress.checkpoint='ending';saveProgress();message('잠시, 고요 속에서','물결이 잦아들고, 달빛만이 길을 비춘다.',6)}}}
+ if((course||stage===4&&arena&&!stageCleared)&&mode==='playing'){if(isSwimming(p)){p.breath=Math.min(SPINO.breath,(p.breath||0)+dt);if(p.breath>=SPINO.breath){p.drownClock=(p.drownClock||0)-dt;if(p.drownClock<=0){p.drownClock=SPINO.drownEvery;drown()}}}else{p.breath=Math.max(0,(p.breath||0)-dt*2);p.drownClock=0}if(mode!=='playing')return}
  if(press.throw)throwSpear();
  if(!spear&&(keys.attack||press.attack)&&p.atkCD<=0&&p.dash<=0&&p.hurt<=0){p.atk=.18;p.atkCD=.3;p.attackHit=false;p.attackHits=new Set();tone(530,.07,'triangle',.022);noise(.055,.018)}
   if(stage===2){if(arena&&!spear&&p.atk>0){const rect={x:p.dir>0?p.x+4:p.x-139,y:p.y-55,w:135,h:48};for(const r of raptors)if(!r.dead&&!p.attackHits.has(r.id)&&overlap(rect,raptorRect(r))){p.attackHits.add(r.id);damageRaptor(r,10)}}for(const r of raptors)if(arena&&mode==='playing'&&!r.dead&&!['upgrade','emerge'].includes(r.state)&&overlap({x:p.x-13,y:p.y-45,w:26,h:45},raptorRect(r)))hurtRaptor(r)}
@@ -608,7 +709,8 @@ function updatePlayer(dt){
 function update(dt){if(!['playing','cutscene','title'].includes(mode))return;time+=dt;shake=Math.max(0,shake-dt*24);flash=Math.max(0,flash-dt);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=520*dt}particles=particles.filter(p=>p.life>0);for(const a of afterimages)a.life-=dt;afterimages=afterimages.filter(a=>a.life>0);for(const t of texts)t.life-=dt;texts=texts.filter(t=>t.life>0);
  if(mode==='cutscene'){updateIntro(dt);return}
  if(mode!=='playing')return;
- runTime+=dt;if(hitstop>0){hitstop-=dt;return}updateBoss(dt);if(mode==='playing'){updatePlayer(dt);if(mode==='playing')updateSpear(dt)}
+ runTime+=dt;if(hitstop>0){hitstop-=dt;return}updateBoss(dt);if(course)updateCourse(dt);if(mode==='playing'){updatePlayer(dt);if(mode==='playing')updateSpear(dt)}
+  if(course){cam=lerp(cam,courseCamX(player.x),Math.min(1,dt*6));camY=lerp(camY,courseCamY(player.y),Math.min(1,dt*5));press={};return}
   const target=arena&&!stageCleared?(stage===4?clamp(player.x-560,1500,worldEnd()-W):1500):clamp(player.x-410,0,worldEnd()-W);cam=lerp(cam,target,Math.min(1,dt*6));press={};}
 // ── 绘制：自绘矢量，不依赖外部素材 ──
 function path(points,fill,stroke=null,lw=1){g.beginPath();points.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw;g.stroke()}}
@@ -617,6 +719,7 @@ function line(points,color,width=2){g.strokeStyle=color;g.lineWidth=width;g.begi
 function glow(x,y,r,color){const grad=g.createRadialGradient(x,y,0,x,y,r);grad.addColorStop(0,color);grad.addColorStop(1,'transparent');g.fillStyle=grad;g.fillRect(x-r,y-r,r*2,r*2)}
 function fern(x,y,s,flip=1,col=C.leaf){g.save();g.translate(x,y);g.scale(s*flip,s);line([[0,0],[-5,-37],[9,-89]],col,3);for(let i=0;i<6;i++){const yy=-12-i*11,xx=-4+i*1.8;path([[xx,yy],[xx-30+i*2,yy-13],[xx-8,yy-5]],col);path([[xx,yy],[xx+29-i*2,yy-17],[xx+7,yy-7]],col)}g.restore()}
 function background(){
+ if(course&&stage===3){drawSkyClimb();return}
  if(stage===4){drawMoonShore();return}
  if(stage===3){const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#24475e');sky.addColorStop(.65,'#87aeb7');sky.addColorStop(1,'#d1d6ba');g.fillStyle=sky;g.fillRect(0,0,W,H);glow(980-cam*.05,130,250,'#f3e5b855');for(let i=-1;i<9;i++){const x=i*310-cam*.22;path([[x,720],[x+45,260+(i%3)*80],[x+100,210+(i%3)*80],[x+175,720]],'#496b7c');path([[x+45,260+(i%3)*80],[x+100,210+(i%3)*80],[x+92,720],[x+65,720]],'#73909a')}for(let i=0;i<7;i++){const x=((i*260-cam*.12+time*9)%1700+1700)%1700-240;ellipse(x,180+i%3*80,160,17,'#e2ebe548')}return}
  let sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#0b1723');sky.addColorStop(.5,'#28434b');sky.addColorStop(1,'#18363b');g.fillStyle=sky;g.fillRect(0,0,W,H);
@@ -747,7 +850,50 @@ function spinoHint(){const b=boss,st=b.state;if(b.dark==='tell')return '달이 �
  return st==='beached'?'물 밖에 엎어졌다 · 공격 기회':st==='surfaced'?'떠올랐다 · 공격 기회':st==='lungeTell'?'고개가 들렸다 · 물가에서 물러서라':st==='clawTell'||st==='clawGap'?'앞발 · 두 번 휘두른다':st==='submerge'||st==='fin'?'지느러미가 다가온다 · 물 밖으로':st==='breachTell'?'물결이 원을 그린다 · 그 자리를 벗어나라':b.flood==='tell'?'양쪽 끝에서 물이 쏟아진다 · 뛰어오를 준비':b.flood==='on'&&floodPush(player.x)?'물살이 밀어낸다 · 뛰어오르면 버틴다':isSwimming()?'숨이 다하기 전에 물 밖으로':'땅과 물을 건너며 싸워라 · 두 번 뛰면 넘어간다'}
 function spinoHud(){const b=boss;if(arena&&!b.dead){g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('스피노사우루스 · '+(b.phase>=3?'폭풍의 물가':b.robot?'강철 지느러미':'물가의 그림자'),640,31);g.fillStyle='#10303a';g.fillRect(350,49,580,9);g.strokeStyle='#c2d7d4';g.strokeRect(348,47,584,13);g.fillStyle=b.phase>=3?'#f0b27a':b.robot?'#8dd9f5':'#7fb7a4';g.fillRect(350,49,580*b.hp/b.max,9);g.font='12px sans-serif';g.fillStyle='#e5ede0';g.fillText(spinoHint(),640,83)}
  // 숨 게이지(주인공 머리 위).
- const br=player.breath||0;if(arena&&!stageCleared&&(isSwimming()||br>0)){const x=player.x-cam,y=player.y-80,left=1-clamp(br/SPINO.breath,0,1);g.fillStyle='#0b1b26cc';g.fillRect(x-24,y,48,6);g.fillStyle=left>0?'#8fd8ff':'#ff7a5a';g.fillRect(x-24,y,48*(left>0?left:1),6);g.font='10px sans-serif';g.textAlign='center';g.fillStyle=left>0?'#cfeaf2':'#ffb3a0';g.fillText(left>0?'숨':'숨이 차다',x,y-4)}}
+ const br=player.breath||0;if((arena||course)&&!stageCleared&&(isSwimming()||br>0)){const x=player.x-cam,y=player.y-camY-80,left=1-clamp(br/SPINO.breath,0,1);g.fillStyle='#0b1b26cc';g.fillRect(x-24,y,48,6);g.fillStyle=left>0?'#8fd8ff':'#ff7a5a';g.fillRect(x-24,y,48*(left>0?left:1),6);g.font='10px sans-serif';g.textAlign='center';g.fillStyle=left>0?'#cfeaf2':'#ffb3a0';g.fillText(left>0?'숨':'숨이 차다',x,y-4)}}
+
+// ── 코스 그리기 ──
+function drawCourseBack(){const c=course,run=courseRun,t=run.t,s=stage;
+ const rock=s===3?'#4f6c79':s===4?'#0e1d24':'#1b2f36',topc=s===3?'#d7e6e0':s===4?'#2f4d46':'#6c7f72',trim=s===3?'#a7c3c4':s===4?'#4f7a6c':'#8fa99a';
+ if(c.ceil){g.fillStyle=s===4?'#060f14':'#0c1c22';g.fillRect(c.left-200,-600,c.right-c.left+400,c.ceil+600);for(let x=c.left;x<c.right;x+=90){const d=40+((x*7)%60);path([[x,c.ceil],[x+45,c.ceil+d],[x+90,c.ceil]],s===4?'#08141a':'#12252c')}}
+ if(s===3){for(let i=0;i<14;i++){const y=420-i*230,x=((i*397)%1100)+40;ellipse(x,y,140,18,'#ffffff22');ellipse(x+90,y-10,90,14,'#ffffff1c')}
+  // 양옆 절벽 벽면.
+  for(const side of [0,1])for(let y=c.end[1]-200;y<700;y+=120){const k=(y*13)%40,x=side?c.right:c.left,d=side?-1:1;path([[x,y],[x+d*(34+k),y+30],[x+d*(18+k/2),y+80],[x+d*(40+k),y+120],[x,y+120]],'#3d5966','#26404c',2)}}
+ else{const ab=g.createLinearGradient(0,625,0,1000);ab.addColorStop(0,'#0a1419');ab.addColorStop(1,'#020507');g.fillStyle=ab;g.fillRect(c.left-200,610,c.right-c.left+400,500)}
+ for(const [x,y,w,ww] of c.water){g.fillStyle='#051419';g.fillRect(x,y-4,w,420)}
+ for(const [x,y,w,h] of c.blocks){g.fillStyle=rock;g.fillRect(x,y,w,h);g.fillStyle=topc;g.fillRect(x,y,w,6);line([[x,y+6],[x+w,y+6]],trim,1);
+  for(let k=x+12;k<x+w-8;k+=37)if(s!==3)path([[k,y],[k+3,y-8],[k+6,y-2],[k+9,y-10],[k+11,y]],s===4?'#3f6a5a':'#67836b')}
+ const plank=(x,y,w,fill,edge)=>{path([[x,y],[x+w,y],[x+w-10,y+16],[x+w*.6,y+24],[x+10,y+15]],fill);line([[x,y],[x+w,y]],edge,3)};
+ for(const [x,y,w] of c.ledges)plank(x,y,w,s===3?'#617f8b':s===4?'#1c3138':'#2b4246',s===3?'#e3eee9':trim);
+ c.crumbles.forEach(([x,y,w],i)=>{const k=run.crumble[i];if(k.down>0){g.save();g.globalAlpha=.25;g.setLineDash([6,6]);line([[x,y],[x+w,y]],'#d9cfb4',2);g.setLineDash([]);g.restore();return}const sh=k.stand>0?Math.sin(time*70)*2.5:0;plank(x+sh,y,w,s===3?'#8a7d6a':'#5a4a33',k.stand>0?'#ffb07a':'#c9b48c');for(let j=1;j<4;j++)line([[x+sh+j*w/4,y+2],[x+sh+j*w/4-5,y+14]],'#2a2016',1.5)});
+ c.movers.forEach((m,i)=>{const q=run.movers[i];if(s!==3){line([[q.x+8,q.y],[q.x+8,(c.ceil||q.y-300)]],'#6b5d48',2);line([[q.x+m[2]-8,q.y],[q.x+m[2]-8,(c.ceil||q.y-300)]],'#6b5d48',2)}else glow(q.x+m[2]/2,q.y+10,70,'#ffffff33');plank(q.x,q.y,m[2],s===3?'#7d97a3':'#3d3426','#e8dcb6')});
+ for(const [x,y,w] of c.spikes){for(let k=x;k<x+w;k+=10)path([[k,y],[k+5,y-COURSE_RULES.spikeH],[k+10,y]],s===4?'#9fb7b0':'#d8ccae','#3a2e24',1)}
+ c.flags.forEach(([x,y],i)=>{const lit=i<=run.flag;line([[x,y],[x,y-58]],'#7b6448',4);path([[x,y-58],[x+30,y-50],[x,y-40]],lit?'#e7a65a':'#5b5246');if(lit){glow(x,y-30,60,'#f9aa4733');drawFire(x+14,y)}});
+ for(const d of c.drips){const q=dripDrop(d,t);ellipse(d[0],c.ceil+4,6,4,'#9fd3e066');if(!q)continue;if(!q.falling){ellipse(d[0],c.ceil+6+q.form*8,3+q.form*4,4+q.form*6,'#bfe6f0cc');glow(d[0],c.ceil+10,18+q.form*12,'#bfe6f044')}else{line([[d[0],q.y-26],[d[0],q.y]],'#bfe6f066',3);ellipse(d[0],q.y,5,8,'#d8f2f8')}}
+ for(const w of c.winds){const ph=windPhase(w,t);if(ph==='off')continue;g.save();g.globalAlpha=ph==='tell'?.25+.2*Math.abs(Math.sin(time*20)):.55;const dir=Math.sign(w[4]);for(let i=0;i<14;i++){const yy=w[1]+((i*53)%w[3]),xx=w[0]+((i*211+time*Math.abs(w[4])*(ph==='on'?2.2:.4))%w[2]);line([[xx,yy],[xx+dir*70,yy]],'#f2f8f6',2)}g.restore()}
+ for(const m of c.maces){const b=maceBall(m,t);line([[m[0],m[1]],[b.x,b.y]],'#6d6658',3);ellipse(m[0],m[1],6,6,'#4a4339');for(let k=0;k<8;k++){const a=k*Math.PI/4;line([[b.x,b.y],[b.x+Math.cos(a)*36,b.y+Math.sin(a)*36]],'#9a9080',4)}ellipse(b.x,b.y,COURSE_RULES.maceR,COURSE_RULES.maceR,'#55504a');ellipse(b.x-7,b.y-8,8,6,'#8d877c')}
+ for(const [x,y,r] of c.lights){ellipse(x,y+38,10,5,'#173229');line([[x,y+38],[x,y+22]],'#5f8f7e',3);ellipse(x,y+18,14,9,'#7ff0c8');glow(x,y+18,r*.6,'#7ff0c844')}
+ const [ex,ey,ew,eh]=c.end;glow(ex+ew/2,ey+eh/2,140,s===3?'#fff4d455':'#f9d68a33');path([[ex+10,ey+eh],[ex+20,ey+10],[ex+ew/2,ey-20],[ex+ew-20,ey+10],[ex+ew-10,ey+eh]],null,'#f2e3b8',3)}
+// 3지역 코스 배경: 오를수록 하늘이 깊어지고 구름층이 아래로 흘러간다.
+function drawSkyClimb(){const h=clamp(-camY/2600,0,1),sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,`rgb(${Math.round(lerp(42,18,h))},${Math.round(lerp(86,44,h))},${Math.round(lerp(112,82,h))})`);sky.addColorStop(1,`rgb(${Math.round(lerp(190,120,h))},${Math.round(lerp(208,160,h))},${Math.round(lerp(196,190,h))})`);g.fillStyle=sky;g.fillRect(0,0,W,H);glow(980,130+h*60,260,'#f3e5b855');
+ for(let i=0;i<12;i++){const y=((i*170-camY*.35)%2040+2040)%2040-200,x=((i*331)%1500)-120;ellipse(x,y,220,26,'#ffffff2a');ellipse(x+140,y-12,140,20,'#ffffff22')}
+ for(let i=0;i<6;i++){const y=((i*360-camY*.12)%2160+2160)%2160-300,x=i%2?60:1140;path([[x-90,y+300],[x-40,y+60],[x,y],[x+50,y+80],[x+90,y+300]],'#5b7a8655')}}
+function drawCourseFront(){const c=course,s=stage;
+ for(const [x,y,w] of c.water){g.fillStyle='rgba(10,34,48,.74)';g.fillRect(x,y-22,w,400);g.beginPath();for(let k=x;k<=x+w;k+=20)g.lineTo(k,y-22+Math.sin(time*2.2+k*.03)*2);g.strokeStyle='#9cc7cf88';g.lineWidth=2;g.stroke()}
+ // 마른 덩굴 장막: 플레이어를 가린다. 가시 끝만 아래로 살짝 보인다.
+ for(const [x,y,w,h] of c.vines){g.save();g.globalAlpha=.93;g.fillStyle='#2a2318';g.fillRect(x,y,w,h);for(let k=x;k<x+w;k+=9){const sway=Math.sin(time*1.3+k*.05)*4;line([[k,y],[k+sway,y+h*.5],[k-sway,y+h]],k%3?'#4e3f27':'#6b5634',3);if(k%27===0)path([[k+sway,y+h*.4],[k+sway+12,y+h*.4+6],[k+sway,y+h*.4+10]],'#7a6a3d')}g.restore()}}
+function drawCourseDark(){const c=course,run=courseRun,t=run.t,px=player.x-cam,py=player.y-camY-28,r=c.dark;
+ g.save();const grad=g.createRadialGradient(px,py,r*.45,px,py,r);grad.addColorStop(0,'rgba(2,5,9,0)');grad.addColorStop(1,'rgba(2,5,9,.96)');g.fillStyle=grad;g.fillRect(0,0,W,H);
+ g.translate(-cam,-camY);
+ // 어둠 속 단서: 빛나는 버섯, 맺히는 물방울, 깃발 불, 출구 빛.
+ for(const [x,y,rr] of c.lights){glow(x,y+18,rr,'#7ff0c855');ellipse(x,y+18,14,9,'#7ff0c8')}
+ for(const d of c.drips){const q=dripDrop(d,t);if(q&&!q.falling)glow(d[0],c.ceil+10,14+q.form*14,'#bfe6f088');if(q&&q.falling)ellipse(d[0],q.y,4,7,'#d8f2f8cc')}
+ c.flags.forEach(([x,y],i)=>{if(i<=run.flag)glow(x,y-30,70,'#f9aa4766')});
+ const [ex,ey,ew,eh]=c.end;glow(ex+ew/2,ey+eh/2,120,'#f9d68a55');g.restore()}
+function courseHud(){const c=course,p=player;g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText(STAGE_NAMES[stage]+' · '+c.name,640,31);
+ const vertical=stage===3,from=vertical?c.spawn[1]:c.spawn[0],to=vertical?c.end[1]+c.end[3]:c.end[0],q=clamp(((vertical?p.y:p.x)-from)/(to-from),0,1);
+ g.fillStyle='#10303a';g.fillRect(450,47,380,6);g.fillStyle='#d9c08a';g.fillRect(450,47,380*q,6);c.flags.forEach(([fx,fy],i)=>{const f=clamp((((vertical?fy:fx))-from)/(to-from),0,1);g.fillStyle=i<=courseRun.flag?'#f2a85a':'#6d8a8a';g.fillRect(448+380*f,43,4,14)});
+ g.font='12px sans-serif';g.fillStyle='#cfdcd2';g.fillText(stage===2?'철퇴의 끝을 읽고, 덩굴 아래를 조심하라':stage===3?'바람이 불기 전에 발판 위에서 버텨라':'물속은 느리고 숨이 찬다 · 어둠 속 물방울을 보라',640,76)}
 function drawMeteors(){
  for(const m of meteors){g.save();
   if(m.age<m.impactAt){
@@ -866,20 +1012,21 @@ function drawHead(mech,tell,guard){
  ellipse(25,-30,5,4,'#122d35');ellipse(27,-31,2.5,2.5,tell?'#fff1ba':mech?'#ffb678':'#dceab9');line([[37,-13],[48,-16]],'#19353a',2);if(mech)line([[-4,-31],[6,-20],[27,-20]],'#c6c4a2',2)
 }
 function hud(){
+  if(course)courseHud();
   if(stage===4)spinoHud();
   if(stage===3&&arena&&!boss.dead){g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('프테라노돈 · '+(boss.robot?'강철 날개':'절벽의 포식자'),640,31);g.fillStyle='#193349';g.fillRect(350,49,580,9);g.strokeStyle='#c2d7d4';g.strokeRect(348,47,584,13);g.fillStyle=boss.robot?'#8dd9f5':'#d7b28b';g.fillRect(350,49,580*boss.hp/boss.max,9);g.font='12px sans-serif';g.fillStyle='#e5ede0';g.fillText(boss.state==='stuck'?'내려꽂힌 날개 · 공격 기회':boss.state==='diveTell'?'입이 열렸다 · 옆으로 피하라':boss.state==='laserTell'?'푸른 숨결 · 도약을 준비하라':boss.state==='meteorRoar'?'하늘의 울음 · 붉은 낙하 지점을 피하라':'양쪽 발판과 두 번의 도약을 활용하라',640,83)}
  if(debugUsed||debugJourney){g.textAlign='left';g.font='12px sans-serif';g.fillStyle=C.gold;g.fillText('디버그 테스트 · 기록·진행 저장 제외',38,132)}
  g.textAlign='left';g.font='12px sans-serif';g.fillStyle='#90afb0';g.fillText('원시인록 여행기',38,31);g.fillStyle='#e4d8ba';g.font='15px sans-serif';g.fillText('불씨',38,61);
  for(let i=0;i<player.max;i++){g.save();g.translate(96+(i%6)*25,50+Math.floor(i/6)*23);path([[0,-9],[7,-3],[5,5],[0,9],[-5,5],[-7,-3]],i<player.hp?'#e0bb79':'#28414a',i<player.hp?'#fff0c2':'#55747a',1);if(i<player.hp)line([[0,-6],[-2,1],[1,5]],'#fff1bf',1);g.restore()}
   const d=1-clamp(player.dashCD/.7,0,1);g.fillStyle='#334e55';g.fillRect(38,80,86,3);g.fillStyle=d===1?'#c6dfd2':'#a8bdba';g.fillRect(38,80,86*d,3);g.fillStyle='#8ba7a7';g.font='10px sans-serif';g.fillText('회피',132,85);
- g.fillStyle=spear?'#e8b379':'#bcd6c4';g.font='11px sans-serif';g.fillText(spear?'창 없음 · 창 근처로 가서 회수':`${keyName(bindings.throw)} 창 던지기`,38,107);if(spear){g.textAlign='center';g.fillStyle='#f2cd83';g.font='17px sans-serif';g.fillText('⌄',clamp(spear.x-cam,25,1255),clamp(spear.y-24,130,570))}
+ g.fillStyle=spear?'#e8b379':'#bcd6c4';g.font='11px sans-serif';g.fillText(spear?'창 없음 · 창 근처로 가서 회수':`${keyName(bindings.throw)} 창 던지기`,38,107);if(spear){g.textAlign='center';g.fillStyle='#f2cd83';g.font='17px sans-serif';g.fillText('⌄',clamp(spear.x-cam,25,1255),clamp(spear.y-camY-24,130,570))}
   if(stage===2&&arena&&!stageCleared){g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('울림의 동굴 · 랩터 무리',640,29);for(let i=0;i<2;i++){const r=raptors[i];if(!r)continue;const x=370+i*290,y=57,w=250,reveal=r.hudReveal;g.save();g.globalAlpha=reveal;g.translate(0,-8*(1-reveal));g.font='11px sans-serif';g.fillStyle=r.robot?'#b4ffe1':'#e2d5b3';g.fillText(i===0?'울림의 발톱':'벽의 추격자',x+w/2,47);g.fillStyle='#142831';g.fillRect(x-2,y-2,w+4,12);g.strokeStyle='#81998a';g.strokeRect(x-2,y-2,w+4,12);g.fillStyle=r.robot?'#9ce8d1':'#d8ba85';g.fillRect(x,y,w*r.hp/r.max*reveal,8);g.restore()}g.font='12px sans-serif';g.fillStyle='#adcac5';g.fillText(howlRemaining>0?'초음파 울음 · 오른쪽 벽을 주의하라':raptorPhase===3?'강철 도약 → 구체 돌진 · 구르는 동안 피해 감소':summoned?'두 마리를 모두 쓰러뜨려라':'도약 전 몸을 낮추는 순간을 살펴라',640,92)}
  if(stage===1&&arena&&!boss.dead){let x=350,y=49,w=580;g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText('트리케라톱스',W/2,32);g.fillStyle='#07131b';g.fillRect(x-3,y-3,w+6,14);g.strokeStyle='#83968a88';g.strokeRect(x-3,y-3,w+6,14);g.fillStyle='#334343';g.fillRect(x,y,w,8);let grad=g.createLinearGradient(x,0,x+w,0);grad.addColorStop(0,'#8f7458');grad.addColorStop(1,boss.phase===3?'#edb177':'#d9cb99');g.fillStyle=grad;g.fillRect(x,y,w*Math.max(0,boss.hp/boss.max),8);
   path([[x-12,y+4],[x-6,y-3],[x-1,y+4],[x-6,y+11]],C.bone);path([[x+w+12,y+4],[x+w+6,y-3],[x+w+1,y+4],[x+w+6,y+11]],C.bone);
   if(boss.state==='guard'){g.font='12px sans-serif';g.fillStyle='#b3e5df';g.fillText('방어태세',640,80)}
  }
- g.textAlign='left';g.font='11px sans-serif';g.fillStyle='#8fa8a6';g.fillText(arena?`모닥불 기록됨 · ${keyName(bindings.retry)} 재도전`:controlText(),38,690);
-  if(!arena){g.textAlign='center';if(stage===2){worldText('물소리가 깊어지는 곳',820,350);worldText('문 앞의 불씨에 잠시 머물자.',1400,390,12)}else{if(player.x<360){worldText('두 번 뛰어, 더 높이.',480,350);worldText(`${keyName(bindings.jump)} · ${keyName(bindings.jump)}`,480,374,12)}if(player.x>500&&player.x<1250){worldText('창을 뻗어라. 빈틈을 꿰뚫어라.',1015,320);worldText(`${keyName(bindings.attack)} 공격 · ${keyName(bindings.dash)} 무적 회피`,1015,345,12)}}}
+ g.textAlign='left';g.font='11px sans-serif';g.fillStyle='#8fa8a6';g.fillText(course?`${courseRun.flag>=0?'깃발 기록됨':'코스 시작점'} · ${keyName(bindings.retry)} 깃발에서 다시`:arena?`모닥불 기록됨 · ${keyName(bindings.retry)} 재도전`:controlText(),38,690);
+  if(!arena&&!course){g.textAlign='center';if(stage===2){worldText('물소리가 깊어지는 곳',820,350);worldText('문 앞의 불씨에 잠시 머물자.',1400,390,12)}else{if(player.x<360){worldText('두 번 뛰어, 더 높이.',480,350);worldText(`${keyName(bindings.jump)} · ${keyName(bindings.jump)}`,480,374,12)}if(player.x>500&&player.x<1250){worldText('창을 뻗어라. 빈틈을 꿰뚫어라.',1015,320);worldText(`${keyName(bindings.attack)} 공격 · ${keyName(bindings.dash)} 무적 회피`,1015,345,12)}}}
  if(texts.length){const t=texts[texts.length-1];g.save();g.globalAlpha=clamp(Math.min(t.life,t.max-t.life)*2,0,1);g.textAlign='center';g.fillStyle='#e8ddbd';g.font='32px Batang, serif';g.shadowColor='#000';g.shadowBlur=18;g.fillText(t.t,W/2,211);g.fillStyle='#a4bcb7';g.font='12px sans-serif';g.fillText(t.sub,W/2,242);line([[500,262],[780,262]],'#a2b3a24d',1);g.restore()}
 }
 function worldText(t,x,y,size=18){g.font=`${size}px sans-serif`;g.textAlign='center';g.fillStyle=size===12?'#95b2ac':'#c9d8c3';g.fillText(t,x-cam,y)}
@@ -904,13 +1051,14 @@ function drawTitle(){g.save();const reduced=matchMedia('(prefers-reduced-motion:
  for(let i=0;i<24;i++){const x=i*61-65;fern(x,740+(i%3)*13,.9+(i%5)*.25,i%2?1:-1,i%3?'#173a3d':'#28504c')}
  for(let i=0;i<36;i++){const d=decor[i],x=(d.x%1280)+Math.sin(t*.18+d.x)*15,y=140+d.y*.9+Math.sin(t*.3+d.x)*12;g.globalAlpha=.25+(Math.sin(t*.6+i)+1)*.2;glow(x,y,12,'#aecda82c');ellipse(x,y,1.2,1.2,'#c8dba9')}g.globalAlpha=1;
  fern(20+Math.sin(t*.14)*3,755,3.1,1,'#081d26');fern(1260+Math.sin(t*.12)*3,755,3.4,-1,'#081d26');const v=g.createRadialGradient(640,350,160,640,350,760);v.addColorStop(0,'transparent');v.addColorStop(1,'#030e19bb');g.fillStyle=v;g.fillRect(0,0,W,H);g.restore()}
-function render(){if(mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title'){drawTitle();return}if(mode==='cutscene'||(mode==='settings'&&settingsReturn==='cutscene')||(mode==='paused'&&pausedFrom==='cutscene')){drawIntro();return}g.save();g.clearRect(0,0,W,H);if(shake>0&&mode==='playing')g.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake*.6);background();g.save();g.translate(-cam,0);ground();
+function render(){if(mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title'){drawTitle();return}if(mode==='cutscene'||(mode==='settings'&&settingsReturn==='cutscene')||(mode==='paused'&&pausedFrom==='cutscene')){drawIntro();return}g.save();g.clearRect(0,0,W,H);if(shake>0&&mode==='playing')g.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake*.6);background();g.save();g.translate(-cam,course?-camY:0);if(course)drawCourseBack();else ground();
+  if(course){for(const a of afterimages)drawPlayer({...player,x:a.x,y:a.y,dir:a.dir,atk:0,inv:0},a.life*.9);drawPlayer(player);drawCourseFront()}else
   {if(stage===3)drawPtera();else if(stage===4)drawSpino();else if(stage===2){if(arena)raptors.forEach(drawRaptor)}else{drawDinosaur();drawTriAttacks()}for(const a of afterimages)drawPlayer({...player,x:a.x,y:a.y,dir:a.dir,atk:0,inv:0},a.life*.9);drawPlayer(player);if(stage===4)drawWaterFront()}
   if(mode!=='title'){if(stage===1)drawLaser();if(stage===3)drawMeteors();drawSpear()}for(const p of particles){g.globalAlpha=clamp(p.life/p.max,0,1);g.fillStyle=p.c;g.fillRect(p.x,p.y,p.r,p.r)}g.globalAlpha=1;g.restore();
  // 前景植被构成舞台框景。
  fern(14,685,2.2,1,'#08181f');fern(1268,702,2.6,-1,'#08181f');
  let vignette=g.createRadialGradient(640,350,220,640,350,790);vignette.addColorStop(0,'transparent');vignette.addColorStop(1,'#030d16a0');g.fillStyle=vignette;g.fillRect(0,0,W,H);
- if(stage===4)drawDarkness();
+ if(course&&course.dark)drawCourseDark();else if(stage===4)drawDarkness();
  hud();
  if(flash>0){g.fillStyle=`rgba(237,207,162,${Math.min(.18,flash*.5)})`;g.fillRect(0,0,W,H)}g.restore()}
   // 부모 미리보기용 공개 훅. 전투 규칙을 우회하지 않고 실제 시작/갱신 경로 사용.
@@ -930,7 +1078,7 @@ function render(){if(mode==='title'||mode==='records'||mode==='settings'&&settin
     else if(state==='takeoff'){boss.y=FLOOR;pteraTakeoff()}
     else{boss.y=['walk','stuck'].includes(state)?FLOOR:245;if(state==='walk')pteraWalk();else pteraState(state,{fly:4,stuck:2}[state])}render();return true;
    }
-    window.primalJourney={start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,pools:stage===4?pools():null,swimming:stage===4&&isSwimming()})};
+    window.primalJourney={start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,course:course?{stage,flag:courseRun.flag,t:courseRun.t}:null,camY,pools:stage===4?pools():null,swimming:stage===4&&isSwimming()})};
  function frame(ts){const dt=Math.min(.034,(ts-last)/1000||.016);last=ts;if(mode==='playing'||mode==='title'||mode==='dead'||mode==='cutscene')update(dt);render();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
 </script>
