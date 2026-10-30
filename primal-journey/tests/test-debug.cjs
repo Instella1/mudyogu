@@ -42,7 +42,7 @@ for(const stage of [1,2])check(stage+'지역: 모든 단계 즉시 정착·왕�
  for(const n of [3,1,2,3,2,1]){
   select(e,n);assert(state(e).arena&&state(e).checkpoint);assert.equal(state(e).cam,1500);assert.equal(e.t.p.x,1750);assert.equal(e.t.p.hp,3);assert.equal(e.t.p.y,602);assert.equal(e.t.b.state,'walk');assert.equal(e.t.b.phase,n);
   if(stage===1){assert.equal(e.t.b.hp,[0,1080,720,360][n]);assert.equal(e.t.b.max,1080);assert.equal(e.t.rs.length,0)}
-  else{assert.equal(e.t.rs.length,n===1?1:2);assert.equal(state(e).raptorPhase,n);assert.equal(state(e).summoned,n>=2);assert.equal(state(e).howlRemaining,0);e.t.rs.forEach((r,i)=>{assert.equal(r.hp,i===0?[0,800,500,150][n]:500);assert.equal(r.max,i===0?800:500);assert.equal(r.phase,n);assert.equal(r.robot,n===3);assert.equal(r.speed,[0,140,190,240][n]);assert.equal(r.state,'walk');assert.equal(r.hudReveal,1)})}
+  else{assert.equal(e.t.rs.length,n===1?1:2);assert.equal(state(e).raptorPhase,n);assert.equal(state(e).summoned,n>=2);assert.equal(state(e).howlRemaining,0);e.t.rs.forEach((r,i)=>{assert.equal(r.hp,i===0?[0,800,480,150][n]:480);assert.equal(r.max,i===0?800:480);assert.equal(r.phase,n);assert.equal(r.robot,n===3);assert.equal(r.speed,[0,140,190,240][n]);assert.equal(r.state,'walk');assert.equal(r.hudReveal,1)})}
   e.t.closeDebug();e.t.step(.01);assert.equal(e.t.b.phase,n);assert.equal(e.t.b.state,'walk');e.t.render();
  }
  assert(state(e).debugUsed&&state(e).debugJourney);assert(e.draws.includes('디버그 테스트 · 기록·진행 저장 제외'));
@@ -52,7 +52,7 @@ check('이전 변신·레이저·방어·투척·플레이어 동작 타이머 �
  select(e,2);for(const key of ['timer','transform','elapsed','laserTime','laserWarm','laserAngle','kick','hit','vx'])assert.equal(e.t.b[key],0,key);assert.equal(e.t.b.laserDelay,-1);assert.equal(e.t.b.guardAt,9);assert.equal(e.t.b.diveAt,7);assert.equal(e.t.b.chargeCD,1.8);assert.equal(e.t.spear,null);for(const key of ['dash','atk','inv','hurt','vx','vy','jumpBuffer'])assert.equal(e.t.p[key],0,key);e.t.closeDebug();e.t.step(.01);assert.equal(e.t.b.phase,2);assert.equal(e.t.b.state,'walk');assert.equal(e.t.b.laserTime,0);
 });
 check('랩터 이전 울음·등장·강철 전환 제거, 구체 첫 발동 5 / 7.5초 및 5초 반복',()=>{
- const e=boot();play(e,2);e.t.p.x=1661;e.t.updatePlayer(0);e.t.b.hp=500;e.t.updateBoss(0);assert(state(e).howlRemaining>0);select(e,3);assert.equal(state(e).howlRemaining,0);e.t.rs.forEach((r,i)=>{assert.equal(r.elapsed,0);assert.equal(r.jumpAt,10);assert.equal(r.rollAt,5+i*2.5);assert.equal(r.timer,0);assert.equal(r.vy,0)});e.t.closeDebug();
+ const e=boot();play(e,2);e.t.p.x=1661;e.t.updatePlayer(0);e.t.b.hp=480;e.t.updateBoss(0);assert(state(e).howlRemaining>0);select(e,3);assert.equal(state(e).howlRemaining,0);e.t.rs.forEach((r,i)=>{assert.equal(r.elapsed,0);assert.equal(r.jumpAt,10);assert.equal(r.rollAt,5+i*2.5);assert.equal(r.timer,0);assert.equal(r.vy,0)});e.t.closeDebug();
  const starts=[[],[]];for(let step=1;step<=1300;step++){const prev=e.t.rs.map(r=>r.state);e.t.updateBoss(.01);e.t.rs.forEach((r,i)=>{if(r.state==='rollTell'&&prev[i]!=='rollTell')starts[i].push(step/100)})}
  assert.deepEqual(starts,[[5,10],[7.5,12.5]]);select(e,1);e.t.closeDebug();e.t.updateBoss(2);assert.equal(e.t.rs.length,1);assert.equal(state(e).raptorPhase,1);assert(!state(e).summoned);
 });
