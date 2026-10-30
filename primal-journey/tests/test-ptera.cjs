@@ -194,7 +194,7 @@ check('platform-aware hunt height changes smoothly and takeoff aims at the curre
 check('flight art uses articulated curves, altitude shadow and exact transformed mouth anchor; title stays hidden',()=>{
  assert(html.includes('Math.sin(time*7.6-.6)'));assert(html.includes('FLOOR+3,110+altitude*100'));assert(html.includes('g.scale(1.18,1.18)'));
  const {t}=fresh();t.p.inv=999;ticks(t,.7);const b=t.b,m=t.pteraMouth(),a=b.bank,x=b.face*137,y=68-b.jawOffset;near(m.x,b.x+x*Math.cos(a)-y*Math.sin(a));near(m.y,b.y-68+x*Math.sin(a)+y*Math.cos(a));
- assert(html.includes("if(mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title'){drawTitle();return}"));
+ assert(html.includes("if(mode==='title'||mode==='online'||mode==='records'||mode==='settings'&&settingsReturn==='title'){drawTitle();return}"));
 });
 check('exactly30 in10s, 18 predictive / 12 coverage, deterministic lanes on both platforms',()=>{
  const results=[];

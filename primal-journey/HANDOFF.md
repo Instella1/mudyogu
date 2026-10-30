@@ -200,6 +200,29 @@
 - 수치 `SPINO`(웅덩이 `pools`, 전투장 끝 `right`), AI `updateSpino`, `spinoGoal`, `chooseSpinoAttack`, `checkSpinoPhases`, 시계 `spinoEnvironment`(어둠·밀물·범람), 범람 `floodPush`, `drawFlood`, 물 `pools()`, `poolAt`, `tideAmount`, `isSwimming`, `regionShift`, 판정 `spinoBodyRect`, `spinoAttackRect`, `spinoContacts`, `hurtSpino`, `drown`.
 - 그리기 `drawMoonShore`, `drawWaterBack`, `drawWaterFront`, `drawSpino`, `drawSpinoFin`, `drawDarkness`, `spinoHud`.
 
+## 8-3. 온라인 대전 (2026-10-30 추가 · 미니게임 1 「원시런」)
+
+4지역 클리어(`stageRecords[4].clears>0`) 후 타이틀에 **온라인 대전** 버튼이 생긴다. 폴가이즈처럼 여러 미니게임을 돌려 마지막 1명이 우승. 사용자가 미니게임을 하나씩(총 10개 정도) 알려주면 만들어 끼운다 — 현재 1번만 있음.
+
+### 방 · 통신
+- 뮤됴구 Supabase Realtime(웹소켓, broadcast 전용, 이벤트 `'m'`). 주소·anon 키는 `ONLINE` 상수(뮤됴구 `lib/services/cloud_service.dart` 와 같은 프로젝트). DB 테이블은 쓰지 않는다.
+- 방 만들기 → 4글자 코드. 친구는 코드로 참가. **최대 8명**, 진행 중·만원·없는 코드는 거절.
+- **방장 권한**: 라운드 시작·킬러 지정·탈락 판정·결과는 방장이 정해 보낸다. 각자 자기 캐릭터는 자기 기기에서 움직이고 위치를 0.2초마다 보냄(다른 사람은 250ms 늦춰 보간해서 그림).
+- 2초마다 생존 신호, 6초 응답 없으면 나간 것으로 처리. **방장이 나가면 방이 끝남**(사용자 확정).
+- 탈락자는 관전 계속 또는 나가기. 온라인 중엔 일시정지·디버그·창 던지기·재도전 막힘. 여정 저장(`progress`)은 건드리지 않는다.
+
+### 원시런 (`COURSES.run`, 사용자 확정)
+- 참가자 중 1명이 **킬러**(직전 킬러는 피해서 무작위). 나머지는 **러너** — 목숨 3개로 결승선(x 5450) 도달.
+- 화면이 왼쪽→오른쪽으로 초당 55 이동. 화면 왼쪽 끝에 밀리면 목숨 1 잃음, 오른쪽 끝을 넘어갈 수 없음.
+- 죽으면 화면 가운데 하늘(y 150)에서 부활, 1.5초 무적. 목숨 다 쓰면 탈락.
+- 킬러: 키 1 바위 · 2 가시 · 3 철퇴 · 4 바닥 꺼짐(폰은 화면 버튼). **화면 안에 있는 그 종류 함정 전부** 발동, 종류마다 재사용 2.2초. 함정 24개(`RUN_TRAPS`, `traps`).
+- **90초 제한**, 결승 못 한 러너는 탈락. 러너가 아무도 탈락하지 않으면 **킬러가 탈락**. 1명 남으면 우승, 다시 하기 가능.
+
+### 코드 위치
+- 통신 `supabaseTransport`, 방 `onlineOpen/onlineCreate/onlineJoin/onlineEnd/onlineClose`, 수신 `onlineReceive`, 라운드 `onlineStart/onlineNextRound/onlineBeginRound/onlineEndRound/onlineApplyResult`, 진행 `onlineTick`, `onlineStep`, `onlineCamera`.
+- 러너 `onlineLoseLife`, `onlineFinish`, 함정 `killerTrap`, `activateTrap`, `trapGeom`, `trapFloors`, `runTrapContacts`, 그리기 `drawRunTraps`, `drawRunPlayers`, `onlineHud`, UI `openOnlineLobby`, `refreshOnlineUi`, `onlineKey`.
+- 새 미니게임은 `onlineNextRound` 에서 라운드 종류를 고르고, 종류별 시작·판정·그리기를 붙이는 식으로 확장.
+
 ## 9. 디버그
 
 - 게임 중 F2 또는 디버그 버튼. 열린 동안 정지. F2/Esc 닫기.
@@ -208,6 +231,7 @@
 - 패널만 열고 닫는 것은 정상 기록에 영향 없음.
 - **지역/페이즈를 실제 변경한 여정은 기록·진행 저장에서 제외**. 닫거나 재도전해도 테스트 표시는 유지. 홈 복귀 시 디버그 이전 정상 진행 스냅샷 복원. 새 여행/정상 이어하기에서 테스트 종료.
 - 디버그로 정상 저장을 덮어쓰거나 클리어 기록을 부풀리는 회귀를 주의.
+- 디버그 패널 **온라인 대전 열기(시험)** — 해금 없이 로비를 연다.
 
 ## 10. 코드 탐색 지점
 
@@ -255,7 +279,7 @@ node test-spino.cjs
 node test-course.cjs
 ```
 
-마지막 개발 시 보고된 결과: **215개 통과**(밸런스43 + 랩터44 + 여정10 + 디버그13 + 프테라노돈53 + 스피노27 + 코스25). `./run-tests.sh`로 한 번에 실행. 인수인계 시 다시 실행한 결과는 `검사결과.txt` 참고.
+마지막 개발 시 보고된 결과: **234개 통과**(밸런스43 + 랩터44 + 여정10 + 디버그13 + 프테라노돈53 + 스피노27 + 코스25 + 온라인19). `./run-tests.sh`로 한 번에 실행. 인수인계 시 다시 실행한 결과는 `검사결과.txt` 참고.
 
 - DOM/Canvas/localStorage를 모의한 Node vm 회귀 검사. 실제 브라우저 플레이 품질을 완전히 보장하지 않는다.
 - 프테라노돈 자연 반복 궤적은 고정 간격으로 검사하며 순간이동 회귀 방지, 예측 추격, 입 충돌, 메테오 정확30개, 동시 AI, 저장 보호 등이 검사 대상.
@@ -271,4 +295,5 @@ node test-course.cjs
 - 일반 타이틀에 스테이지 선택 버튼 재도입 금지(디버그에는 허용).
 - 프테라노돈을 고정 지점으로 순간이동시키거나 메테오 동안 멈추게 하지 말 것.
 - 현재 메테오는 옛 초음파 ‘범위 확대’ 상태가 아니라 **전혀 다른 소환형 공격**이다.
-- 요청한 것은 지금까지 결과의 인수인계이며, 이 시점에 미완료로 약속된 다음 기능은 없다. 사용자의 다음 지시를 받아 이어간다.
+- 온라인 검사(`test-online.cjs`)는 가짜 통신으로 돈다. 실제 Supabase 연결은 작업 환경에서 막혀 있어 **브라우저 창 2개로 직접 확인**해야 한다.
+- 다음 할 일: 사용자가 온라인 미니게임 2~10번을 하나씩 알려줌 → 만들고 대전에 끼우기.

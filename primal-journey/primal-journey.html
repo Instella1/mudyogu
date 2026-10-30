@@ -33,6 +33,9 @@ button{font:inherit;cursor:pointer;color:var(--bone);touch-action:manipulation}b
 @media(pointer:coarse){#touch{display:block}.controls{display:none}.note{margin-top:12px}.primary{min-width:145px;padding:10px 18px}#utility{top:7px;right:8px}#utility button{font-size:9px;padding:5px 7px}}
 @media(orientation:portrait){#rotate{display:block}.intro{width:65%}.eyebrow{margin-bottom:8px}.intro p.desc{margin-bottom:12px}h1{margin-bottom:10px}.note{display:none}.primary{padding:8px 12px;min-width:140px}.controls{margin-top:12px}#touch button{width:37px;height:37px;font-size:10px}.pad{bottom:9px;gap:6px}.pad.left{left:10px}.pad.right{right:10px}}
 [hidden]{display:none!important}
+#online input{font:inherit;background:#0b1b26;border:1px solid #68878a;color:var(--bone);padding:6px 9px;width:150px}.room-code{font-size:40px;letter-spacing:.3em;margin:4px 0;font-family:Batang,serif}#onlinePlayers{font-size:13px;line-height:1.9;color:var(--mist)}
+#onlineLeave{display:none}#shell.online-play #onlineLeave{display:inline-block}#shell.online-play #homeBtn,#shell.online-play #pauseBtn,#shell.online-play #debugBtn,#shell.online-play #settingsBtn{display:none!important}
+#killerPad{display:none;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);gap:8px;z-index:4}#killerPad button{padding:12px 14px;background:#3a2a24dd;border:1px solid #ff9a7a;color:#ffe2c4;border-radius:6px}@media(pointer:coarse){#shell.killer #killerPad{display:flex}}
 #shell{container-type:size}
 #title{padding:0;justify-content:center;background:radial-gradient(ellipse at center,#08192318,#06131c65);text-align:center}
 #title .intro{width:100%;max-width:none;overflow:visible;padding:0;max-height:none}
@@ -56,17 +59,19 @@ button{font:inherit;cursor:pointer;color:var(--bone);touch-action:manipulation}b
 <canvas id="game" width="1280" height="720" tabindex="0" aria-label="원시인록 여행기. A D 이동, W 더블점프, S 아래로, J 공격, F 투척, Shift 회피."></canvas>
 <div id="title" class="layer open"><div class="intro">
 <h1>원시인록<span>여행기</span></h1>
-<nav class="title-menu" aria-label="여행 메뉴"><button id="start">여행 시작</button><button id="continue" hidden>이어하기</button><button id="titleSettings">설정</button><button id="openRecords">여행 기록</button></nav>
+<nav class="title-menu" aria-label="여행 메뉴"><button id="start">여행 시작</button><button id="continue" hidden>이어하기</button><button id="titleSettings">설정</button><button id="openRecords">여행 기록</button><button id="onlineBtn" hidden>온라인 대전</button></nav>
 <p id="journeyStatus" role="status"></p>
 </div></div>
 <div id="records" class="layer" role="dialog" aria-modal="true" aria-labelledby="recordsHeading"><div class="settings-panel"><h2 id="recordsHeading">여행 기록</h2><section class="record-card"><h3 id="valleyRecordName">???</h3><div id="titleBest" class="best-stars"></div><p id="titleRecord"></p><details id="recordDetails"><summary>최근 발자취</summary><ol id="recordList"></ol></details></section><section id="caveRecords" class="record-card"></section><section id="skyRecords" class="record-card"></section><section id="moonRecords" class="record-card"></section><p id="recordSaveNote" class="save-note">기록은 현재 브라우저에 저장됩니다.</p><button id="closeRecords" class="sub">돌아가기</button></div></div>
+<div id="online" class="layer" role="dialog" aria-modal="true" aria-labelledby="onlineHeading"><div class="settings-panel"><p class="eyebrow">모두의 여행</p><h2 id="onlineHeading">온라인 대전</h2><section id="onlineEntry"><p>최대 8명. 미니게임을 이어 하며 마지막 한 명이 우승합니다. 탈락하면 관전하거나 나갈 수 있습니다.</p><div class="bind-row"><span>닉네임</span><input id="onlineName" maxlength="10" autocomplete="off"></div><div class="settings-actions"><button id="onlineCreateBtn" class="primary">방 만들기</button></div><div class="bind-row"><span>방 코드</span><input id="onlineJoinCode" maxlength="4" autocomplete="off" placeholder="ABCD"></div><div class="settings-actions"><button id="onlineJoinBtn" class="primary">참가하기</button></div><p id="onlineNote" class="save-note"></p></section><section id="onlineRoom" hidden><p>방 코드 · 친구에게 알려주세요</p><h3 id="onlineCode" class="room-code"></h3><p id="onlineStatus" role="status"></p><ol id="onlinePlayers"></ol><div class="settings-actions"><button id="onlineStartBtn" class="primary">시작</button><button id="onlineAgainBtn" class="primary">다시 하기</button></div></section><button id="onlineBack" class="sub">나가기</button></div></div>
 <div id="dead" class="layer"><div class="panel"><p class="eyebrow">불씨는 아직 남아 있다</p><h2>다시, 일어서라.</h2><p id="deathHint">뿔이 낮아지는 순간, 두 번째 도약을 준비하라.</p><button id="retry" class="primary">모닥불에서 재도전 ↻</button><p class="note" id="retryHelp">R 또는 Enter로 즉시 재도전</p></div></div>
 <div id="pause" class="layer"><div class="panel"><p class="eyebrow">잠시 숨을 고르다</p><h2>멈춘 계곡</h2><p id="pauseControls"></p><button id="resume" class="primary">여행 계속하기 →</button><button id="returnTitle" class="sub">저장하고 나가기</button></div></div>
 <div id="win" class="layer"><div class="panel"><p class="eyebrow" id="winHeading">잊힌 뿔의 계곡 · 돌파</p><h2 id="winName">거인의 침묵</h2><p id="winDescription">강철의 뿔이 부서졌다.<br>당신의 창은, 아직 꺾이지 않았다.</p><div id="clearStars" class="clear-stars" role="img" aria-label="클리어 별점"></div><p id="clearRating"></p><p id="winStats"></p><button id="continueJourney" class="primary">여행 계속하기</button><button id="winHome" class="sub">처음 화면으로</button><p class="note" id="winNote">오른편의 문이 열렸습니다.</p></div></div>
 <div id="settings" class="layer"><div class="settings-panel"><p class="eyebrow">여행 준비</p><h2>설정 · 조작키</h2><p>버튼을 누른 뒤 사용할 키를 누르세요. 중복 키는 서로 교환됩니다.<br>Esc는 일시정지·설정 닫기용으로 고정됩니다.</p><div id="bindings"></div><p id="settingsStatus" role="status" aria-live="polite">변경한 키는 이 브라우저에 자동 저장됩니다.</p><div class="settings-actions"><button id="resetKeys" class="primary">기본키 복원</button><button id="closeSettings" class="primary">설정 닫기</button></div></div></div>
 <div id="homeConfirm" class="layer" style="z-index:15" role="dialog" aria-modal="true" aria-labelledby="homeQuestion"><div class="panel"><h2 id="homeQuestion">저장하고 나갈까요?</h2><p>지금 있는 자리와 체력이 저장되고, 이어하기로 그 자리에서 다시 시작합니다.<br>보스 전투 중이었다면 모닥불에서 전투를 처음부터 시작합니다.</p><button id="confirmHome" class="primary">저장하고 나가기</button><button id="cancelHome" class="sub">취소</button></div></div>
-<div id="utility"><button id="homeBtn">홈</button><button id="settingsBtn">설정</button><button id="debugBtn" hidden aria-controls="debugPanel" aria-expanded="false">디버그</button><button id="sound">소리 꺼짐</button><button id="pauseBtn">일시정지</button><button id="full">전체화면</button></div>
-<section id="debugPanel" hidden role="dialog" aria-labelledby="debugHeading"><h2 id="debugHeading">디버그 · 지역 / 보스 단계</h2><p>패널을 연 동안 전투가 멈춥니다.<br>지역·단계를 변경한 여행은 기록·진행이 저장되지 않습니다.</p><p>지역 바로 이동</p><div class="debug-actions"><button id="debugStage1">1 · 트리케라톱스</button><button id="debugStage2">2 · 랩터</button><button id="debugStage3">3 · 프테라노돈</button><button id="debugStage4">4 · 스피노사우루스</button></div><div class="debug-actions"><button id="debugCourse">현재 지역 코스 처음부터</button></div><p id="debugBoss"></p><div class="debug-actions"><button id="debugPhase1">1단계</button><button id="debugPhase2">2단계</button><button id="debugPhase3">3단계</button></div><p id="debugStatus" role="status" aria-live="polite"></p><button id="closeDebug">닫기 · F2 / Esc</button></section>
+<div id="utility"><button id="homeBtn">홈</button><button id="settingsBtn">설정</button><button id="debugBtn" hidden aria-controls="debugPanel" aria-expanded="false">디버그</button><button id="onlineLeave">방 나가기</button><button id="sound">소리 꺼짐</button><button id="pauseBtn">일시정지</button><button id="full">전체화면</button></div>
+<section id="debugPanel" hidden role="dialog" aria-labelledby="debugHeading"><h2 id="debugHeading">디버그 · 지역 / 보스 단계</h2><p>패널을 연 동안 전투가 멈춥니다.<br>지역·단계를 변경한 여행은 기록·진행이 저장되지 않습니다.</p><p>지역 바로 이동</p><div class="debug-actions"><button id="debugStage1">1 · 트리케라톱스</button><button id="debugStage2">2 · 랩터</button><button id="debugStage3">3 · 프테라노돈</button><button id="debugStage4">4 · 스피노사우루스</button></div><div class="debug-actions"><button id="debugCourse">현재 지역 코스 처음부터</button></div><p id="debugBoss"></p><div class="debug-actions"><button id="debugOnline">온라인 대전 열기(시험)</button></div><div class="debug-actions"><button id="debugPhase1">1단계</button><button id="debugPhase2">2단계</button><button id="debugPhase3">3단계</button></div><p id="debugStatus" role="status" aria-live="polite"></p><button id="closeDebug">닫기 · F2 / Esc</button></section>
+<div id="killerPad"><button id="trap-rock">1 낙석</button><button id="trap-spike">2 가시</button><button id="trap-mace">3 철퇴</button><button id="trap-floor">4 바닥</button></div>
 <button id="skipIntro">도입부 건너뛰기 · Enter</button>
 <div id="touch"><div class="pad left"><button data-key="left" aria-label="왼쪽">◀</button><button data-key="right" aria-label="오른쪽">▶</button><button data-key="drop" aria-label="발판 아래로">▼</button></div><div class="pad right"><button data-key="throw">투척</button><button data-key="dash">회피</button><button data-key="jump">도약</button><button data-key="attack">창</button></div></div>
 </div><div id="rotate">가로 화면으로 돌리면 전투를 더 넓게 볼 수 있습니다.</div>
@@ -96,7 +101,7 @@ const TRI={stompFirst:4,stompEvery:6,stompRange:420,stompTell:.8,stompGap:.9,sto
    function loadProgress(){try{const p=JSON.parse(localStorage.getItem(JOURNEY_KEY)||'null');if(p?.cleared&&p.cleared[3]===undefined)p.cleared[3]=false;if(p?.cleared&&p.cleared[4]===undefined)p.cleared[4]=false;if((p?.stage===2||p?.stage===3)&&p.checkpoint==='ending')p.checkpoint='passage';if(!validProgress(p))return null;const q={version:1,stage:p.stage,checkpoint:p.checkpoint,cleared:{1:p.cleared[1],2:p.cleared[2],3:p.cleared[3],4:p.cleared[4]}};if(p.pos)q.pos={x:p.pos.x,y:p.pos.y};if(p.hp!==undefined)q.hp=p.hp;if(p.flag!==undefined)q.flag=p.flag;return q}catch(e){return null}}
   let progress=loadProgress(),clearDismissed=false;
    function saveProgress(keepPos=false){if(debugJourney||!progress)return;if(!keepPos&&progress.checkpoint!=='course'){delete progress.pos;delete progress.hp;delete progress.flag}try{localStorage.setItem(JOURNEY_KEY,JSON.stringify(progress));$('journeyStatus').textContent=''}catch(e){$('journeyStatus').textContent='저장 공간을 사용할 수 없어 이번 여행은 이 창에서만 이어집니다.'}refreshContinue()}
-  function refreshContinue(){$('continue').hidden=!progress}
+  function refreshContinue(){$('continue').hidden=!progress;$('onlineBtn').hidden=!onlineUnlocked()}
  function loadRecords(which=1){const empty={clears:0,bestStars:0,bestTime:null,recent:[]};try{const saved=JSON.parse(localStorage.getItem(STAGE_RECORD_KEY)||'null');const r=(which===1?JSON.parse(localStorage.getItem(RECORD_KEY)||'null'):null)||saved?.stages?.[which];if(!r||!Number.isInteger(r.clears)||r.clears<0||!Number.isInteger(r.bestStars)||r.bestStars<0||r.bestStars>5||!(r.bestTime===null||Number.isFinite(r.bestTime)&&r.bestTime>=0)||!Array.isArray(r.recent))return empty;return{clears:r.clears,bestStars:r.bestStars,bestTime:r.bestTime,recent:r.recent.filter(e=>Number.isFinite(e.seconds)&&e.seconds>=0&&Number.isInteger(e.hp)&&e.hp>=1&&e.hp<=6&&Number.isInteger(e.stars)&&e.stars>=1&&e.stars<=5&&Number.isFinite(e.at)&&e.at>0).slice(0,10)}}catch(e){return empty}}
  const stageRecords={1:loadRecords(1),2:loadRecords(2),3:loadRecords(3),4:loadRecords(4)};
  let records=stageRecords[1];
@@ -126,7 +131,7 @@ function openSettings(){if(mode==='settings')return;if(mode==='debug')closeDebug
 function closeSettings(){waitingKey=null;keys={};press={};mode=settingsReturn;layers(settingsLayer);refreshControls();if(mode==='playing')canvas.focus()}
 function goHome(){if(debugJourney)discardDebugJourney();else saveField();clearMeteors();mode='title';keys={};press={};cam=0;refreshContinue();renderRecords();layers('title');$('homeConfirm').hidden=true}
 let homeReturn='playing',homeLayer='';
-function requestHome(){if(mode==='title'||mode==='home')return;if(mode==='debug')closeDebug();homeReturn=mode;homeLayer=({settings:'settings',paused:'pause',dead:'dead',won:'win',records:'records'})[mode]||'';mode='home';keys={};press={};$('homeConfirm').hidden=false;layers('homeConfirm');$('cancelHome').focus()}
+function requestHome(){if(online){onlineClose(true);return}if(mode==='title'||mode==='home')return;if(mode==='debug')closeDebug();homeReturn=mode;homeLayer=({settings:'settings',paused:'pause',dead:'dead',won:'win',records:'records'})[mode]||'';mode='home';keys={};press={};$('homeConfirm').hidden=false;layers('homeConfirm');$('cancelHome').focus()}
 function cancelHome(){mode=homeReturn;keys={};press={};layers(homeLayer);if(mode==='playing'||mode==='cutscene')canvas.focus()}
 const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
 const decor=Array.from({length:100},()=>({x:rand()*3100,y:rand()*530,r:rand()*3+.5,s:rand()*2+1}));
@@ -137,7 +142,7 @@ function tone(f,d=.1,type='sine',vol=.06,delay=0){if(!sound)return;try{audio=aud
 function noise(d=.12,vol=.08){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const b=audio.createBuffer(1,Math.ceil(audio.sampleRate*d),audio.sampleRate),v=b.getChannelData(0);for(let i=0;i<v.length;i++)v[i]=(Math.random()*2-1)*(1-i/v.length);const n=audio.createBufferSource(),gain=audio.createGain();n.buffer=b;gain.gain.value=vol;n.connect(gain).connect(audio.destination);n.start()}catch(e){}}
 function burst(x,y,n,color=C.gold,power=190){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=Math.random()*power;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-60,life:.3+Math.random()*.5,max:.8,r:1+Math.random()*4,c:color})}}
 function message(t,sub='',duration=2.6){texts.push({t,sub,life:duration,max:duration})}
-function layers(id){['title','dead','pause','win','settings','records','homeConfirm'].forEach(x=>$(x).classList.toggle('open',x===id));$('shell').classList.toggle('cinematic',mode==='cutscene');$('shell').classList.toggle('at-title',mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title');$('shell').classList.toggle('in-play',mode==='playing');$('debugPanel').hidden=mode!=='debug';$('debugBtn').hidden=!['playing','paused','debug'].includes(mode);$('debugBtn').setAttribute('aria-expanded',String(mode==='debug'))}
+function layers(id){['title','dead','pause','win','settings','records','homeConfirm','online'].forEach(x=>$(x).classList.toggle('open',x===id));$('shell').classList.toggle('cinematic',mode==='cutscene');$('shell').classList.toggle('at-title',mode==='title'||mode==='online'||mode==='records'||mode==='settings'&&settingsReturn==='title');$('shell').classList.toggle('in-play',mode==='playing');$('debugPanel').hidden=mode!=='debug';$('debugBtn').hidden=!['playing','paused','debug'].includes(mode);$('debugBtn').setAttribute('aria-expanded',String(mode==='debug'))}
 function reset(toBoss=false){spear=null;player={x:toBoss?1660:150,y:FLOOR,vx:0,vy:0,dir:1,hp:PLAYER_HP,max:PLAYER_HP,jumps:0,ground:true,coyote:.1,jumpBuffer:0,atk:0,atkCD:0,attackHit:false,attackHits:new Set(),inv:0,dash:0,dashCD:0,hurt:0};boss={x:2450,y:FLOOR,hp:BOSS_HP,max:BOSS_HP,phase:1,state:'idle',timer:1.6,dir:-1,vx:0,elapsed:0,guardAt:9,diveAt:DIVE_INTERVAL,chargeCD:1.8,hit:0,transform:0,dead:false,kick:0,laserDelay:-1,laserTime:0,laserAngle:0,laserWarm:0,stompAt:TRI.stompFirst,stompsLeft:0,counterUsed:false,counterHit:false,waves:[]};particles=[];afterimages=[];texts=[];shake=0;flash=0;hitstop=0;arena=toBoss;checkpoint=toBoss;cam=toBoss?1500:0;runTime=0;damageTaken=0;keys={};press={};time=0;
   clearMeteors();
   raptors=[];raptorPhase=1;summoned=false;stageCleared=false;clearDismissed=false;clearTimer=0;howlRemaining=0;resetPack();
@@ -164,13 +169,13 @@ function markCleared(){stageCleared=true;progress=progress||{version:1,stage,che
 function finishIntro(){if(mode!=='cutscene')return;reset(false);mode='playing';layers('');canvas.focus();message('잊힌 뿔의 계곡','인록의 생존이 시작된다.',3)}
 function updateIntro(dt){introTime+=dt;if(introTime>=2.7&&!introLanded){introLanded=true;burst(560,FLOOR,36,C.mist,230);shake=10;noise(.3,.1);tone(75,.3,'triangle',.06)}if(introTime>=9.5&&!introPicked){introPicked=true;burst(738,FLOOR-28,18,C.gold,100);tone(440,.3,'triangle',.05);tone(660,.5,'triangle',.04,.14)}if(introTime>=13.5)finishIntro()}
 function retry(){if(stageCleared){if(mode==='won')continueJourney();else restoreProgress();return}attempt++;if(course){const at=courseRespawn(),which=stage;reset(false);enterCourse(which,at);mode='playing';layers('');canvas.focus();message('깃발에서','다시, 더 조심스럽게',1.6);return}const atCamp=checkpoint;reset(false);if(atCamp){checkpoint=true;player.x=1430;cam=1020}mode='playing';layers('');canvas.focus();if(atCamp)message('모닥불에서','문 너머의 울림은 아직 남아 있다',2)}
-function pause(){if(mode==='playing'||mode==='cutscene'){pausedFrom=mode;mode='paused';keys={};press={};layers('pause')}else if(mode==='paused'){mode=pausedFrom;layers('');canvas.focus()}}
+function pause(){if(online)return;if(mode==='playing'||mode==='cutscene'){pausedFrom=mode;mode='paused';keys={};press={};layers('pause')}else if(mode==='paused'){mode=pausedFrom;layers('');canvas.focus()}}
 function refreshDebug(){
  $('debugBoss').textContent=STAGE_NAMES[stage]+' · 현재 '+(stage===2?raptorPhase:boss.phase)+'단계';
  $('debugStatus').textContent=debugJourney?'디버그 테스트 · 기록·진행 저장 제외 (홈에서 종료)':'단계를 선택할 때만 테스트 실행으로 전환됩니다.';
  for(const n of [1,2,3])$('debugPhase'+n).disabled=stageCleared||boss.dead;for(const n of [1,2,3,4])$('debugStage'+n).setAttribute('aria-pressed',String(stage===n));
 }
-function toggleDebug(){
+function toggleDebug(){if(online)return false;
  if(mode==='debug'){closeDebug();return true}
  if(!['playing','paused'].includes(mode)||mode==='paused'&&pausedFrom!=='playing')return false;
  debugReturn=mode;mode='debug';keys={};press={};layers('');refreshDebug();$('closeDebug').focus();return true;
@@ -212,8 +217,11 @@ function clearStarsFor(hp){return hp>=6?5:hp===5?4:hp===4?3:hp===3?2:1}
 function showClearRating(hp){const stars=clearStarsFor(hp);$('clearStars').innerHTML=Array.from({length:5},(_,i)=>`<svg viewBox="0 0 32 32" aria-hidden="true" class="${i<stars?'earned':''}"><path d="M16 2 20.2 10.5 29.6 11.9 22.8 18.5 24.4 27.9 16 23.5 7.6 27.9 9.2 18.5 2.4 11.9 11.8 10.5Z"/></svg>`).join('');$('clearStars').setAttribute('aria-label',`별 5개 중 ${stars}개`);$('clearRating').textContent=`남은 체력 ${hp}칸 · 별 ${stars} / 5`}
 function configureWin(){const second=stage===2;$('winHeading').textContent=STAGE_NAMES[stage]+' · 돌파';$('winName').textContent=stage===4?'잠긴 달의 침묵':stage===3?'날개 너머의 고요':second?'울림의 끝':'거인의 침묵';$('winDescription').innerHTML=stage===4?'강철 지느러미가 가라앉았다.<br>검은 물 위로 달빛이 번진다.':stage===3?'강철 날개가 내려앉았다.<br>절벽에는 바람만이 남았다.':second?'두 발톱의 강철이 멈췄다.<br>동굴에 다시 고요가 찾아왔다.':'강철의 뿔이 부서졌다.<br>당신의 창은, 아직 꺾이지 않았다.';$('winNote').textContent=stage===4?'오른편 길에서 잠시 숨을 고릅니다.':stage===3?'오른편 길이 물가로 이어집니다.':second?'오른편 길이 하늘 절벽으로 이어집니다.':'오른편의 문이 열렸습니다.'}
 function victory(){if(stage===2){if(stageCleared||!summoned||raptors.some(r=>!r.dead))return;markCleared();clearTimer=2.3;configureWin();showClearRating(player.hp);recordClear();shake=18;burst(player.x,FLOOR-60,65,C.gold,340);return}if(boss.dead)return;clearMeteors();markCleared();configureWin();showClearRating(player.hp);recordClear();boss.laserTime=0;boss.laserDelay=-1;boss.dead=true;boss.state='dead';boss.timer=2.3;shake=18;flash=.5;burst(boss.x,FLOOR-100,85,C.gold,440);noise(.7,.18);[220,330,440,660].forEach((f,i)=>tone(f,.7,'triangle',.08,i*.16));}
+// 온라인: 대기실에선 입력칸 타자를 막지 않고, 대전 중엔 일시정지·재도전·디버그를 막는다. 킬러는 1~4로 함정.
+function onlineKey(e){if(mode==='online')return true;if(mode!=='playing')return false;const n=/^(Digit|Numpad)([1-4])$/.exec(e.code);if(n){e.preventDefault();if(!e.repeat)killerTrap(RUN_TYPES[+n[2]-1]);return true}if(['Escape','F2'].includes(e.code)||actionFor(e.code)==='retry'){e.preventDefault();return true}return false}
 function actionFor(code){return Object.keys(bindings).find(a=>bindings[a]===code)}
 window.addEventListener('keydown',e=>{
+ if(online&&onlineKey(e))return;
  if(e.code==='F2'){if(['playing','paused','debug'].includes(mode)){e.preventDefault();if(!e.repeat)toggleDebug()}return}
  if(mode==='debug'){if(e.code==='Escape'){e.preventDefault();if(!e.repeat)closeDebug()}else if(actionFor(e.code)&&!['Enter','Space'].includes(e.code))e.preventDefault();return}
  if(mode==='home'){if(e.code==='Escape'){e.preventDefault();cancelHome()}return}if(mode==='settings'){e.preventDefault();if(e.repeat)return;if(e.code==='Escape'){if(waitingKey){waitingKey=null;refreshControls()}else closeSettings();return}if(waitingKey)assignKey(waitingKey,e.code);return}if(mode==='records'){if(e.code==='Escape')$('closeRecords').onclick();return}if(mode==='title'){if(e.code==='Enter'&&e.target===canvas){e.preventDefault();start()}return}const k=actionFor(e.code);if(k||['Escape','Enter'].includes(e.code))e.preventDefault();if(e.repeat)return;if(e.code==='Escape'){pause();return}if(mode==='cutscene'){if(e.code==='Enter')finishIntro();return}if(mode==='won'&&(k==='retry'||e.code==='Enter')){continueJourney();return}if(mode==='dead'&&(k==='retry'||e.code==='Enter')){retry();return}if(mode==='playing'&&k==='retry'){retry();return}if(k&&mode==='playing'){keys[k]=true;press[k]=true}});
@@ -223,7 +231,7 @@ document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerd
 canvas.addEventListener('pointerdown',()=>{if(mode==='playing'){keys.attack=true;press.attack=true;canvas.focus()}});window.addEventListener('pointerup',()=>{if(!matchMedia('(pointer:coarse)').matches)keys.attack=false});
   $('start').onclick=start;$('continue').onclick=continueSaved;$('retry').onclick=retry;$('continueJourney').onclick=continueJourney;$('resume').onclick=pause;$('pauseBtn').onclick=pause;
   $('skipIntro').onclick=finishIntro;
- $('debugBtn').onclick=toggleDebug;$('debugCourse').onclick=()=>debugCourse();$('closeDebug').onclick=closeDebug;for(const n of [1,2,3])$('debugPhase'+n).onclick=()=>debugPhase(n);for(const n of [1,2,3,4])$('debugStage'+n).onclick=()=>debugStage(n);
+ $('debugBtn').onclick=toggleDebug;$('onlineBtn').onclick=openOnlineLobby;$('onlineCreateBtn').onclick=()=>onlineCreate($('onlineName').value.trim());$('onlineJoinBtn').onclick=()=>onlineJoin($('onlineName').value.trim(),$('onlineJoinCode').value);$('onlineStartBtn').onclick=onlineStart;$('onlineAgainBtn').onclick=onlineRestart;$('onlineBack').onclick=()=>onlineClose(true);$('onlineLeave').onclick=()=>onlineClose(true);$('debugOnline').onclick=()=>{closeDebug();openOnlineLobby()};for(const k of ['rock','spike','mace','floor'])$('trap-'+k).addEventListener('pointerdown',e=>{e.preventDefault();killerTrap(k)});$('debugCourse').onclick=()=>debugCourse();$('closeDebug').onclick=closeDebug;for(const n of [1,2,3])$('debugPhase'+n).onclick=()=>debugPhase(n);for(const n of [1,2,3,4])$('debugStage'+n).onclick=()=>debugStage(n);
   $('winHome').onclick=goHome;$('openRecords').onclick=()=>{mode='records';renderRecords();layers('records');$('closeRecords').focus()};$('closeRecords').onclick=()=>{mode='title';layers('title');$('openRecords').focus()};refreshContinue();
  $('returnTitle').onclick=requestHome;$('homeBtn').onclick=requestHome;$('settingsBtn').onclick=()=>{if(mode!=='home')openSettings()};$('titleSettings').onclick=openSettings;$('closeSettings').onclick=closeSettings;$('confirmHome').onclick=goHome;$('cancelHome').onclick=cancelHome;$('resetKeys').onclick=()=>{bindings={...defaults};waitingKey=null;saveKeys()};$('bindings').addEventListener('click',e=>{const b=e.target.closest('[data-bind]');if(b){waitingKey=b.dataset.bind;$('settingsStatus').textContent=actionNames[waitingKey]+'에 사용할 키를 누르세요. Esc로 취소합니다.';refreshControls()}});refreshControls();$('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'소리 켜짐':'소리 꺼짐';if(sound)tone(440,.15)};
 $('full').onclick=()=>{const s=$('shell');if(document.fullscreenElement){document.exitFullscreen?.().catch(()=>{})}else if(s.requestFullscreen)s.requestFullscreen().catch(()=>message('전체화면을 사용할 수 없습니다','브라우저의 전체화면 기능을 이용하세요'));};
@@ -512,7 +520,7 @@ function courseLedges(){const c=course,run=courseRun,out=[];if(!c)return out;
  c.ledges.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'ledge',i}));
  c.crumbles.forEach(([x,y,w],i)=>{if(run.crumble[i].down<=0)out.push({x,y,w,kind:'crumble',i})});
  c.movers.forEach((m,i)=>{const q=run.movers[i];out.push({x:q.x,y:q.y,w:m[2],kind:'mover',i})});
- c.water.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'water',i}));(c.blinks||[]).forEach((b,i)=>{if(blinkPhase(b,run.t)!=='off')out.push({x:b[0],y:b[1],w:b[2],kind:'blink',i})});return out}
+ c.water.forEach(([x,y,w],i)=>out.push({x,y,w,kind:'water',i}));if(c.online)out.push(...trapFloors());(c.blinks||[]).forEach((b,i)=>{if(blinkPhase(b,run.t)!=='off')out.push({x:b[0],y:b[1],w:b[2],kind:'blink',i})});return out}
 function enterCourse(which,at){const c=COURSES[which];if(!c)return false;course=c;
  courseRun={t:0,flag:at?at.flag??-1:-1,crumble:c.crumbles.map(()=>({stand:0,down:0})),movers:c.movers.map(m=>({...moverPos(m,0),ddx:0,ddy:0}))};
  arena=false;checkpoint=false;spear=null;const [x,y]=at?[at.x,at.y]:c.spawn;
@@ -534,9 +542,9 @@ function courseMove(p,dt){const c=course,run=courseRun,body=()=>({x:p.x-13,y:p.y
  // 마지막으로 밟은 단단한 땅: 물·움직이는 발판·무너지는 발판·가시 위는 제외.
  if(p.ground){if(!wasGround&&p.y-(p.peakY??p.y)>COURSE_RULES.fatalFall){courseFall();return}p.peakY=p.y}else p.peakY=Math.min(p.peakY??p.y,p.y);
  if(p.ground&&!p.wet&&p.mover<0&&p.crumble<0&&p.blink<0&&!c.spikes.some(([sx,sy,sw])=>Math.abs(p.y-sy)<1&&p.x+13>sx&&p.x-13<sx+sw))p.safe={x:p.x,y:p.y}}
-function hurtCourse(kind,srcX){const p=player;if(p.inv>0||p.dash>0)return false;p.hp=Math.max(0,p.hp-1);damageTaken++;p.inv=1.05;p.hurt=.25;p.vx=(p.x<srcX?-1:1)*320;p.vy=-300;p.ground=false;p.jumps=Math.max(1,p.jumps);p.coyote=0;p.atk=0;shake=10;flash=.13;burst(p.x,p.y-30,16,C.red);noise(.18,.1);if(!p.hp){die();$('deathHint').textContent=COURSE_HINTS[kind]}return true}
+function hurtCourse(kind,srcX){const p=player;if(course&&course.online){if(p.inv>0||p.dash>0)return false;onlineLoseLife(kind);return true}if(p.inv>0||p.dash>0)return false;p.hp=Math.max(0,p.hp-1);damageTaken++;p.inv=1.05;p.hurt=.25;p.vx=(p.x<srcX?-1:1)*320;p.vy=-300;p.ground=false;p.jumps=Math.max(1,p.jumps);p.coyote=0;p.atk=0;shake=10;flash=.13;burst(p.x,p.y-30,16,C.red);noise(.18,.1);if(!p.hp){die();$('deathHint').textContent=COURSE_HINTS[kind]}return true}
 // 낭떠러지 추락은 즉사. 다시 하기는 마지막 깃발에서.
-function courseFall(){const p=player;damageTaken+=p.hp;p.hp=0;p.y=course.bottom;flash=.25;shake=10;noise(.4,.12);die();$('deathHint').textContent=COURSE_HINTS.fall}
+function courseFall(){const p=player;if(course&&course.online){onlineLoseLife('fall');return}damageTaken+=p.hp;p.hp=0;p.y=course.bottom;flash=.25;shake=10;noise(.4,.12);die();$('deathHint').textContent=COURSE_HINTS.fall}
 function courseContacts(p,dt){const c=course,run=courseRun,t=run.t;
  if(p.wet){const w=c.water.find(([x,,ww])=>p.x>=x&&p.x<=x+ww);if(w&&w[3]&&p.dash<=0)p.x=clamp(p.x+w[3]*dt,c.left+13,c.right-13)}
  for(const w of c.winds)if(windPhase(w,t)==='on'&&p.dash<=0&&overlap(playerRect(),{x:w[0],y:w[1],w:w[2],h:w[3]}))p.x=clamp(p.x+w[4]*dt,c.left+13,c.right-13);
@@ -549,7 +557,7 @@ function courseContacts(p,dt){const c=course,run=courseRun,t=run.t;
  c.flags.forEach(([fx,fy],i)=>{if(i>run.flag&&Math.abs(p.x-fx)<45&&Math.abs(p.y-fy)<70){run.flag=i;p.safe={x:fx,y:fy};message('깃발에 불을 지폈다','여기서 다시 시작한다 · 체력은 그대로',2);tone(520,.3,'triangle',.05);burst(fx,fy-30,24,C.gold,180);if(progress&&!debugJourney){progress.checkpoint='course';progress.pos={x:fx,y:fy};progress.hp=p.hp;progress.flag=i;saveProgress(true)}}});
  if(overlap(r,{x:c.end[0],y:c.end[1],w:c.end[2],h:c.end[3]}))finishCourse()}
 // 코스 끝: 보스 앞 모닥불로. 다음 프레임 모닥불 체크포인트가 체력을 채우고 저장한다.
-function finishCourse(){const c=course;course=null;courseRun=null;camY=0;spear=null;Object.assign(player,{x:1430,y:FLOOR,vx:0,vy:0,ground:true,jumps:0,wet:false,mover:-1,crumble:-1,breath:0});checkpoint=false;arena=false;cam=clamp(1430-410,0,worldEnd()-W);message(c.finish[0],c.finish[1],3);if(progress&&!debugJourney){progress.checkpoint='camp';saveProgress()}}
+function finishCourse(){const c=course;if(c&&c.online){onlineFinish();return}course=null;courseRun=null;camY=0;spear=null;Object.assign(player,{x:1430,y:FLOOR,vx:0,vy:0,ground:true,jumps:0,wet:false,mover:-1,crumble:-1,breath:0});checkpoint=false;arena=false;cam=clamp(1430-410,0,worldEnd()-W);message(c.finish[0],c.finish[1],3);if(progress&&!debugJourney){progress.checkpoint='camp';saveProgress()}}
 // 저장하고 나가기: 지금 자리와 체력. 코스는 마지막으로 밟은 단단한 땅, 보스전 중이면 모닥불(전투 처음부터).
 function saveField(){if(!progress||debugJourney){saveProgress();return}const p=player;
  if(course){const dead=p.hp<=0,at=dead?courseRespawn():{x:p.safe.x,y:p.safe.y,flag:courseRun.flag};progress.checkpoint='course';progress.pos={x:Math.round(at.x),y:Math.round(at.y)};progress.hp=dead?PLAYER_HP:p.hp;progress.flag=at.flag;saveProgress(true);return}
@@ -677,7 +685,7 @@ function debugCourse(){if(mode!=='debug'||!COURSES[stage])return false;if(!debug
  if(dist>36)boss.x+=boss.dir*Math.min(speed*dt,dist-36);
  boss.x=clamp(boss.x,1560,2725);
 }
-function throwSpear(){if(spear||player.dash>0||player.hurt>0)return false;const p=player;spear={x:p.x+p.dir*26,y:p.y-34,vx:p.dir*760,vy:-330,angle:p.dir>0?-.4:Math.PI+.4,state:'flying',age:0,wallTime:0,hit:false,hits:new Set()};p.atk=0;p.atkCD=Math.max(.2,p.atkCD);noise(.1,.03);tone(400,.1,'triangle',.04);return true}
+function throwSpear(){if(online)return false;if(spear||player.dash>0||player.hurt>0)return false;const p=player;spear={x:p.x+p.dir*26,y:p.y-34,vx:p.dir*760,vy:-330,angle:p.dir>0?-.4:Math.PI+.4,state:'flying',age:0,wallTime:0,hit:false,hits:new Set()};p.atk=0;p.atkCD=Math.max(.2,p.atkCD);noise(.1,.03);tone(400,.1,'triangle',.04);return true}
 function segmentRect(x,y,ex,ey,r){let lo=0,hi=1;for(const [start,delta,min,max]of [[x,ex-x,r.x-9,r.x+r.w+9],[y,ey-y,r.y-9,r.y+r.h+9]]){if(Math.abs(delta)<.00001){if(start<min||start>max)return false}else{let a=(min-start)/delta,b=(max-start)/delta;if(a>b)[a,b]=[b,a];lo=Math.max(lo,a);hi=Math.min(hi,b);if(lo>hi)return false}}return true}
 function updateSpear(dt){if(!spear)return;const s=spear;s.age+=dt;
  if(s.state==='stuck'){s.wallTime-=dt;if(s.wallTime<=0){s.state='falling';s.vx=0;s.vy=0}}
@@ -724,9 +732,10 @@ function updatePlayer(dt){
   else{if(arena&&!boss.dead&&boss.state!=='transform'&&overlap({x:p.x-13,y:p.y-45,w:26,h:45},bossRect()))hurt();
   if(mode==='playing'&&arena&&!boss.dead&&laserHitsPlayer())hurt('laser');}}
 }
-function update(dt){if(!['playing','cutscene','title'].includes(mode))return;time+=dt;shake=Math.max(0,shake-dt*24);flash=Math.max(0,flash-dt);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=520*dt}particles=particles.filter(p=>p.life>0);for(const a of afterimages)a.life-=dt;afterimages=afterimages.filter(a=>a.life>0);for(const t of texts)t.life-=dt;texts=texts.filter(t=>t.life>0);
+function update(dt){if(online){onlineTick(dt);if(online&&mode==='online'){time+=dt;return}}if(!['playing','cutscene','title'].includes(mode))return;time+=dt;shake=Math.max(0,shake-dt*24);flash=Math.max(0,flash-dt);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=520*dt}particles=particles.filter(p=>p.life>0);for(const a of afterimages)a.life-=dt;afterimages=afterimages.filter(a=>a.life>0);for(const t of texts)t.life-=dt;texts=texts.filter(t=>t.life>0);
  if(mode==='cutscene'){updateIntro(dt);return}
  if(mode!=='playing')return;
+ if(online&&online.round&&course){onlineStep(online.phase==='run'?dt:0);press={};return}
  runTime+=dt;if(hitstop>0){hitstop-=dt;return}updateBoss(dt);if(course)updateCourse(dt);if(mode==='playing'){updatePlayer(dt);if(mode==='playing')updateSpear(dt)}
   if(course){cam=lerp(cam,courseCamX(player.x),Math.min(1,dt*6));camY=lerp(camY,courseCamY(player.y),Math.min(1,dt*5));press={};return}
   const target=arena&&!stageCleared?(stage===4?clamp(player.x-560,1500,worldEnd()-W):1500):clamp(player.x-410,0,worldEnd()-W);cam=lerp(cam,target,Math.min(1,dt*6));press={};}
@@ -870,8 +879,150 @@ function spinoHud(){const b=boss;if(arena&&!b.dead){g.textAlign='center';g.font=
  // 숨 게이지(주인공 머리 위).
  const br=player.breath||0;if((arena||course)&&!stageCleared&&(isSwimming()||br>0)){const x=player.x-cam,y=player.y-camY-80,left=1-clamp(br/SPINO.breath,0,1);g.fillStyle='#0b1b26cc';g.fillRect(x-24,y,48,6);g.fillStyle=left>0?'#8fd8ff':'#ff7a5a';g.fillRect(x-24,y,48*(left>0?left:1),6);g.font='10px sans-serif';g.textAlign='center';g.fillStyle=left>0?'#cfeaf2':'#ffb3a0';g.fillText(left>0?'숨':'숨이 차다',x,y-4)}}
 
+
+// ── 온라인 대전 (4지역을 한 번 클리어하면 해금) ──
+// 서버: 뮤됴구 Supabase 실시간 채널(broadcast)만 사용한다. DB 표 없음. 방 코드 = 채널 이름.
+// 방장 화면이 방·라운드·탈락 판정을 맡고, 각자 자기 캐릭터 움직임은 자기 화면에서 계산해 초당 5번 보낸다.
+// 방장이 나가면 방이 끝난다. 최대 8명. 미니게임이 이어지며 마지막 한 명이 우승. 지금 미니게임: 1번 원시런.
+const ONLINE={url:'wss://nvpvdkxovknhqglfbhmv.supabase.co/realtime/v1/websocket',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52cHZka3hvdmtuaHFnbGZiaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODA1NDgsImV4cCI6MjEwODQ1NjU0OH0.sbayovYN3rAJIoqGXcBLzaEMlZ4CCIn7I_PO6pFRHUs',max:8,posEvery:.2,aliveEvery:2,timeout:6,joinWait:6,countdown:3,resultTime:5,roundTime:90,lives:3,scroll:55,respawnInv:1.5,trapCool:2.2};
+const RUN_TRAPS={rock:{key:1,name:'낙석',life:1.5},spike:{key:2,name:'가시',life:1.6},mace:{key:3,name:'철퇴',life:1.7},floor:{key:4,name:'바닥',life:3.4}};
+const RUN_TYPES=['rock','spike','mace','floor'];
+// 1번 원시런 맵(동굴). 자연 구덩이 2곳 + 함정 바닥 3곳(구덩이 위 다리). 함정: [종류,x,y,w] — 낙석은 x, 가시·바닥은 [x,y,w], 철퇴는 천장 축 x.
+COURSES.run={name:'원시런',online:true,theme:2,left:0,right:5600,top:0,bottom:1000,ceil:160,spawn:[160,602],end:[5450,300,150,302],dark:0,
+ enter:['원시런','킬러의 함정을 피해 결승선까지'],finish:['완주!','결승선을 통과했다'],
+ blocks:[[0,602,900,400],[1050,602,700,400],[1900,602,500,400],[2400,500,300,502],[2850,602,600,400],[3600,602,500,400],[4250,602,1350,400]],
+ ledges:[],crumbles:[],movers:[],spikes:[],maces:[],vines:[],flags:[],winds:[],water:[],drips:[],lights:[],route:[],
+ traps:[['rock',500],['spike',700,602,90],['mace',1000],['rock',1200],['spike',1400,602,90],['mace',1600],['floor',1750,602,150],['rock',1700],['spike',2150,602,90],['rock',2550],['mace',2600],['spike',3000,602,90],['rock',3200],['floor',3450,602,150],['mace',3350],['spike',3800,602,90],['rock',3900],['floor',4100,602,150],['mace',4400],['rock',4600],['spike',4700,602,90],['mace',4950],['rock',5100],['spike',5250,602,90]]};
+let online=null,makeTransport=supabaseTransport;
+function openOnlineLobby(){if(online)onlineClose(false);mode='online';$('shell').classList.remove('online-play','killer');layers('online');refreshOnlineUi();return true}
+function onlineUnlocked(){return stageRecords[4].clears>0}
+function onlineId(){return Math.random().toString(36).slice(2,10)}
+function roomCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ';let s='';for(let i=0;i<4;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
+// Supabase Realtime(Phoenix) 웹소켓. 메시지는 모두 broadcast 이벤트 'm' 하나로 보낸다.
+function supabaseTransport(topic,onMsg,onStatus){let ws,ref=1,hb=0,closed=false,queue=[];const t='realtime:'+topic;
+ try{ws=new WebSocket(`${ONLINE.url}?apikey=${ONLINE.key}&vsn=1.0.0`)}catch(e){setTimeout(()=>onStatus('error'),0);return{send(){},close(){}}}
+ const raw=o=>{o.ref=String(ref++);const s=JSON.stringify(o);if(ws.readyState===1)ws.send(s);else queue.push(s)};
+ ws.onopen=()=>{raw({topic:t,event:'phx_join',payload:{config:{broadcast:{self:false,ack:false},presence:{key:''},private:false},access_token:ONLINE.key},join_ref:'1'});const q=queue;queue=[];q.forEach(s=>ws.send(s));hb=setInterval(()=>raw({topic:'phoenix',event:'heartbeat',payload:{}}),25000)};
+ ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(x){return}if(d.topic!==t)return;if(d.event==='phx_reply'&&d.payload)onStatus(d.payload.status==='ok'?'joined':'error');else if(d.event==='broadcast'&&d.payload&&d.payload.payload)onMsg(d.payload.payload);else if(d.event==='phx_error'||d.event==='phx_close')onStatus('error')};
+ ws.onerror=()=>onStatus('error');ws.onclose=()=>{clearInterval(hb);if(!closed)onStatus('closed')};
+ return{send(m){raw({topic:t,event:'broadcast',payload:{type:'broadcast',event:'m',payload:m}})},close(){closed=true;clearInterval(hb);try{if(ws.readyState===1)ws.send(JSON.stringify({topic:t,event:'phx_leave',payload:{},ref:String(ref++)}));ws.close()}catch(e){}}}}
+function onlineSend(m){if(online&&online.tx)online.tx.send({...m,from:online.me})}
+function onlinePlayer(id){return online&&online.players.find(p=>p.id===id)}
+function onlineOpen(isHost,name,code){if(online)onlineClose(false);
+ const me=onlineId();online={me,name:(name||'원시인').slice(0,10),code,isHost,hostId:isHost?me:null,players:isHost?[{id:me,name:(name||'원시인').slice(0,10),alive:true}]:[],phase:isHost?'lobby':'connecting',clock:0,seen:{},aliveAt:0,posAt:0,round:null,notice:'',remote:{},cool:{rock:0,spike:0,mace:0,floor:0},status:'connecting',lastKiller:null,joinedAt:0};
+ online.tx=makeTransport('pj-'+code,m=>onlineReceive(m),s=>{if(!online)return;online.status=s;if(s==='joined'&&!online.isHost)onlineSend({k:'hello',name:online.name});if((s==='error'||s==='closed')&&online.phase!=='closed'){onlineEnd('서버에 연결하지 못했습니다. 인터넷 연결을 확인하세요.')}refreshOnlineUi()});
+ if(!isHost)onlineSend({k:'hello',name:online.name});
+ try{localStorage.setItem('primalJourney.online.name',online.name)}catch(e){}
+ stage=2;mode='online';layers('online');refreshOnlineUi();return online}
+function onlineCreate(name){return onlineOpen(true,name,roomCode())}
+function onlineJoin(name,code){code=String(code||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);if(code.length!==4){$('onlineNote').textContent='방 코드 4글자를 입력하세요.';return null}return onlineOpen(false,name,code)}
+function onlineEnd(notice){if(!online)return;$('shell').classList.remove('online-play','killer');online.phase='closed';online.notice=notice;online.round=null;course=null;courseRun=null;camY=0;mode='online';layers('online');refreshOnlineUi()}
+function onlineClose(toTitle=true){if(online){if(online.isHost)onlineSend({k:'close'});else onlineSend({k:'bye'});try{online.tx.close()}catch(e){}}online=null;course=null;courseRun=null;camY=0;keys={};press={};$('shell').classList.remove('online-play','killer');if(toTitle){mode='title';cam=0;layers('title');refreshContinue()}}
+function rosterMsg(){return{k:'roster',players:online.players.map(p=>({id:p.id,name:p.name,alive:p.alive})),phase:online.phase==='lobby'?'lobby':'game',hostId:online.me}}
+function onlineReceive(m){const o=online;if(!o||!m||m.from===o.me||o.phase==='closed')return;if(m.to&&m.to!==o.me)return;o.seen[m.from]=o.clock;
+ if(o.isHost){
+  if(m.k==='hello'){if(onlinePlayer(m.from)){onlineSend(rosterMsg());return}if(o.phase!=='lobby'){onlineSend({k:'reject',to:m.from,reason:'이미 대전이 시작된 방입니다.'});return}if(o.players.length>=ONLINE.max){onlineSend({k:'reject',to:m.from,reason:'방이 가득 찼습니다(최대 8명).'});return}o.players.push({id:m.from,name:String(m.name||'원시인').slice(0,10),alive:true});onlineSend(rosterMsg());refreshOnlineUi();return}
+  if(m.k==='bye'){onlineDrop(m.from);return}
+ }else{
+  if(m.from===o.hostId||m.k==='roster')o.seen.host=o.clock;
+  if(m.k==='roster'){if(o.hostId&&m.from!==o.hostId)return;o.hostId=m.from;o.players=m.players.map(p=>({...p}));if(o.phase==='connecting'&&o.players.some(p=>p.id===o.me)){o.phase='lobby';o.joinedAt=o.clock}if(o.phase!=='connecting'&&!o.players.some(p=>p.id===o.me)&&o.phase!=='closed'){onlineEnd('방에서 나가졌습니다.');return}refreshOnlineUi();return}
+  if(m.k==='reject'){onlineEnd(m.reason);return}
+  if(m.k==='close'){if(m.from===o.hostId)onlineEnd('방장이 나가 방이 끝났습니다.');return}
+  if(m.k==='round'){onlineBeginRound(m);return}
+  if(m.k==='result'){onlineApplyResult(m);return}
+  if(m.k==='lobby'){o.phase='lobby';o.round=null;course=null;mode='online';layers('online');refreshOnlineUi();return}
+ }
+ const r=o.round;if(!r)return;
+ if(m.k==='pos'){const s=r.state[m.from];if(!s)return;Object.assign(s,{lives:m.l,fin:s.fin||!!m.f,out:s.out||!!m.o});const buf=o.remote[m.from]||(o.remote[m.from]=[]);buf.push({t:o.clock,x:m.x,y:m.y,d:m.d});while(buf.length>8)buf.shift();return}
+ if(m.k==='fin'&&r.state[m.from]){r.state[m.from].fin=true;return}
+ if(m.k==='out'&&r.state[m.from]){r.state[m.from].out=true;r.state[m.from].lives=0;return}
+ if(m.k==='trap'&&m.from===r.killer&&Array.isArray(m.ids))for(const i of m.ids)activateTrap(i);
+}
+// 방장: 사람이 나가거나 응답이 끊기면 빼고(대전 중이면 탈락), 바뀐 명단을 알린다.
+function onlineDrop(id){const o=online;if(!o||!o.isHost||id===o.me)return;if(o.phase==='lobby')o.players=o.players.filter(p=>p.id!==id);else{const p=onlinePlayer(id);if(p){p.alive=false;p.left=true}if(o.round&&o.round.state[id]){o.round.state[id].out=true}}delete o.seen[id];onlineSend(rosterMsg());refreshOnlineUi()}
+function onlineStart(){const o=online;if(!o||!o.isHost||o.phase!=='lobby'||o.players.length<2)return false;o.players.forEach(p=>{p.alive=true;p.left=false});onlineNextRound();return true}
+function onlineNextRound(){const o=online,alive=o.players.filter(p=>p.alive&&!p.left);if(alive.length<2){const w=alive[0];onlineApplyResult({k:'result',elim:[],alive:alive.map(p=>p.id),winner:w?w.id:null,final:true});onlineSend({k:'result',elim:[],alive:alive.map(p=>p.id),winner:w?w.id:null,final:true});return}
+ const pool=alive.filter(p=>p.id!==o.lastKiller),pick=(pool.length?pool:alive)[Math.floor(Math.random()*(pool.length?pool:alive).length)];o.lastKiller=pick.id;
+ const m={k:'round',no:(o.round?o.round.no:0)+1,game:'run',killer:pick.id,runners:alive.filter(p=>p.id!==pick.id).map(p=>p.id),names:Object.fromEntries(o.players.map(p=>[p.id,p.name]))};onlineSend(m);onlineBeginRound(m)}
+function onlineBeginRound(m){const o=online;o.phase='countdown';o.remote={};o.cool={rock:0,spike:0,mace:0,floor:0};
+ o.round={no:m.no,game:m.game,killer:m.killer,runners:m.runners,names:m.names||{},t:-ONLINE.countdown,state:Object.fromEntries(m.runners.map(id=>[id,{lives:ONLINE.lives,fin:false,out:false}])),result:null,sentFin:false,sentOut:false,ended:false};
+ reset(false);enterCourse('run',null);courseRun.trap=COURSES.run.traps.map(()=>({at:-99}));cam=0;camY=0;
+ const me=o.round.state[o.me];if(me){const i=o.round.runners.indexOf(o.me);player.x=120+i*28;player.y=602;player.safe={x:player.x,y:602}}
+ texts=[];message(`${m.no}라운드 · 원시런`,o.me===m.killer?'당신은 킬러! 1~4로 함정을 발동하라':me?'함정을 피해 결승선까지 · 목숨 3개':'관전 중',2.6);
+ mode='playing';layers('');$('shell').classList.add('online-play');$('shell').classList.toggle('killer',o.me===m.killer);refreshOnlineUi();canvas.focus()}
+function onlineRunner(){const r=online&&online.round;return r&&r.state[online.me]}
+function onlineAmRunning(){const s=onlineRunner();return !!s&&!s.fin&&!s.out&&online.phase==='run'}
+// 원시런 목숨: 함정·구멍·화면 왼쪽 끝에 밀리면 하나 잃고 화면 가운데 하늘에서 다시 떨어진다.
+function onlineLoseLife(kind){const s=onlineRunner();if(!s||s.fin||s.out||online.phase!=='run')return;const p=player;s.lives--;flash=.2;shake=8;burst(p.x,p.y-30,18,C.red,200);noise(.25,.1);
+ if(s.lives<=0){s.lives=0;s.out=true;onlineSend({k:'out'});message('탈락','목숨을 모두 잃었다 · 관전 중',2.2);return}
+ Object.assign(p,{x:cam+W/2,y:150,vx:0,vy:0,ground:false,jumps:1,inv:ONLINE.respawnInv,hurt:0,dash:0,peakY:150});message(`남은 목숨 ${s.lives}`,'',1.2)}
+function onlineFinish(){const s=onlineRunner();if(!s||s.fin||s.out)return;s.fin=true;onlineSend({k:'fin'});message('완주!','결승선 통과 · 관전 중',2.2);tone(660,.4,'triangle',.06)}
+function trapLive(i){const tr=courseRun&&courseRun.trap&&courseRun.trap[i];if(!tr)return -1;const u=courseRun.t-tr.at,life=RUN_TRAPS[COURSES.run.traps[i][0]].life;return u>=0&&u<life?u:-1}
+function activateTrap(i){if(!courseRun||!courseRun.trap||!courseRun.trap[i]||trapLive(i)>=0)return false;courseRun.trap[i].at=courseRun.t;return true}
+// 킬러: 화면 안에 있는 그 종류의 함정을 한꺼번에 발동한다(종류마다 2.2초 대기).
+function killerTrap(type){const o=online,r=o&&o.round;if(!r||o.me!==r.killer||o.phase!=='run'||o.cool[type]>0)return false;const ids=[];COURSES.run.traps.forEach((tr,i)=>{if(tr[0]===type&&tr[1]>cam-40&&tr[1]<cam+W+40&&trapLive(i)<0)ids.push(i)});if(!ids.length)return false;ids.forEach(activateTrap);o.cool[type]=ONLINE.trapCool;onlineSend({k:'trap',type,ids});tone(220,.2,'sawtooth',.05);return true}
+function trapGeom(i,u){const [type,x,y,w]=COURSES.run.traps[i],c=COURSES.run;
+ if(type==='rock'){if(u<.4)return{type,tell:true,x,y:c.ceil+20};const yy=c.ceil+20+(u-.4)*900;return yy<602?{type,x,y:yy,r:24}:null}
+ if(type==='spike')return u<.35?{type,tell:true,x,y,w}:{type,x,y,w,rect:{x,y:y-32,w,h:32}};
+ if(type==='mace'){if(u<.3)return{type,tell:true,x,ball:{x:x-380*Math.sin(1.25),y:c.ceil+380*Math.cos(1.25)}};const a=-1.25+2.5*clamp((u-.3)/1.4,0,1);return{type,x,ball:{x:x+380*Math.sin(a),y:c.ceil+380*Math.cos(a)},r:26}}
+ if(type==='floor')return{type,x,y,w,tell:u<.35,gone:u>=.35}}
+// 함정 바닥은 평소엔 발판(구덩이 위 다리), 발동되면 3초 동안 사라진다.
+function trapFloors(){const out=[];if(!course||!course.online||!courseRun.trap)return out;COURSES.run.traps.forEach((tr,i)=>{if(tr[0]!=='floor')return;const u=trapLive(i);if(u<0||u<.35)out.push({x:tr[1],y:tr[2],w:tr[3],kind:'trapfloor',i})});return out}
+function runTrapContacts(p){if(p.inv>0||p.dash>0)return;const r=playerRect();COURSES.run.traps.forEach((tr,i)=>{const u=trapLive(i);if(u<0)return;const q=trapGeom(i,u);if(!q||q.tell)return;
+ if(q.rect&&overlap(r,q.rect))return onlineLoseLife('spike');const b=q.ball||(q.r&&q.type==='rock'?{x:q.x,y:q.y}:null);if(b){const dx=b.x-clamp(b.x,r.x,r.x+r.w),dy=b.y-clamp(b.y,r.y,r.y+r.h);if(dx*dx+dy*dy<q.r*q.r)onlineLoseLife(q.type)}})}
+function onlineTick(dt){const o=online;if(!o)return;o.clock+=dt;
+ if(o.phase!=='closed'&&o.clock-o.aliveAt>=ONLINE.aliveEvery){o.aliveAt=o.clock;onlineSend(o.isHost?rosterMsg():{k:'alive'})}
+ if(o.isHost){for(const p of o.players)if(p.id!==o.me&&!p.left&&o.clock-(o.seen[p.id]??o.clock)>ONLINE.timeout)onlineDrop(p.id);for(const p of o.players)if(o.seen[p.id]===undefined)o.seen[p.id]=o.clock}
+ else if(o.phase==='connecting'&&o.clock>ONLINE.joinWait)onlineEnd('방을 찾지 못했습니다. 코드를 확인하세요.');
+ else if(o.phase!=='connecting'&&o.phase!=='closed'&&o.clock-(o.seen.host??o.clock)>ONLINE.timeout)onlineEnd('방장과 연결이 끊겨 방이 끝났습니다.');
+ if(o.seen.host===undefined&&o.phase!=='connecting')o.seen.host=o.clock;
+ for(const k of RUN_TYPES)o.cool[k]=Math.max(0,o.cool[k]-dt);
+ const r=o.round;if(!r)return;
+ if(o.phase==='countdown'){r.t+=dt;if(r.t>=0){o.phase='run';r.t=0;message('출발!','',1)}return}
+ if(o.phase==='result'){r.resultT=(r.resultT||0)+dt;if(r.resultT>=ONLINE.resultTime&&!r.advanced){r.advanced=true;if(r.result.winner||r.result.final){o.phase='over';mode='online';course=null;$('shell').classList.remove('online-play');layers('online');refreshOnlineUi()}else if(o.isHost)onlineNextRound()}return}
+ if(o.phase!=='run')return;r.t+=dt;
+ const s=onlineRunner();if(s&&!s.fin&&!s.out){if(player.x<cam+8)onlineLoseLife('edge');if(o.clock-o.posAt>=ONLINE.posEvery){o.posAt=o.clock;onlineSend({k:'pos',x:Math.round(player.x),y:Math.round(player.y),d:player.dir,l:s.lives,f:s.fin?1:0,o:s.out?1:0})}}
+ if(o.isHost&&!r.ended){const all=r.runners.every(id=>r.state[id].fin||r.state[id].out||onlinePlayer(id)?.left);if(all||r.t>=ONLINE.roundTime)onlineEndRound()}}
+function onlineEndRound(){const o=online,r=o.round;r.ended=true;let elim=r.runners.filter(id=>!r.state[id].fin);if(!elim.length)elim=[r.killer];for(const id of elim){const p=onlinePlayer(id);if(p)p.alive=false}
+ const alive=o.players.filter(p=>p.alive&&!p.left).map(p=>p.id),winner=alive.length===1?alive[0]:null,m={k:'result',elim,alive,winner,final:alive.length<2};onlineSend(m);onlineApplyResult(m)}
+function onlineApplyResult(m){const o=online;if(!o.isHost){for(const p of o.players)p.alive=m.alive.includes(p.id)}const r=o.round||{no:0,state:{},runners:[],names:{}};r.result=m;r.resultT=0;r.advanced=false;o.round=r;o.phase='result';
+ if(!course){o.phase='over';mode='online';layers('online')}
+ const mine=m.elim.includes(o.me);message(m.winner?`우승: ${(onlinePlayer(m.winner)||{}).name||'?'}`:mine?'탈락':'다음 라운드로',m.elim.length?`탈락: ${m.elim.map(id=>(onlinePlayer(id)||{}).name||'?').join(', ')}`:'',4);refreshOnlineUi()}
+function onlineRestart(){const o=online;if(!o||!o.isHost||o.phase!=='over')return false;o.phase='lobby';o.round=null;o.players=o.players.filter(p=>!p.left).map(p=>({...p,alive:true}));onlineSend({k:'lobby'});onlineSend(rosterMsg());mode='online';layers('online');refreshOnlineUi();return true}
+// 화면: 자동으로 오른쪽으로 넘어간다. 주자는 화면 오른쪽 끝을 넘지 못한다.
+function onlineCamera(){const r=online.round,c=COURSES.run;cam=clamp((online.phase==='run'?r.t:0)*ONLINE.scroll,0,c.right-W);camY=0}
+function onlineStep(dt){const o=online;updateCourse(dt);if(onlineAmRunning()){updatePlayer(dt);if(online&&course){player.x=Math.min(player.x,cam+W-20);runTrapContacts(player)}}onlineCamera()}
+function refreshOnlineUi(){const el=$('online');if(!el)return;const o=online,entry=!o,room=o&&['connecting','lobby'].includes(o.phase),over=o&&o.phase==='over',closed=o&&o.phase==='closed';
+ $('onlineEntry').hidden=!entry;$('onlineRoom').hidden=!(room||over||closed);
+ if(!o){$('onlineName').value=$('onlineName').value||(()=>{try{return localStorage.getItem('primalJourney.online.name')||''}catch(e){return ''}})();return}
+ $('onlineCode').textContent=o.code;$('onlineStatus').textContent=closed?o.notice:o.phase==='connecting'?'방에 들어가는 중…':over?`우승: ${(onlinePlayer(o.round&&o.round.result&&o.round.result.winner)||{}).name||'없음'}`:o.isHost?`참가자 ${o.players.length} / 8 · 2명 이상이면 시작할 수 있습니다`:'방장이 시작하기를 기다리는 중';
+ $('onlinePlayers').innerHTML=o.players.map(p=>`<li>${p.name.replace(/[<>&"]/g,'')}${p.id===(o.isHost?o.me:o.hostId)?' · 방장':''}${p.id===o.me?' (나)':''}${over&&!p.alive?' · 탈락':''}</li>`).join('');
+ $('onlineStartBtn').hidden=!(o.isHost&&o.phase==='lobby');$('onlineStartBtn').disabled=o.players.length<2;$('onlineAgainBtn').hidden=!(o.isHost&&over)}
+// 원시런 그리기: 함정, 다른 주자(보간), 킬러 표시.
+function drawRunTraps(){if(!course||!course.online||!courseRun.trap)return;const c=COURSES.run;
+ c.traps.forEach((tr,i)=>{const [type,x,y,w]=tr,u=trapLive(i);
+  if(type==='floor'){const q=u<0?null:trapGeom(i,u);if(q&&q.gone){g.save();g.globalAlpha=.25;g.setLineDash([6,6]);line([[x,y],[x+w,y]],'#d9cfb4',2);g.setLineDash([]);g.restore();return}const sh=q&&q.tell?Math.sin(time*70)*3:0;g.fillStyle='#4a3c2a';g.fillRect(x+sh,y,w,22);line([[x+sh,y],[x+w+sh,y]],'#c9b48c',3);for(let k=1;k<4;k++)line([[x+sh+k*w/4,y+2],[x+sh+k*w/4-5,y+18]],'#2a2016',1.5);return}
+  if(u<0){if(type==='mace'){line([[x,c.ceil],[x,c.ceil+30]],'#6d6658',3);ellipse(x,c.ceil,7,7,'#4a4339')}if(type==='rock')path([[x-18,c.ceil],[x,c.ceil+26],[x+18,c.ceil]],'#3a3428');if(type==='spike')for(let k=x;k<x+w;k+=15)ellipse(k+7,y-1,3,1.5,'#9a8f78');return}
+  const q=trapGeom(i,u);if(!q)return;
+  if(type==='rock'){const sh=q.tell?Math.sin(time*60)*3:0;path([[q.x-20+sh,q.y-16],[q.x+sh,q.y+18],[q.x+20+sh,q.y-16]],'#8a7a5c','#3a2e24',2);if(!q.tell)line([[q.x,q.y-70],[q.x,q.y-24]],'#d8c9a544',3)}
+  if(type==='spike'){if(q.tell){g.fillStyle='#ffb07a55';g.fillRect(x,y-4,w,4)}else for(let k=x;k<x+w;k+=10)path([[k,y],[k+5,y-32],[k+10,y]],'#e2d6b8','#3a2e24',1)}
+  if(type==='mace'){const b=q.ball;line([[x,c.ceil],[b.x,b.y]],'#6d6658',3);for(let k=0;k<8;k++){const a=k*Math.PI/4;line([[b.x,b.y],[b.x+Math.cos(a)*36,b.y+Math.sin(a)*36]],'#9a9080',4)}ellipse(b.x,b.y,26,26,q.tell?'#7a5a4a':'#55504a')}});
+ const [ex]=c.end;for(let y=300;y<602;y+=20){g.fillStyle=((y/20)%2)?'#f2e3b8':'#2a2318';g.fillRect(ex,y,14,20)}}
+function drawRunPlayers(){const o=online,r=o.round;if(!r)return;const lag=.25;
+ for(const id of r.runners){if(id===o.me)continue;const s=r.state[id],buf=o.remote[id];if(!buf||!buf.length||s.out||s.fin)continue;const t=o.clock-lag;let a=buf[0],b=buf[buf.length-1];for(let k=0;k<buf.length-1;k++)if(buf[k].t<=t&&buf[k+1].t>=t){a=buf[k];b=buf[k+1];break}const q=b.t===a.t?1:clamp((t-a.t)/(b.t-a.t),0,1);const x=lerp(a.x,b.x,q),y=lerp(a.y,b.y,q);
+  drawPlayer({...player,x,y,dir:b.d||1,vx:Math.abs(b.x-a.x)>2?100:0,ground:true,atk:0,inv:0,unarmed:true},.75);g.font='12px sans-serif';g.textAlign='center';g.fillStyle='#e8ddbd';g.fillText(r.names[id]||'?',x,y-60)}
+ const me=r.state[o.me];if(me&&!me.out&&!me.fin){drawPlayer(player);g.font='12px sans-serif';g.textAlign='center';g.fillStyle='#ffe2a0';g.fillText('나',player.x,player.y-60)}}
+function onlineHud(){const o=online,r=o.round;if(!r)return;g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText(`원시런 · ${r.no}라운드`,640,30);
+ const left=Math.max(0,ONLINE.roundTime-Math.max(0,r.t));g.font='13px sans-serif';g.fillStyle='#cfdcd2';g.fillText(o.phase==='countdown'?`${Math.ceil(-r.t)}`:o.phase==='run'?`남은 시간 ${Math.ceil(left)}초`:'',640,54);
+ const isKiller=o.me===r.killer,me=r.state[o.me];g.textAlign='left';g.font='14px sans-serif';g.fillStyle=isKiller?'#ff9a7a':'#e4d8ba';g.fillText(isKiller?'킬러 · 함정으로 주자를 막아라':me?(me.fin?'완주! 관전 중':me.out?'탈락 · 관전 중':'주자'):'관전 중',38,34);
+ if(me&&!isKiller){for(let i=0;i<ONLINE.lives;i++){g.save();g.translate(46+i*25,58);path([[0,-9],[7,-3],[5,5],[0,9],[-5,5],[-7,-3]],i<me.lives?'#e0bb79':'#28414a',i<me.lives?'#fff0c2':'#55747a',1);g.restore()}}
+ // 참가자 상태판
+ let yy=96;g.font='12px sans-serif';for(const id of r.runners){const s=r.state[id];g.fillStyle=s.fin?'#bfe8a8':s.out?'#8a6a64':'#cfdcd2';g.fillText(`${r.names[id]||'?'} ${s.fin?'완주':s.out?'탈락':'♥'.repeat(Math.max(0,s.lives))}`,38,yy);yy+=17}g.fillStyle='#ff9a7a';g.fillText(`킬러: ${r.names[r.killer]||'?'}`,38,yy);
+ if(isKiller){RUN_TYPES.forEach((k,i)=>{const x=440+i*110,y=640,cd=o.cool[k],ready=cd<=0&&COURSES.run.traps.some((tr,j)=>tr[0]===k&&tr[1]>cam-40&&tr[1]<cam+W+40&&trapLive(j)<0);g.fillStyle=ready?'#3a2a24ee':'#1a1f22cc';g.fillRect(x,y,96,44);g.strokeStyle=ready?'#ff9a7a':'#55606a';g.strokeRect(x,y,96,44);g.fillStyle=ready?'#ffe2c4':'#7d8a90';g.textAlign='center';g.font='14px sans-serif';g.fillText(`${i+1} ${RUN_TRAPS[k].name}`,x+48,y+27);if(cd>0){g.fillStyle='#ff9a7a88';g.fillRect(x,y+40,96*cd/ONLINE.trapCool,4)}})}
+ if(texts.length){const t=texts[texts.length-1];g.save();g.globalAlpha=clamp(Math.min(t.life,t.max-t.life)*2,0,1);g.textAlign='center';g.fillStyle='#e8ddbd';g.font='32px Batang, serif';g.shadowColor='#000';g.shadowBlur=18;g.fillText(t.t,W/2,211);g.fillStyle='#a4bcb7';g.font='13px sans-serif';g.fillText(t.sub,W/2,240);g.restore()}}
+
 // ── 코스 그리기 ──
-function drawCourseBack(){const c=course,run=courseRun,t=run.t,s=stage;
+function drawCourseBack(){const c=course,run=courseRun,t=run.t,s=c.theme||stage;
  const rock=s===3?'#4f6c79':s===4?'#0e1d24':'#1b2f36',topc=s===3?'#d7e6e0':s===4?'#2f4d46':'#6c7f72',trim=s===3?'#a7c3c4':s===4?'#4f7a6c':'#8fa99a';
  if(c.ceil){g.fillStyle=s===4?'#060f14':'#0c1c22';g.fillRect(c.left-200,-600,c.right-c.left+400,c.ceil+600);for(let x=c.left;x<c.right;x+=90){const d=40+((x*7)%60);path([[x,c.ceil],[x+45,c.ceil+d],[x+90,c.ceil]],s===4?'#08141a':'#12252c')}}
  if(s===3){for(let i=0;i<14;i++){const y=420-i*230,x=((i*397)%1100)+40;ellipse(x,y,140,18,'#ffffff22');ellipse(x+90,y-10,90,14,'#ffffff1c')}
@@ -898,7 +1049,7 @@ function drawCourseBack(){const c=course,run=courseRun,t=run.t,s=stage;
 function drawSkyClimb(){const h=clamp(-camY/2600,0,1),sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,`rgb(${Math.round(lerp(42,18,h))},${Math.round(lerp(86,44,h))},${Math.round(lerp(112,82,h))})`);sky.addColorStop(1,`rgb(${Math.round(lerp(190,120,h))},${Math.round(lerp(208,160,h))},${Math.round(lerp(196,190,h))})`);g.fillStyle=sky;g.fillRect(0,0,W,H);glow(980,130+h*60,260,'#f3e5b855');
  for(let i=0;i<12;i++){const y=((i*170-camY*.35)%2040+2040)%2040-200,x=((i*331)%1500)-120;ellipse(x,y,220,26,'#ffffff2a');ellipse(x+140,y-12,140,20,'#ffffff22')}
  for(let i=0;i<6;i++){const y=((i*360-camY*.12)%2160+2160)%2160-300,x=i%2?60:1140;path([[x-90,y+300],[x-40,y+60],[x,y],[x+50,y+80],[x+90,y+300]],'#5b7a8655')}}
-function drawCourseFront(){const c=course,s=stage;
+function drawCourseFront(){const c=course,s=c.theme||stage;
  for(const [x,y,w] of c.water){g.fillStyle='rgba(10,34,48,.74)';g.fillRect(x,y-22,w,400);g.beginPath();for(let k=x;k<=x+w;k+=20)g.lineTo(k,y-22+Math.sin(time*2.2+k*.03)*2);g.strokeStyle='#9cc7cf88';g.lineWidth=2;g.stroke()}
  // 마른 덩굴 장막: 플레이어를 가린다. 가시 끝만 아래로 살짝 보인다.
  for(const [x,y,w,h] of c.vines){g.save();g.globalAlpha=.93;g.fillStyle='#2a2318';g.fillRect(x,y,w,h);for(let k=x;k<x+w;k+=9){const sway=Math.sin(time*1.3+k*.05)*4;line([[k,y],[k+sway,y+h*.5],[k-sway,y+h]],k%3?'#4e3f27':'#6b5634',3);if(k%27===0)path([[k+sway,y+h*.4],[k+sway+12,y+h*.4+6],[k+sway,y+h*.4+10]],'#7a6a3d')}g.restore()}}
@@ -1071,15 +1222,15 @@ function drawTitle(){g.save();const reduced=matchMedia('(prefers-reduced-motion:
  for(let i=0;i<24;i++){const x=i*61-65;fern(x,740+(i%3)*13,.9+(i%5)*.25,i%2?1:-1,i%3?'#173a3d':'#28504c')}
  for(let i=0;i<36;i++){const d=decor[i],x=(d.x%1280)+Math.sin(t*.18+d.x)*15,y=140+d.y*.9+Math.sin(t*.3+d.x)*12;g.globalAlpha=.25+(Math.sin(t*.6+i)+1)*.2;glow(x,y,12,'#aecda82c');ellipse(x,y,1.2,1.2,'#c8dba9')}g.globalAlpha=1;
  fern(20+Math.sin(t*.14)*3,755,3.1,1,'#081d26');fern(1260+Math.sin(t*.12)*3,755,3.4,-1,'#081d26');const v=g.createRadialGradient(640,350,160,640,350,760);v.addColorStop(0,'transparent');v.addColorStop(1,'#030e19bb');g.fillStyle=v;g.fillRect(0,0,W,H);g.restore()}
-function render(){if(mode==='title'||mode==='records'||mode==='settings'&&settingsReturn==='title'){drawTitle();return}if(mode==='cutscene'||(mode==='settings'&&settingsReturn==='cutscene')||(mode==='paused'&&pausedFrom==='cutscene')){drawIntro();return}g.save();g.clearRect(0,0,W,H);if(shake>0&&mode==='playing')g.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake*.6);background();g.save();g.translate(-cam,course?-camY:0);if(course)drawCourseBack();else ground();
-  if(course){for(const a of afterimages)drawPlayer({...player,x:a.x,y:a.y,dir:a.dir,atk:0,inv:0},a.life*.9);drawPlayer(player);drawCourseFront()}else
+function render(){if(mode==='title'||mode==='online'||mode==='records'||mode==='settings'&&settingsReturn==='title'){drawTitle();return}if(mode==='cutscene'||(mode==='settings'&&settingsReturn==='cutscene')||(mode==='paused'&&pausedFrom==='cutscene')){drawIntro();return}g.save();g.clearRect(0,0,W,H);if(shake>0&&mode==='playing')g.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake*.6);background();g.save();g.translate(-cam,course?-camY:0);if(course)drawCourseBack();else ground();
+  if(course&&course.online){drawRunTraps();drawRunPlayers();drawCourseFront()}else if(course){for(const a of afterimages)drawPlayer({...player,x:a.x,y:a.y,dir:a.dir,atk:0,inv:0},a.life*.9);drawPlayer(player);drawCourseFront()}else
   {if(stage===3)drawPtera();else if(stage===4)drawSpino();else if(stage===2){if(arena)raptors.forEach(drawRaptor)}else{drawDinosaur();drawTriAttacks()}for(const a of afterimages)drawPlayer({...player,x:a.x,y:a.y,dir:a.dir,atk:0,inv:0},a.life*.9);drawPlayer(player);if(stage===4)drawWaterFront()}
   if(mode!=='title'){if(stage===1)drawLaser();if(stage===3)drawMeteors();drawSpear()}for(const p of particles){g.globalAlpha=clamp(p.life/p.max,0,1);g.fillStyle=p.c;g.fillRect(p.x,p.y,p.r,p.r)}g.globalAlpha=1;g.restore();
  // 前景植被构成舞台框景。
  fern(14,685,2.2,1,'#08181f');fern(1268,702,2.6,-1,'#08181f');
  let vignette=g.createRadialGradient(640,350,220,640,350,790);vignette.addColorStop(0,'transparent');vignette.addColorStop(1,'#030d16a0');g.fillStyle=vignette;g.fillRect(0,0,W,H);
- if(course&&course.dark)drawCourseDark();else if(stage===4)drawDarkness();
- hud();
+ if(course&&course.dark)drawCourseDark();else if(stage===4&&!online)drawDarkness();
+ if(online&&online.round&&course)onlineHud();else hud();
  if(flash>0){g.fillStyle=`rgba(237,207,162,${Math.min(.18,flash*.5)})`;g.fillRect(0,0,W,H)}g.restore()}
   // 부모 미리보기용 공개 훅. 전투 규칙을 우회하지 않고 실제 시작/갱신 경로 사용.
   // previewStage3(2,'meteor') / (3,'meteor'): .75s meteorRoar -> takeoff -> normal AI.
@@ -1098,8 +1249,8 @@ function render(){if(mode==='title'||mode==='records'||mode==='settings'&&settin
     else if(state==='takeoff'){boss.y=FLOOR;pteraTakeoff()}
     else{boss.y=['walk','stuck'].includes(state)?FLOOR:245;if(state==='walk')pteraWalk();else pteraState(state,{fly:4,stuck:2}[state])}render();return true;
    }
-    window.primalJourney={start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,course:course?{stage,flag:courseRun.flag,t:courseRun.t}:null,camY,pools:stage===4?pools():null,swimming:stage===4&&isSwimming()})};
- function frame(ts){const dt=Math.min(.034,(ts-last)/1000||.016);last=ts;if(mode==='playing'||mode==='title'||mode==='dead'||mode==='cutscene')update(dt);render();requestAnimationFrame(frame)}requestAnimationFrame(frame);
+    window.primalJourney={online:{open:openOnlineLobby,create:onlineCreate,join:onlineJoin,start:onlineStart,restart:onlineRestart,leave:()=>onlineClose(true),trap:killerTrap,setTransport:f=>{makeTransport=f},state:()=>online?JSON.parse(JSON.stringify({me:online.me,code:online.code,isHost:online.isHost,phase:online.phase,notice:online.notice,players:online.players,round:online.round&&{no:online.round.no,killer:online.round.killer,runners:online.round.runners,state:online.round.state,t:online.round.t,result:online.round.result}})):null},start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,course:course?{stage,flag:courseRun.flag,t:courseRun.t}:null,camY,pools:stage===4?pools():null,swimming:stage===4&&isSwimming()})};
+ function frame(ts){const dt=Math.min(.034,(ts-last)/1000||.016);last=ts;if(mode==='playing'||mode==='title'||mode==='online'||mode==='dead'||mode==='cutscene')update(dt);render();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
 </script>
 </body></html>
