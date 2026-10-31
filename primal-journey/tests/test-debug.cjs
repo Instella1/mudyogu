@@ -42,7 +42,7 @@ for(const stage of [1,2])check(stage+'지역: 모든 단계 즉시 정착·왕�
  for(const n of [3,1,2,3,2,1]){
   select(e,n);assert(state(e).arena&&state(e).checkpoint);assert.equal(state(e).cam,1500);assert.equal(e.t.p.x,1750);assert.equal(e.t.p.hp,3);assert.equal(e.t.p.y,602);assert.equal(e.t.b.state,'walk');assert.equal(e.t.b.phase,n);
   if(stage===1){assert.equal(e.t.b.hp,[0,1080,720,360][n]);assert.equal(e.t.b.max,1080);assert.equal(e.t.rs.length,0)}
-  else{assert.equal(e.t.rs.length,n===1?1:2);assert.equal(state(e).raptorPhase,n);assert.equal(state(e).summoned,n>=2);assert.equal(state(e).howlRemaining,0);e.t.rs.forEach((r,i)=>{assert.equal(r.hp,i===0?[0,800,480,150][n]:480);assert.equal(r.max,i===0?800:480);assert.equal(r.phase,n);assert.equal(r.robot,n===3);assert.equal(r.speed,[0,140,190,240][n]);assert.equal(r.state,'walk');assert.equal(r.hudReveal,1)})}
+  else{assert.equal(e.t.rs.length,n===1?1:2);assert.equal(state(e).raptorPhase,n);assert.equal(state(e).summoned,n>=2);assert.equal(state(e).howlRemaining,0);e.t.rs.forEach((r,i)=>{assert.equal(r.hp,i===0?[0,800,480,150][n]:480);assert.equal(r.max,i===0?800:480);assert.equal(r.phase,n);assert.equal(r.robot,n===3);assert.equal(r.speed,[0,140,190,230][n]);assert.equal(r.state,'walk');assert.equal(r.hudReveal,1)})}
   e.t.closeDebug();e.t.step(.01);assert.equal(e.t.b.phase,n);assert.equal(e.t.b.state,'walk');e.t.render();
  }
  assert(state(e).debugUsed&&state(e).debugJourney);assert(e.draws.includes('디버그 테스트 · 기록·진행 저장 제외'));

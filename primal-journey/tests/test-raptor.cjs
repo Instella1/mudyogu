@@ -20,7 +20,7 @@ check('new journey starts cutscene; developer region hook enters dormant approac
 check('phase 1 moves at 140 and jumps every 10 seconds with tell',()=>{const r=fresh();t.p.x=1700;const x=r.x;t.updateBoss(1);assert.equal(x-r.x,140);r.elapsed=9.99;t.updateBoss(.009);assert.equal(r.state,'walk');t.updateBoss(.0011);assert.equal(r.state,'jumpTell');assert.equal(r.jumpAt,20);assert.equal(r.timer,.55);t.updateBoss(.56);assert.equal(r.state,'jump');assert.equal(r.vy,-1550);for(let i=0;i<100&&r.state==='jump';i++)t.updateBoss(.01);assert.equal(r.y,602);r.elapsed=19.999;t.updateBoss(.002);assert.equal(r.state,'jumpTell');assert.equal(r.jumpAt,30)});
 check('480 threshold exact, upward howl delays single wall summon of 480 HP',()=>{let r=fresh();r.hp=481;t.updateBoss(.01);assert.equal(t.phase,1);r.hp=480;t.updateBoss(0);assert.equal(t.phase,2);assert.equal(r.state,'howl');assert.equal(r.speed,190);assert.equal(t.rs.length,1);t.render();t.updateBoss(1.59);assert.equal(t.rs.length,1);assert.equal(t.summoned,false);t.updateBoss(.011);assert.equal(t.summoned,true);assert.equal(t.rs.length,2);assert.equal(t.rs[1].hp,480);assert.equal(t.rs[1].max,480);assert.equal(t.rs[1].state,'emerge');assert(t.rs[1].x>2720);assert.equal(t.rs[1].speed,190);t.render();for(let i=0;i<300;i++)t.updateBoss(.01);assert.equal(t.rs.length,2);assert.equal(t.rs[1].state,'walk');assert(t.rs[1].x<2730)});
 check('both phase 2 basic speeds 190 and jump timers retained',()=>{readyPair();t.p.x=1600;for(const r of t.rs){r.state='walk';r.elapsed=2;r.x=2400}const xs=t.rs.map(r=>r.x);t.updateBoss(.5);t.rs.forEach((r,i)=>assert.equal(xs[i]-r.x,95));for(const r of t.rs)r.elapsed=9.99;t.updateBoss(.02);assert(t.rs.every(r=>r.state==='jumpTell'&&r.jumpAt===20))});
-for(const target of [0,1])check('either living raptor at 150 upgrades both: target '+target,()=>{readyPair();t.rs[target].hp=151;t.updateBoss(0);assert.equal(t.phase,2);t.rs[target].hp=150;t.updateBoss(0);assert.equal(t.phase,3);for(const r of t.rs){assert.equal(r.phase,3);assert.equal(r.robot,true);assert.equal(r.speed,240);assert.equal(r.state,'upgrade')}t.render();t.updateBoss(1.21);t.p.x=1600;t.rs.forEach(r=>r.x=2400);t.updateBoss(.5);assert(t.rs.every(r=>r.x===2280))});
+for(const target of [0,1])check('either living raptor at 150 upgrades both: target '+target,()=>{readyPair();t.rs[target].hp=151;t.updateBoss(0);assert.equal(t.phase,2);t.rs[target].hp=150;t.updateBoss(0);assert.equal(t.phase,3);for(const r of t.rs){assert.equal(r.phase,3);assert.equal(r.robot,true);assert.equal(r.speed,230);assert.equal(r.state,'upgrade')}t.render();t.updateBoss(1.21);t.p.x=1600;t.rs.forEach(r=>r.x=2400);t.updateBoss(.5);assert(t.rs.every(r=>r.x===2285))});
 const near=(actual,expected,label)=>assert(Math.abs(actual-expected)<1e-8,`${label}: ${actual} expected ${expected}`);
 check('live robot starts at 5 and 7.5, staggered 2.5, repeating every 5 for both',()=>{
  upgrade();t.rs.forEach((r,i)=>{assert.equal(r.elapsed,0);assert.equal(r.rollAt,5+i*2.5)});
@@ -34,10 +34,10 @@ check('live robot starts at 5 and 7.5, staggered 2.5, repeating every 5 for both
     starts[i].push(step*dt);near(r.timer,.65,`${r.id} tell duration`);
     near(r.rollAt,5+i*2.5+starts[i].length*5,`${r.id} next rollAt`);
    }
-   if(r.state==='roll'&&previous[i]!=='roll'){rolls[i].push(step*dt);near(r.timer,2.5,`${r.id} roll duration`);assert.equal(Math.abs(r.vx),320)}
+   if(r.state==='roll'&&previous[i]!=='roll'){rolls[i].push(step*dt);near(r.timer,3,`${r.id} roll duration`);assert.equal(Math.abs(r.vx),310)}
    if(previous[i]==='roll'&&r.state!=='roll'){
     const duration=step*dt-rolls[i].at(-1);
-    assert(duration>=2.5-1e-8&&duration<=2.5+dt+1e-8,`${r.id} actual roll duration ${duration}`);
+    assert(duration>=3-1e-8&&duration<=3+dt+1e-8,`${r.id} actual roll duration ${duration}`);
    }
   });
  }
@@ -49,21 +49,21 @@ check('live robot starts at 5 and 7.5, staggered 2.5, repeating every 5 for both
  });
  near(starts[1][0]-starts[0][0],2.5,'first-start stagger');
 });
-for(const target of [0,1])check('robot tell, jump and 320-speed roll lasts 2.5 seconds: '+target,()=>{
+for(const target of [0,1])check('robot tell, jump and 310-speed roll lasts 3 seconds: '+target,()=>{
  upgrade();t.updateBoss(1.21);t.p.x=1600;const r=t.rs[target],first=5+target*2.5;
  r.elapsed=first-.01;r.x=2600;t.updateBoss(.009);assert.equal(r.state,'walk');
  t.updateBoss(.0011);assert.equal(r.state,'rollTell');assert.equal(r.rollAt,first+5);near(r.timer,.65,'tell duration');t.render();
  t.updateBoss(.66);assert.equal(r.state,'rollJump');assert.equal(r.vy,-1550);t.render();
  for(let i=0;i<100&&r.state!=='roll';i++)t.updateBoss(.01);
- assert.equal(r.state,'roll');assert.equal(Math.abs(r.vx),320);assert.equal(r.timer,2.5);
- const x=r.x;t.updateBoss(.5);near(x-r.x,160,'roll displacement');near(r.timer,2,'remaining roll');t.render();
- t.updateBoss(1.99);assert.equal(r.state,'roll');t.updateBoss(.011);assert.equal(r.state,'walk');
+ assert.equal(r.state,'roll');assert.equal(Math.abs(r.vx),310);assert.equal(r.timer,3);
+ const x=r.x;t.updateBoss(.5);near(x-r.x,155,'roll displacement');near(r.timer,2.5,'remaining roll');t.render();
+ t.updateBoss(2.49);assert.equal(r.state,'roll');t.updateBoss(.011);assert.equal(r.state,'walk');
 });
 for(const variant of ['normal','robot 0','robot 1'])check('actual moving tell and airborne horizontal displacement: '+variant,()=>{
  const rolling=variant!=='normal',target=variant==='robot 1'?1:0;let r;
  if(rolling){upgrade();t.updateBoss(1.21);r=t.rs[target]}else r=fresh();
  t.p.x=1700;r.x=2400;r.elapsed=rolling?r.rollAt:r.jumpAt;t.updateBoss(0);
- const tell=rolling?'rollTell':'jumpTell',jump=rolling?'rollJump':'jump',speed=rolling?240:140;
+ const tell=rolling?'rollTell':'jumpTell',jump=rolling?'rollJump':'jump',speed=rolling?230:140;
  assert.equal(r.state,tell);const x=r.x;t.updateBoss(.1);
  assert.equal(r.state,tell);near(x-r.x,speed*.1,'moving tell displacement');assert.equal(r.vx,-speed);
  // The tell must follow the current player rather than retain its initial direction.
@@ -81,8 +81,8 @@ for(const target of [0,1])check('natural roll reverses toward current player, st
  assert.equal(r.state,'roll');const dt=.05;
  const follow=()=>{
   const before=r.x,delta=t.p.x-before,dir=Math.sign(delta);t.updateBoss(dt);
-  assert.equal(r.state,'roll');near(r.x,before+dir*Math.min(320*dt,Math.abs(delta)),'current-player tracking');
-  assert.equal(r.vx,dir*320);if(dir)assert.equal(r.dir,dir);
+  assert.equal(r.state,'roll');near(r.x,before+dir*Math.min(310*dt,Math.abs(delta)),'current-player tracking');
+  assert.equal(r.vx,dir*310);if(dir)assert.equal(r.dir,dir);
   assert(r.x>1575&&r.x<2710,'roll never hits either wall');
  };
  follow();assert.equal(r.dir,-1);
