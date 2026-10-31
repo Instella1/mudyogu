@@ -34,10 +34,10 @@ check('live robot starts at 5 and 7.5, staggered 2.5, repeating every 5 for both
     starts[i].push(step*dt);near(r.timer,.65,`${r.id} tell duration`);
     near(r.rollAt,5+i*2.5+starts[i].length*5,`${r.id} next rollAt`);
    }
-   if(r.state==='roll'&&previous[i]!=='roll'){rolls[i].push(step*dt);near(r.timer,3,`${r.id} roll duration`);assert.equal(Math.abs(r.vx),310)}
+   if(r.state==='roll'&&previous[i]!=='roll'){rolls[i].push(step*dt);near(r.timer,2.5,`${r.id} roll duration`);assert.equal(Math.abs(r.vx),310)}
    if(previous[i]==='roll'&&r.state!=='roll'){
     const duration=step*dt-rolls[i].at(-1);
-    assert(duration>=3-1e-8&&duration<=3+dt+1e-8,`${r.id} actual roll duration ${duration}`);
+    assert(duration>=2.5-1e-8&&duration<=2.5+dt+1e-8,`${r.id} actual roll duration ${duration}`);
    }
   });
  }
@@ -49,15 +49,15 @@ check('live robot starts at 5 and 7.5, staggered 2.5, repeating every 5 for both
  });
  near(starts[1][0]-starts[0][0],2.5,'first-start stagger');
 });
-for(const target of [0,1])check('robot tell, jump and 310-speed roll lasts 3 seconds: '+target,()=>{
+for(const target of [0,1])check('robot tell, jump and 310-speed roll lasts 2.5 seconds: '+target,()=>{
  upgrade();t.updateBoss(1.21);t.p.x=1600;const r=t.rs[target],first=5+target*2.5;
  r.elapsed=first-.01;r.x=2600;t.updateBoss(.009);assert.equal(r.state,'walk');
  t.updateBoss(.0011);assert.equal(r.state,'rollTell');assert.equal(r.rollAt,first+5);near(r.timer,.65,'tell duration');t.render();
  t.updateBoss(.66);assert.equal(r.state,'rollJump');assert.equal(r.vy,-1550);t.render();
  for(let i=0;i<100&&r.state!=='roll';i++)t.updateBoss(.01);
- assert.equal(r.state,'roll');assert.equal(Math.abs(r.vx),310);assert.equal(r.timer,3);
- const x=r.x;t.updateBoss(.5);near(x-r.x,155,'roll displacement');near(r.timer,2.5,'remaining roll');t.render();
- t.updateBoss(2.49);assert.equal(r.state,'roll');t.updateBoss(.011);assert.equal(r.state,'walk');
+ assert.equal(r.state,'roll');assert.equal(Math.abs(r.vx),310);assert.equal(r.timer,2.5);
+ const x=r.x;t.updateBoss(.5);near(x-r.x,155,'roll displacement');near(r.timer,2,'remaining roll');t.render();
+ t.updateBoss(1.99);assert.equal(r.state,'roll');t.updateBoss(.011);assert.equal(r.state,'walk');
 });
 for(const variant of ['normal','robot 0','robot 1'])check('actual moving tell and airborne horizontal displacement: '+variant,()=>{
  const rolling=variant!=='normal',target=variant==='robot 1'?1:0;let r;
