@@ -246,7 +246,7 @@ function setState(s,t){boss.state=s;boss.timer=t}
  // 스테이지 2는 계곡 보스의 수치·패턴과 완전히 분리한다.
  const RAPTOR={mainHP:800,allyHP:480,summonHP:480,robotHP:150,speeds:[0,140,190,230],jumpEvery:10,rollEvery:5,rollSpeed:310,rollDuration:2.5,howlDuration:1.6,
   // 치고 빠지기 · 협공 (간보기 거리, 물기 예고/돌진/빈틈/후퇴, 머리 위 도약, 번갈아 공격 간격)
-  standoff:200,biteRange:240,biteTell:.4,lungeTime:.18,lungeDistance:170,recover:.5,retreatTime:.35,retreatDistance:150,leapTell:.35,leapTime:.7,leapHeight:210,leapRange:340,landGap:170,soloWait:1.4,pairWait:1.1,turnHold:1.5,swapEvery:8};
+  standoff:200,biteRange:240,biteTell:.4,lungeTime:.19,lungeDistance:170,recover:.5,retreatTime:.35,retreatDistance:150,leapTell:.35,leapTime:.7,leapHeight:210,leapRange:340,landGap:170,soloWait:1.4,pairWait:1.1,turnHold:1.5,swapEvery:8};
  function makeRaptor(id,hp,x){return{id,x,y:FLOOR,hp,max:hp,phase:raptorPhase,speed:RAPTOR.speeds[raptorPhase],state:'walk',timer:0,dir:-1,vx:0,vy:0,elapsed:0,jumpAt:10,rollAt:5,robot:false,hit:0,dead:false,spin:0,hudReveal:id==='ally'?0:1}}
  function raptorRect(r){const ball=r.state==='roll';return{x:r.x-(ball?29:38),y:r.y-(ball?58:64),w:ball?58:76,h:ball?58:64}}
  function raptorState(r,state,seconds=0){r.state=state;r.timer=seconds;r.vx=0}
