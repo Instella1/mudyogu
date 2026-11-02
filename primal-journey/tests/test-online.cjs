@@ -8,7 +8,7 @@ function boot(bus,storage={}){
  const ctx=new Proxy({createLinearGradient:()=>gradient,createRadialGradient:()=>gradient,fillText(text,x,y){draws.push({text:String(text),x,y})}},{get:(o,k)=>o[k]||(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
  const el=id=>els[id]??={hidden:false,value:'',innerHTML:'',textContent:'',getContext:()=>ctx,setAttribute(k,v){this[k]=v},classList:{toggle(){},add(){},remove(){}},addEventListener(){},focus(){}};
  const events={};const box={console,Math,JSON,localStorage:{getItem:k=>storage[k]||null,setItem(k,v){storage[k]=v}},document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener:(k,f)=>events[k]=f},requestAnimationFrame(){},matchMedia:()=>({matches:false}),setTimeout,setInterval:()=>0,clearInterval(){}};
- const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,updatePlayer,killerTrap,trapLive,trapGeom,activateTrap,onlineUnlocked,runBlocks:()=>[...COURSES.run.blocks,...trapFloors().map(f=>[f.x,f.y,f.w,20])],refreshContinue,supabaseTransport,get o(){return online},get p(){return player},get cam(){return cam},get mode(){return mode},get keys(){return keys},get press(){return press},get run(){return courseRun},get records(){return stageRecords},tick:dt=>update(dt)};})();`);
+ const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,updatePlayer,throwSpear,pickGame,fallCourse:()=>COURSES.fall,killerTrap,trapLive,trapGeom,activateTrap,onlineUnlocked,runBlocks:()=>[...COURSES.run.blocks,...trapFloors().map(f=>[f.x,f.y,f.w,20])],refreshContinue,supabaseTransport,get o(){return online},get p(){return player},get cam(){return cam},get mode(){return mode},get keys(){return keys},get press(){return press},get run(){return courseRun},get records(){return stageRecords},tick:dt=>update(dt)};})();`);
  vm.createContext(box);vm.runInContext(js,box);if(bus)box.t.online.setTransport(bus.factory);return{t:box.t,els,draws,events,box};
 }
 let count=0;function check(label,f){f();console.log('PASS: '+label);count++}
@@ -30,9 +30,9 @@ check('a ninth player is turned away: the room holds at most 8',()=>{
 check('a wrong code ends with a clear message after 6 seconds',()=>{const bus=makeBus(),c=boot(bus);c.t.online.join('혼자','ZZZZ');step(bus,[c],6.5);assert.equal(state(c).phase,'closed');assert(state(c).notice.includes('찾지 못'))});
 check('start needs 2+ players; round 1 picks one killer, same on every screen, then a 3s countdown',()=>{
  const solo=room(1);assert.equal(solo.host.t.online.start(),false);
- const {bus,cs}=room(4);assert(cs[0].t.online.start());bus.flush();const k=state(cs[0]).round.killer;for(const c of cs){const s=state(c);assert.equal(s.phase,'countdown');assert.equal(s.round.killer,k);assert.equal(s.round.runners.length,3);assert(!s.round.runners.includes(k))}
+ const {bus,cs}=room(4);assert(cs[0].t.online.start('run'));bus.flush();const k=state(cs[0]).round.killer;for(const c of cs){const s=state(c);assert.equal(s.phase,'countdown');assert.equal(s.round.killer,k);assert.equal(s.round.runners.length,3);assert(!s.round.runners.includes(k))}
  step(bus,cs,3.1);for(const c of cs)assert.equal(state(c).phase,'run')});
-function started(n=3){const r=room(n);r.cs[0].t.online.start();r.bus.flush();step(r.bus,r.cs,3.05);const k=state(r.cs[0]).round.killer;r.killer=r.cs.find(c=>state(c).me===k);r.runners=r.cs.filter(c=>c!==r.killer);return r}
+function started(n=3){const r=room(n);r.cs[0].t.online.start('run');r.bus.flush();step(r.bus,r.cs,3.05);const k=state(r.cs[0]).round.killer;r.killer=r.cs.find(c=>state(c).me===k);r.runners=r.cs.filter(c=>c!==r.killer);return r}
 check('screen scrolls on its own; runners broadcast positions ~5 times a second and others see them',()=>{
  const r=started(3),[a,b]=r.runners;const cam0=a.t.cam;step(r.bus,r.cs,2);assert(a.t.cam>cam0+90,'auto scroll');a.t.keys.right=true;step(r.bus,r.cs,1);a.t.keys.right=false;
  const seen=b.t.o.remote[state(a).me];assert(seen&&seen.length>=3,'position updates');assert(Math.abs(seen[seen.length-1].x-a.t.p.x)<90,'within one send interval')});
@@ -87,6 +87,40 @@ check('typing the name / room code: game keys (WASD, JKL) and digits still type 
  const e=boot(null);e.t.online.open();assert.equal(e.t.mode,'online');
  for(const code of ['KeyW','KeyA','KeyS','KeyD','KeyJ','KeyK','KeyL','KeyR','Digit1','Space','Enter']){let blocked=false;e.events.keydown({code,target:{tagName:'INPUT'},preventDefault(){blocked=true},repeat:false});assert(!blocked,code+' must reach the input box')}
  const r=room(2);let blocked=false;r.host.events.keydown({code:'KeyW',target:{tagName:'INPUT'},preventDefault(){blocked=true},repeat:false});assert(!blocked,'lobby input too')});
+// ── 2번 떨어지는 발판 ──
+function fallStarted(n=3){const r=room(n);r.cs[0].t.online.start('fall');r.bus.flush();step(r.bus,r.cs,3.05);return r}
+const hover=cs=>{for(const c of cs){c.t.p.y=100;c.t.p.vy=0;c.t.p.ground=false}};
+function hoverFor(r,seconds,cs=r.cs){for(let i=0;i<Math.round(seconds/DT);i++){hover(cs);step(r.bus,r.cs,DT)}}
+check('fall: four tiers of 6-5-4-3 platforms; the host can pick the game; random never repeats the last one',()=>{
+ const f=boot(null).t.fallCourse(),ys=[...new Set(f.crumbles.map(c=>c[1]))];assert.deepEqual(ys.map(y=>f.crumbles.filter(c=>c[1]===y).length),[6,5,4,3]);assert.equal(f.crumbleBack,6);
+ for(const [x,,w] of f.crumbles)assert(x>=0&&x+w<=1280,'every platform on screen');
+ const r=fallStarted(3);for(const c of r.cs){const s=state(c);assert.equal(s.round.killer,null);assert.equal(s.round.runners.length,3);assert.equal(c.t.p.y,190,'everyone starts on the top tier');assert.equal(c.t.cam,0)}
+ const o=r.cs[0].t.o;o.nextGame='';for(const last of ['run','fall']){o.lastGame=last;for(let i=0;i<20;i++)assert.notEqual(r.cs[0].t.pickGame(),last)}});
+check('fall: a platform you stand on crumbles after .6s on every screen and comes back 6s later; platforms block from below',()=>{
+ const r=fallStarted(2),[a,b]=r.cs,f=a.t.fallCourse();const i=f.crumbles.findIndex(([x,y,w])=>y===190&&a.t.p.x>=x&&a.t.p.x<=x+w);assert(i>=0);
+ hover([b]);step(r.bus,r.cs,.5);hover([b]);assert.equal(b.t.run.crumble[i].down,0);step(r.bus,r.cs,.2);
+ for(const c of r.cs)assert(c.t.run.crumble[i].down>0,'down on both screens');
+ hoverFor(r,5.6);for(const c of r.cs)assert(c.t.run.crumble[i].down>0,'still gone at 5.6s');hoverFor(r,.6);for(const c of r.cs)assert.equal(c.t.run.crumble[i].down,0,'back after 6s');
+ // 아래층에서 뛰어도 위 발판에 머리가 막힌다
+ const below=f.crumbles.find(([x,y])=>y===340),above=f.crumbles.find(([x,y,w])=>y===190&&below[0]+20>=x&&below[0]+20<=x+w);
+ Object.assign(a.t.p,{x:below[0]+20,y:340,vy:0,ground:true,jumps:0,hurt:0});a.t.press.jump=true;let top=340;for(let k=0;k<15;k++){step(r.bus,r.cs,DT);a.t.press.jump=false;top=Math.min(top,a.t.p.y)}assert(top-45>=above[1]+14,'head stopped under the platform: '+top)});
+check('fall: a spear knocks the target off its feet (judged on its own screen); 1.2s cooldown; dodging (dash) avoids it',()=>{
+ const r=fallStarted(2),[a,b]=r.cs;Object.assign(a.t.p,{x:300,y:190,dir:1,vx:0});Object.assign(b.t.p,{x:500,y:190,vx:0});
+ assert(a.t.throwSpear());assert(!a.t.throwSpear(),'cooldown');r.bus.flush();assert.equal(b.t.o.spears.length,1,'the spear reaches the other screen');
+ let pushed=0;for(let k=0;k<12;k++){step(r.bus,r.cs,DT);pushed=Math.max(pushed,b.t.p.vx)}assert(pushed>700,'knocked back '+pushed);assert(b.t.p.x>540);
+ const x=a.t.p.x;assert(a.t.o.spears.every(s=>!s.hit),'own spear never hits the thrower');
+ step(r.bus,r.cs,1.2);Object.assign(a.t.p,{x:300,y:190,dir:1,vx:0,hurt:0});Object.assign(b.t.p,{x:500,y:190,vx:0,hurt:0});a.t.o.spearCD=0;assert(a.t.throwSpear());r.bus.flush();
+ for(let k=0;k<12;k++){b.t.p.dash=.1;step(r.bus,r.cs,DT)}assert(b.t.o.spears.every(s=>!s.hit),'dash dodges')});
+check('fall: dropping off is out; when one is left standing the round ends and they win',()=>{
+ const r=fallStarted(2),[a,b]=r.cs;a.t.p.x=-300;hoverFor(r,2,[b]);const res=state(a).round.result;assert(res,'ended early');assert.deepEqual(res.elim,[state(a).me]);assert.equal(res.winner,state(b).me)});
+check('fall: 60 seconds with nobody falling eliminates no one and the next round starts',()=>{
+ const r=fallStarted(3);hoverFor(r,61);const res=state(r.cs[0]).round.result;assert(res);assert.deepEqual(res.elim,[]);assert(!res.winner);step(r.bus,r.cs,5.2);assert.equal(state(r.cs[0]).round.no,2);assert.equal(state(r.cs[0]).round.game,'fall')});
+check('fall: if the last players all drop at once, those who fell last stay in',()=>{
+ const r=fallStarted(3),[a,b,c]=r.cs;a.t.p.x=-300;hoverFor(r,2,[b,c]);assert.equal(state(r.cs[0]).phase,'run');b.t.p.x=-300;c.t.p.x=1600;hoverFor(r,2,[]);
+ const res=state(r.cs[0]).round.result;assert(res);assert.deepEqual(res.elim,[state(a).me]);assert(!res.winner)});
+check('fall: renders lobby picker, run and spectator HUD without errors',()=>{
+ const r=fallStarted(2),[a,b]=r.cs;a.t.throwSpear();r.bus.flush();for(const c of r.cs){c.draws.length=0;c.t.render();assert(c.draws.some(d=>d.text.includes('떨어지는 발판')))}
+ a.t.p.x=-300;hoverFor(r,1.5,[b]);a.t.render();const lobby=room(2);assert.equal(lobby.host.els.onlineGameRow.hidden,false);assert.equal(lobby.cs[1].els.onlineGameRow.hidden,true)});
 check('every online screen renders without errors (lobby, countdown, run as killer/runner, result, over)',()=>{
  const r=started(3);for(const c of r.cs)c.t.render();step(r.bus,r.cs,1);for(const c of r.cs){c.draws.length=0;c.t.render();assert(c.draws.some(d=>d.text.includes('원시런')))}assert(r.killer.draws.some(d=>d.text.includes('킬러')))});
 check('Supabase Realtime wire format: join with broadcast config, heartbeat topic, broadcast event m',()=>{

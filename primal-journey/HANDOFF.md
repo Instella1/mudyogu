@@ -200,9 +200,10 @@
 - 수치 `SPINO`(웅덩이 `pools`, 전투장 끝 `right`), AI `updateSpino`, `spinoGoal`, `chooseSpinoAttack`, `checkSpinoPhases`, 시계 `spinoEnvironment`(어둠·밀물·범람), 범람 `floodPush`, `drawFlood`, 물 `pools()`, `poolAt`, `tideAmount`, `isSwimming`, `regionShift`, 판정 `spinoBodyRect`, `spinoAttackRect`, `spinoContacts`, `hurtSpino`, `drown`.
 - 그리기 `drawMoonShore`, `drawWaterBack`, `drawWaterFront`, `drawSpino`, `drawSpinoFin`, `drawDarkness`, `spinoHud`.
 
-## 8-3. 온라인 대전 (2026-10-30 추가 · 미니게임 1 「원시런」)
+## 8-3. 온라인 대전 (2026-10-30 추가 · 미니게임 1 「원시런」, 2026-11-02 미니게임 2 「떨어지는 발판」)
 
-4지역 클리어(`stageRecords[4].clears>0`) 후 타이틀에 **온라인 대전** 버튼이 생긴다. 폴가이즈처럼 여러 미니게임을 돌려 마지막 1명이 우승. 사용자가 미니게임을 하나씩(총 10개 정도) 알려주면 만들어 끼운다 — 현재 1번만 있음.
+4지역 클리어(`stageRecords[4].clears>0`) 후 타이틀에 **온라인 대전** 버튼이 생긴다. 폴가이즈처럼 여러 미니게임을 돌려 마지막 1명이 우승. 사용자가 미니게임을 하나씩(총 10개 정도) 알려주면 만들어 끼운다 — 현재 1·2번.
+- 방장 로비의 **미니게임** 선택: 무작위(직전 게임은 피함) / 특정 게임만 계속. 시험할 때 쓰기 좋다.
 
 ### 방 · 통신
 - 뮤됴구 Supabase Realtime(웹소켓, broadcast 전용, 이벤트 `'m'`). 주소·anon 키는 `ONLINE` 상수(뮤됴구 `lib/services/cloud_service.dart` 와 같은 프로젝트). DB 테이블은 쓰지 않는다.
@@ -218,7 +219,15 @@
 - 킬러: 키 1 바위 · 2 가시 · 3 철퇴 · 4 바닥 꺼짐(폰은 화면 버튼). **화면 안에 있는 그 종류 함정 전부** 발동, 종류마다 재사용 2.2초. 함정 24개(`RUN_TRAPS`, `traps`).
 - **90초 제한**, 결승 못 한 러너는 탈락. 러너가 아무도 탈락하지 않으면 **킬러가 탈락**. 1명 남으면 우승, 다시 하기 가능.
 
+### 떨어지는 발판 (`COURSES.fall`, 사용자 확정)
+- 한 화면(카메라 고정). 발판 4층, **위에서부터 6-5-4-3개**(층 y 190/340/490/640, 발판 사이 60). 킬러 없음, 전원 맨 위층에서 시작.
+- 밟으면 **0.6초 뒤 무너지고 6초 뒤 돌아옴**(`crumbleTime`, `crumbleBack`). 누가 밟았는지(`step`)를 보내 모든 화면에서 같이 무너진다. 아래층에서 뛰면 위 발판에 **머리가 막힘**(`headBonk`) — 발판 사이 틈으로만 올라갈 수 있다. S(발판 아래로)로 내려가기 가능.
+- 맨 아래층 밑이나 양옆 바깥으로 떨어지면 탈락(목숨 1개).
+- **창 던지기(L)로 밀어내기**: 피해 없음, 맞으면 820으로 밀리고 위로 380 튐, 0.3초 조작 불가. 재사용 1.2초. 무적 회피(K) 중엔 안 맞음. 맞았는지는 **맞는 사람 화면이 판정**(던진 사람은 위치·방향만 보냄).
+- **60초 제한**, 버틴 사람은 전원 통과(**탈락자가 없을 수도 있음**). 1명만 남으면 바로 끝. 마지막 사람들이 동시에(0.5초 안) 떨어지면 그들은 살아남는다.
+
 ### 코드 위치
+- 미니게임 고르기 `pickGame`, `ONLINE_GAMES`. 떨어지는 발판 창 `onlineSpear`, `addSpear`, `updateOnlineSpears`, `onlineKnock`, 탈락 시각 `markOut`.
 - 통신 `supabaseTransport`, 방 `onlineOpen/onlineCreate/onlineJoin/onlineEnd/onlineClose`, 수신 `onlineReceive`, 라운드 `onlineStart/onlineNextRound/onlineBeginRound/onlineEndRound/onlineApplyResult`, 진행 `onlineTick`, `onlineStep`, `onlineCamera`.
 - 러너 `onlineLoseLife`, `onlineFinish`, 함정 `killerTrap`, `activateTrap`, `trapGeom`, `trapFloors`, `runTrapContacts`, 그리기 `drawRunTraps`, `drawRunPlayers`, `onlineHud`, UI `openOnlineLobby`, `refreshOnlineUi`, `onlineKey`.
 - 새 미니게임은 `onlineNextRound` 에서 라운드 종류를 고르고, 종류별 시작·판정·그리기를 붙이는 식으로 확장.
@@ -279,7 +288,7 @@ node test-spino.cjs
 node test-course.cjs
 ```
 
-마지막 개발 시 보고된 결과: **235개 통과**(밸런스43 + 랩터44 + 여정10 + 디버그13 + 프테라노돈53 + 스피노27 + 코스25 + 온라인20). `./run-tests.sh`로 한 번에 실행. 인수인계 시 다시 실행한 결과는 `검사결과.txt` 참고.
+마지막 개발 시 보고된 결과: **242개 통과**(밸런스43 + 랩터44 + 여정10 + 디버그13 + 프테라노돈53 + 스피노27 + 코스25 + 온라인27). `./run-tests.sh`로 한 번에 실행. 인수인계 시 다시 실행한 결과는 `검사결과.txt` 참고.
 
 - DOM/Canvas/localStorage를 모의한 Node vm 회귀 검사. 실제 브라우저 플레이 품질을 완전히 보장하지 않는다.
 - 프테라노돈 자연 반복 궤적은 고정 간격으로 검사하며 순간이동 회귀 방지, 예측 추격, 입 충돌, 메테오 정확30개, 동시 AI, 저장 보호 등이 검사 대상.
@@ -296,4 +305,4 @@ node test-course.cjs
 - 프테라노돈을 고정 지점으로 순간이동시키거나 메테오 동안 멈추게 하지 말 것.
 - 현재 메테오는 옛 초음파 ‘범위 확대’ 상태가 아니라 **전혀 다른 소환형 공격**이다.
 - 온라인 검사(`test-online.cjs`)는 가짜 통신으로 돈다. 실제 Supabase 연결은 작업 환경에서 막혀 있어 **브라우저 창 2개로 직접 확인**해야 한다.
-- 다음 할 일: 사용자가 온라인 미니게임 2~10번을 하나씩 알려줌 → 만들고 대전에 끼우기.
+- 다음 할 일: 사용자가 온라인 미니게임 3~10번을 하나씩 알려줌 → 만들고 대전에 끼우기(`ONLINE_GAMES`에 추가, `onlineBeginRound`·`onlineTick` 끝 판정·`onlineEndRound`·`onlineStep`·`onlineHud`에 분기).

@@ -33,7 +33,7 @@ button{font:inherit;cursor:pointer;color:var(--bone);touch-action:manipulation}b
 @media(pointer:coarse){#touch{display:block}.controls{display:none}.note{margin-top:12px}.primary{min-width:145px;padding:10px 18px}#utility{top:7px;right:8px}#utility button{font-size:9px;padding:5px 7px}}
 @media(orientation:portrait){#rotate{display:block}.intro{width:65%}.eyebrow{margin-bottom:8px}.intro p.desc{margin-bottom:12px}h1{margin-bottom:10px}.note{display:none}.primary{padding:8px 12px;min-width:140px}.controls{margin-top:12px}#touch button{width:37px;height:37px;font-size:10px}.pad{bottom:9px;gap:6px}.pad.left{left:10px}.pad.right{right:10px}}
 [hidden]{display:none!important}
-#online input{font:inherit;background:#0b1b26;border:1px solid #68878a;color:var(--bone);padding:6px 9px;width:150px}.room-code{font-size:40px;letter-spacing:.3em;margin:4px 0;font-family:Batang,serif}#onlinePlayers{font-size:13px;line-height:1.9;color:var(--mist)}
+#online input,#online select{font:inherit;background:#0b1b26;border:1px solid #68878a;color:var(--bone);padding:6px 9px;width:150px}.room-code{font-size:40px;letter-spacing:.3em;margin:4px 0;font-family:Batang,serif}#onlinePlayers{font-size:13px;line-height:1.9;color:var(--mist)}
 #onlineLeave{display:none}#shell.online-play #onlineLeave{display:inline-block}#shell.online-play #homeBtn,#shell.online-play #pauseBtn,#shell.online-play #debugBtn,#shell.online-play #settingsBtn{display:none!important}
 #killerPad{display:none;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);gap:8px;z-index:4}#killerPad button{padding:12px 14px;background:#3a2a24dd;border:1px solid #ff9a7a;color:#ffe2c4;border-radius:6px}@media(pointer:coarse){#shell.killer #killerPad{display:flex}}
 #shell{container-type:size}
@@ -63,7 +63,7 @@ button{font:inherit;cursor:pointer;color:var(--bone);touch-action:manipulation}b
 <p id="journeyStatus" role="status"></p>
 </div></div>
 <div id="records" class="layer" role="dialog" aria-modal="true" aria-labelledby="recordsHeading"><div class="settings-panel"><h2 id="recordsHeading">여행 기록</h2><section class="record-card"><h3 id="valleyRecordName">???</h3><div id="titleBest" class="best-stars"></div><p id="titleRecord"></p><details id="recordDetails"><summary>최근 발자취</summary><ol id="recordList"></ol></details></section><section id="caveRecords" class="record-card"></section><section id="skyRecords" class="record-card"></section><section id="moonRecords" class="record-card"></section><p id="recordSaveNote" class="save-note">기록은 현재 브라우저에 저장됩니다.</p><button id="closeRecords" class="sub">돌아가기</button></div></div>
-<div id="online" class="layer" role="dialog" aria-modal="true" aria-labelledby="onlineHeading"><div class="settings-panel"><p class="eyebrow">모두의 여행</p><h2 id="onlineHeading">온라인 대전</h2><section id="onlineEntry"><p>최대 8명. 미니게임을 이어 하며 마지막 한 명이 우승합니다. 탈락하면 관전하거나 나갈 수 있습니다.</p><div class="bind-row"><span>닉네임</span><input id="onlineName" maxlength="10" autocomplete="off"></div><div class="settings-actions"><button id="onlineCreateBtn" class="primary">방 만들기</button></div><div class="bind-row"><span>방 코드</span><input id="onlineJoinCode" maxlength="4" autocomplete="off" placeholder="ABCD"></div><div class="settings-actions"><button id="onlineJoinBtn" class="primary">참가하기</button></div><p id="onlineNote" class="save-note"></p></section><section id="onlineRoom" hidden><p>방 코드 · 친구에게 알려주세요</p><h3 id="onlineCode" class="room-code"></h3><p id="onlineStatus" role="status"></p><ol id="onlinePlayers"></ol><div class="settings-actions"><button id="onlineStartBtn" class="primary">시작</button><button id="onlineAgainBtn" class="primary">다시 하기</button></div></section><button id="onlineBack" class="sub">나가기</button></div></div>
+<div id="online" class="layer" role="dialog" aria-modal="true" aria-labelledby="onlineHeading"><div class="settings-panel"><p class="eyebrow">모두의 여행</p><h2 id="onlineHeading">온라인 대전</h2><section id="onlineEntry"><p>최대 8명. 미니게임을 이어 하며 마지막 한 명이 우승합니다. 탈락하면 관전하거나 나갈 수 있습니다.</p><div class="bind-row"><span>닉네임</span><input id="onlineName" maxlength="10" autocomplete="off"></div><div class="settings-actions"><button id="onlineCreateBtn" class="primary">방 만들기</button></div><div class="bind-row"><span>방 코드</span><input id="onlineJoinCode" maxlength="4" autocomplete="off" placeholder="ABCD"></div><div class="settings-actions"><button id="onlineJoinBtn" class="primary">참가하기</button></div><p id="onlineNote" class="save-note"></p></section><section id="onlineRoom" hidden><p>방 코드 · 친구에게 알려주세요</p><h3 id="onlineCode" class="room-code"></h3><p id="onlineStatus" role="status"></p><ol id="onlinePlayers"></ol><div class="bind-row" id="onlineGameRow"><span>미니게임</span><select id="onlineGame"><option value="">무작위</option><option value="run">원시런</option><option value="fall">떨어지는 발판</option></select></div><div class="settings-actions"><button id="onlineStartBtn" class="primary">시작</button><button id="onlineAgainBtn" class="primary">다시 하기</button></div></section><button id="onlineBack" class="sub">나가기</button></div></div>
 <div id="dead" class="layer"><div class="panel"><p class="eyebrow">불씨는 아직 남아 있다</p><h2>다시, 일어서라.</h2><p id="deathHint">뿔이 낮아지는 순간, 두 번째 도약을 준비하라.</p><button id="retry" class="primary">모닥불에서 재도전 ↻</button><p class="note" id="retryHelp">R 또는 Enter로 즉시 재도전</p></div></div>
 <div id="pause" class="layer"><div class="panel"><p class="eyebrow">잠시 숨을 고르다</p><h2>멈춘 계곡</h2><p id="pauseControls"></p><button id="resume" class="primary">여행 계속하기 →</button><button id="returnTitle" class="sub">저장하고 나가기</button></div></div>
 <div id="win" class="layer"><div class="panel"><p class="eyebrow" id="winHeading">잊힌 뿔의 계곡 · 돌파</p><h2 id="winName">거인의 침묵</h2><p id="winDescription">강철의 뿔이 부서졌다.<br>당신의 창은, 아직 꺾이지 않았다.</p><div id="clearStars" class="clear-stars" role="img" aria-label="클리어 별점"></div><p id="clearRating"></p><p id="winStats"></p><button id="continueJourney" class="primary">여행 계속하기</button><button id="winHome" class="sub">처음 화면으로</button><p class="note" id="winNote">오른편의 문이 열렸습니다.</p></div></div>
@@ -530,7 +530,7 @@ function enterCourse(which,at){const c=COURSES[which];if(!c)return false;course=
 function courseRespawn(){const c=course||COURSES[stage],f=courseRun?courseRun.flag:-1;return f>=0?{x:c.flags[f][0],y:c.flags[f][1],flag:f}:{x:c.spawn[0],y:c.spawn[1],flag:-1}}
 function updateCourse(dt){const c=course,run=courseRun;run.t+=dt;
  c.movers.forEach((m,i)=>{const q=run.movers[i],n=moverPos(m,run.t);q.ddx=n.x-q.x;q.ddy=n.y-q.y;q.x=n.x;q.y=n.y});
- run.crumble.forEach((k,i)=>{if(k.down>0){k.down-=dt;if(k.down<=0){k.down=0;k.stand=0}}else if(k.stand>0||player.ground&&player.crumble===i){k.stand+=dt;if(k.stand>=COURSE_RULES.crumble){k.down=COURSE_RULES.crumbleBack;k.stand=0;burst(c.crumbles[i][0]+c.crumbles[i][2]/2,c.crumbles[i][1],14,stage===3?'#dfe8e4':'#a28e6c',140);noise(.18,.05)}}})}
+ run.crumble.forEach((k,i)=>{if(k.down>0){k.down-=dt;if(k.down<=0){k.down=0;k.stand=0}}else if(k.stand>0||player.ground&&player.crumble===i&&(!c.online||onlineAmRunning())){if(k.stand===0&&c.online)onlineSend({k:'step',i});k.stand+=dt;if(k.stand>=(c.crumbleTime||COURSE_RULES.crumble)){k.down=c.crumbleBack||COURSE_RULES.crumbleBack;k.stand=0;burst(c.crumbles[i][0]+c.crumbles[i][2]/2,c.crumbles[i][1],14,stage===3?'#dfe8e4':'#a28e6c',140);noise(.18,.05)}}})}
 function courseMove(p,dt){const c=course,run=courseRun,body=()=>({x:p.x-13,y:p.y-45,w:26,h:45});
  if(p.ground&&p.mover>=0){const m=run.movers[p.mover];p.x+=m.ddx;p.y+=m.ddy}
  const prevX=p.x,prev=p.y,wasGround=p.ground;p.x+=p.vx*dt;
@@ -538,6 +538,7 @@ function courseMove(p,dt){const c=course,run=courseRun,body=()=>({x:p.x-13,y:p.y
  p.y+=p.vy*dt;p.ground=false;p.wet=false;p.mover=-1;p.crumble=-1;p.blink=-1;p.solidGround=false;
  // 위아래는 지나온 구간 전체로 판정한다(긴 프레임에도 바닥을 뚫지 않게).
  for(const [bx,by,bw,bh] of c.blocks){if(p.x+13<=bx||p.x-13>=bx+bw)continue;if(p.vy>=0&&prev<=by+2&&p.y>=by){p.y=by;p.vy=0;p.ground=true;p.jumps=0;p.solidGround=true}else if(p.vy<0&&prev-45>=by+bh-2&&p.y-45<by+bh){p.y=by+bh+45.01;p.vy=0}}
+ if(c.headBonk&&p.vy<0)for(const f of courseLedges())if(prev-45>=f.y+14&&p.y-45<f.y+16&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y+16+45.01;p.vy=0;break}
  if(p.dropTime<=0&&!p.ground)for(const f of courseLedges())if(p.vy>=0&&prev<=f.y+3&&p.y>=f.y&&p.x+13>f.x&&p.x-13<f.x+f.w){p.y=f.y;p.vy=0;p.ground=true;p.jumps=0;if(f.kind==='water')p.wet=true;if(f.kind==='mover')p.mover=f.i;if(f.kind==='crumble')p.crumble=f.i;if(f.kind==='blink')p.blink=f.i;break}
  p.x=clamp(p.x,c.left+13,c.right-13);
  // 마지막으로 밟은 단단한 땅: 물·움직이는 발판·무너지는 발판·가시 위는 제외.
@@ -686,7 +687,7 @@ function debugCourse(){if(mode!=='debug'||!COURSES[stage])return false;if(!debug
  if(dist>36)boss.x+=boss.dir*Math.min(speed*dt,dist-36);
  boss.x=clamp(boss.x,1560,2725);
 }
-function throwSpear(){if(online)return false;if(spear||player.dash>0||player.hurt>0)return false;const p=player;spear={x:p.x+p.dir*26,y:p.y-34,vx:p.dir*760,vy:-330,angle:p.dir>0?-.4:Math.PI+.4,state:'flying',age:0,wallTime:0,hit:false,hits:new Set()};p.atk=0;p.atkCD=Math.max(.2,p.atkCD);noise(.1,.03);tone(400,.1,'triangle',.04);return true}
+function throwSpear(){if(online)return onlineSpear();if(spear||player.dash>0||player.hurt>0)return false;const p=player;spear={x:p.x+p.dir*26,y:p.y-34,vx:p.dir*760,vy:-330,angle:p.dir>0?-.4:Math.PI+.4,state:'flying',age:0,wallTime:0,hit:false,hits:new Set()};p.atk=0;p.atkCD=Math.max(.2,p.atkCD);noise(.1,.03);tone(400,.1,'triangle',.04);return true}
 function segmentRect(x,y,ex,ey,r){let lo=0,hi=1;for(const [start,delta,min,max]of [[x,ex-x,r.x-9,r.x+r.w+9],[y,ey-y,r.y-9,r.y+r.h+9]]){if(Math.abs(delta)<.00001){if(start<min||start>max)return false}else{let a=(min-start)/delta,b=(max-start)/delta;if(a>b)[a,b]=[b,a];lo=Math.max(lo,a);hi=Math.min(hi,b);if(lo>hi)return false}}return true}
 function updateSpear(dt){if(!spear)return;const s=spear;s.age+=dt;
  if(s.state==='stuck'){s.wallTime-=dt;if(s.wallTime<=0){s.state='falling';s.vx=0;s.vy=0}}
@@ -884,8 +885,9 @@ function spinoHud(){const b=boss;if(arena&&!b.dead){g.textAlign='center';g.font=
 // ── 온라인 대전 (4지역을 한 번 클리어하면 해금) ──
 // 서버: 뮤됴구 Supabase 실시간 채널(broadcast)만 사용한다. DB 표 없음. 방 코드 = 채널 이름.
 // 방장 화면이 방·라운드·탈락 판정을 맡고, 각자 자기 캐릭터 움직임은 자기 화면에서 계산해 초당 5번 보낸다.
-// 방장이 나가면 방이 끝난다. 최대 8명. 미니게임이 이어지며 마지막 한 명이 우승. 지금 미니게임: 1번 원시런.
-const ONLINE={url:'wss://nvpvdkxovknhqglfbhmv.supabase.co/realtime/v1/websocket',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52cHZka3hvdmtuaHFnbGZiaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODA1NDgsImV4cCI6MjEwODQ1NjU0OH0.sbayovYN3rAJIoqGXcBLzaEMlZ4CCIn7I_PO6pFRHUs',max:8,posEvery:.2,aliveEvery:2,timeout:6,joinWait:6,countdown:3,resultTime:5,roundTime:90,lives:3,scroll:55,respawnInv:1.5,trapCool:2.2};
+// 방장이 나가면 방이 끝난다. 최대 8명. 미니게임이 이어지며 마지막 한 명이 우승. 지금 미니게임: 1번 원시런, 2번 떨어지는 발판.
+const ONLINE={url:'wss://nvpvdkxovknhqglfbhmv.supabase.co/realtime/v1/websocket',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52cHZka3hvdmtuaHFnbGZiaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODA1NDgsImV4cCI6MjEwODQ1NjU0OH0.sbayovYN3rAJIoqGXcBLzaEMlZ4CCIn7I_PO6pFRHUs',max:8,posEvery:.2,aliveEvery:2,timeout:6,joinWait:6,countdown:3,resultTime:5,roundTime:90,lives:3,scroll:55,respawnInv:1.5,trapCool:2.2,fallTime:60,spearCool:1.2,spearSpeed:760,spearLift:120,knock:820,knockUp:380,knockTime:.3};
+const ONLINE_GAMES={run:'원시런',fall:'떨어지는 발판'};
 const RUN_TRAPS={rock:{key:1,name:'낙석',life:1.5},spike:{key:2,name:'가시',life:1.6},mace:{key:3,name:'철퇴',life:1.7},floor:{key:4,name:'바닥',life:3.4}};
 const RUN_TYPES=['rock','spike','mace','floor'];
 // 1번 원시런 맵(동굴). 자연 구덩이 2곳 + 함정 바닥 3곳(구덩이 위 다리). 함정: [종류,x,y,w] — 낙석은 x, 가시·바닥은 [x,y,w], 철퇴는 천장 축 x.
@@ -894,6 +896,11 @@ COURSES.run={name:'원시런',online:true,theme:2,left:0,right:5600,top:0,bottom
  blocks:[[0,602,900,400],[1050,602,700,400],[1900,602,500,400],[2400,500,300,502],[2850,602,600,400],[3600,602,500,400],[4250,602,1350,400]],
  ledges:[],crumbles:[],movers:[],spikes:[],maces:[],vines:[],flags:[],winds:[],water:[],drips:[],lights:[],route:[],
  traps:[['rock',500],['spike',700,602,90],['mace',1000],['rock',1200],['spike',1400,602,90],['mace',1600],['floor',1750,602,150],['rock',1700],['spike',2150,602,90],['rock',2550],['mace',2600],['spike',3000,602,90],['rock',3200],['floor',3450,602,150],['mace',3350],['spike',3800,602,90],['rock',3900],['floor',4100,602,150],['mace',4400],['rock',4600],['spike',4700,602,90],['mace',4950],['rock',5100],['spike',5250,602,90]]};
+// 2번 떨어지는 발판: 위에서부터 6-5-4-3개 발판 4층. 밟으면 .6초 뒤 무너지고 6초 뒤 돌아온다. 아래에서는 머리가 막힌다.
+// 맨 아래층 밑(또는 양옆 바깥)으로 떨어지면 탈락. 창에 맞으면 밀려난다. 60초 버티면 통과(탈락자가 없을 수도 있다).
+COURSES.fall={name:'떨어지는 발판',online:true,theme:2,left:-500,right:1780,top:0,bottom:800,ceil:0,spawn:[640,190],end:[-9999,-9999,1,1],dark:0,crumbleTime:.6,crumbleBack:6,headBonk:true,
+ enter:['떨어지는 발판','창으로 밀어 떨어뜨려라'],finish:['',''],blocks:[],ledges:[],movers:[],spikes:[],maces:[],vines:[],flags:[],winds:[],water:[],drips:[],lights:[],route:[],traps:[],
+ crumbles:[[190,6],[340,5],[490,4],[640,3]].flatMap(([y,n])=>{const gap=60,w=(1100-(n-1)*gap)/n;return Array.from({length:n},(_,i)=>[Math.round(90+i*(w+gap)),y,Math.round(w)])})};
 let online=null,makeTransport=supabaseTransport;
 function openOnlineLobby(){if(online)onlineClose(false);mode='online';$('shell').classList.remove('online-play','killer');layers('online');refreshOnlineUi();return true}
 function onlineUnlocked(){return stageRecords[4].clears>0}
@@ -934,29 +941,36 @@ function onlineReceive(m){const o=online;if(!o||!m||m.from===o.me||o.phase==='cl
   if(m.k==='lobby'){o.phase='lobby';o.round=null;course=null;mode='online';layers('online');refreshOnlineUi();return}
  }
  const r=o.round;if(!r)return;
- if(m.k==='pos'){const s=r.state[m.from];if(!s)return;Object.assign(s,{lives:m.l,fin:s.fin||!!m.f,out:s.out||!!m.o});const buf=o.remote[m.from]||(o.remote[m.from]=[]);buf.push({t:o.clock,x:m.x,y:m.y,d:m.d});while(buf.length>8)buf.shift();return}
+ if(m.k==='pos'){const s=r.state[m.from];if(!s)return;Object.assign(s,{lives:m.l,fin:s.fin||!!m.f});if(m.o)markOut(s);const buf=o.remote[m.from]||(o.remote[m.from]=[]);buf.push({t:o.clock,x:m.x,y:m.y,d:m.d});while(buf.length>8)buf.shift();return}
  if(m.k==='fin'&&r.state[m.from]){r.state[m.from].fin=true;return}
- if(m.k==='out'&&r.state[m.from]){r.state[m.from].out=true;r.state[m.from].lives=0;return}
+ if(m.k==='out'&&r.state[m.from]){markOut(r.state[m.from]);r.state[m.from].lives=0;return}
+ if(m.k==='step'&&courseRun&&course===COURSES.fall){const k=courseRun.crumble[m.i];if(k&&k.down<=0&&k.stand===0)k.stand=1e-4;return}
+ if(m.k==='spear'&&r.game==='fall'&&r.state[m.from]){addSpear(m.from,m.x,m.y,m.d);return}
  if(m.k==='trap'&&m.from===r.killer&&Array.isArray(m.ids))for(const i of m.ids)activateTrap(i);
 }
 // 방장: 사람이 나가거나 응답이 끊기면 빼고(대전 중이면 탈락), 바뀐 명단을 알린다.
-function onlineDrop(id){const o=online;if(!o||!o.isHost||id===o.me)return;if(o.phase==='lobby')o.players=o.players.filter(p=>p.id!==id);else{const p=onlinePlayer(id);if(p){p.alive=false;p.left=true}if(o.round&&o.round.state[id]){o.round.state[id].out=true}}delete o.seen[id];onlineSend(rosterMsg());refreshOnlineUi()}
-function onlineStart(){const o=online;if(!o||!o.isHost||o.phase!=='lobby'||o.players.length<2)return false;o.players.forEach(p=>{p.alive=true;p.left=false});onlineNextRound();return true}
+function onlineDrop(id){const o=online;if(!o||!o.isHost||id===o.me)return;if(o.phase==='lobby')o.players=o.players.filter(p=>p.id!==id);else{const p=onlinePlayer(id);if(p){p.alive=false;p.left=true}if(o.round&&o.round.state[id]){markOut(o.round.state[id])}}delete o.seen[id];onlineSend(rosterMsg());refreshOnlineUi()}
+function onlineStart(game){const o=online;if(!o||!o.isHost||o.phase!=='lobby'||o.players.length<2)return false;o.nextGame=ONLINE_GAMES[game]?game:ONLINE_GAMES[$('onlineGame').value]?$('onlineGame').value:'';o.lastGame=null;o.players.forEach(p=>{p.alive=true;p.left=false});onlineNextRound();return true}
+// 다음 미니게임: 방장이 고른 게임, 무작위면 직전 게임은 피한다.
+function pickGame(){const o=online;if(o.nextGame)return o.nextGame;const all=Object.keys(ONLINE_GAMES),pool=all.filter(k=>k!==o.lastGame);return pool[Math.floor(Math.random()*pool.length)]}
 function onlineNextRound(){const o=online,alive=o.players.filter(p=>p.alive&&!p.left);if(alive.length<2){const w=alive[0];onlineApplyResult({k:'result',elim:[],alive:alive.map(p=>p.id),winner:w?w.id:null,final:true});onlineSend({k:'result',elim:[],alive:alive.map(p=>p.id),winner:w?w.id:null,final:true});return}
+ const game=pickGame(),no=(o.round?o.round.no:0)+1,names=Object.fromEntries(o.players.map(p=>[p.id,p.name]));o.lastGame=game;
+ if(game==='fall'){const m={k:'round',no,game,killer:null,runners:alive.map(p=>p.id),names};onlineSend(m);onlineBeginRound(m);return}
  const pool=alive.filter(p=>p.id!==o.lastKiller),pick=(pool.length?pool:alive)[Math.floor(Math.random()*(pool.length?pool:alive).length)];o.lastKiller=pick.id;
- const m={k:'round',no:(o.round?o.round.no:0)+1,game:'run',killer:pick.id,runners:alive.filter(p=>p.id!==pick.id).map(p=>p.id),names:Object.fromEntries(o.players.map(p=>[p.id,p.name]))};onlineSend(m);onlineBeginRound(m)}
-function onlineBeginRound(m){const o=online;o.phase='countdown';o.remote={};o.cool={rock:0,spike:0,mace:0,floor:0};
- o.round={no:m.no,game:m.game,killer:m.killer,runners:m.runners,names:m.names||{},t:-ONLINE.countdown,state:Object.fromEntries(m.runners.map(id=>[id,{lives:ONLINE.lives,fin:false,out:false}])),result:null,sentFin:false,sentOut:false,ended:false};
- reset(false);enterCourse('run',null);courseRun.trap=COURSES.run.traps.map(()=>({at:-99}));cam=0;camY=0;
- const me=o.round.state[o.me];if(me){const i=o.round.runners.indexOf(o.me);player.x=120+i*28;player.y=602;player.safe={x:player.x,y:602}}
- texts=[];message(`${m.no}라운드 · 원시런`,o.me===m.killer?'당신은 킬러! 1~4로 함정을 발동하라':me?'함정을 피해 결승선까지 · 목숨 3개':'관전 중',2.6);
+ const m={k:'round',no,game:'run',killer:pick.id,runners:alive.filter(p=>p.id!==pick.id).map(p=>p.id),names};onlineSend(m);onlineBeginRound(m)}
+function onlineBeginRound(m){const o=online,fall=m.game==='fall';o.phase='countdown';o.remote={};o.cool={rock:0,spike:0,mace:0,floor:0};o.spears=[];o.spearCD=0;
+ o.round={no:m.no,game:fall?'fall':'run',killer:m.killer||null,runners:m.runners,names:m.names||{},t:-ONLINE.countdown,state:Object.fromEntries(m.runners.map(id=>[id,{lives:fall?1:ONLINE.lives,fin:false,out:false}])),result:null,sentFin:false,sentOut:false,ended:false};
+ reset(false);enterCourse(fall?'fall':'run',null);if(!fall)courseRun.trap=COURSES.run.traps.map(()=>({at:-99}));cam=0;camY=0;
+ const me=o.round.state[o.me];if(me){const i=o.round.runners.indexOf(o.me);if(fall){const f=COURSES.fall.crumbles[i%6];player.x=f[0]+f[2]/2+(i>=6?-30:0);player.y=f[1]}else{player.x=120+i*28;player.y=602}player.peakY=player.y;player.safe={x:player.x,y:player.y}}
+ texts=[];message(`${m.no}라운드 · ${ONLINE_GAMES[o.round.game]}`,fall?(me?`${keyName(bindings.throw)} 창으로 밀어 떨어뜨려라 · ${ONLINE.fallTime}초 버티기`:'관전 중'):o.me===m.killer?'당신은 킬러! 1~4로 함정을 발동하라':me?'함정을 피해 결승선까지 · 목숨 3개':'관전 중',2.6);
  mode='playing';layers('');$('shell').classList.add('online-play');$('shell').classList.toggle('killer',o.me===m.killer);refreshOnlineUi();canvas.focus()}
 function onlineRunner(){const r=online&&online.round;return r&&r.state[online.me]}
 function onlineAmRunning(){const s=onlineRunner();return !!s&&!s.fin&&!s.out&&online.phase==='run'}
 // 원시런 목숨: 함정·구멍·화면 왼쪽 끝에 밀리면 하나 잃고 화면 가운데 하늘에서 다시 떨어진다.
 function onlineLoseLife(kind){const s=onlineRunner();if(!s||s.fin||s.out||online.phase!=='run')return;const p=player;s.lives--;flash=.2;shake=8;burst(p.x,p.y-30,18,C.red,200);noise(.25,.1);
- if(s.lives<=0){s.lives=0;s.out=true;onlineSend({k:'out'});message('탈락','목숨을 모두 잃었다 · 관전 중',2.2);return}
+ if(s.lives<=0){s.lives=0;markOut(s);onlineSend({k:'out'});message('탈락',online.round.game==='fall'?'발판에서 떨어졌다 · 관전 중':'목숨을 모두 잃었다 · 관전 중',2.2);return}
  Object.assign(p,{x:cam+W/2,y:150,vx:0,vy:0,ground:false,jumps:1,inv:ONLINE.respawnInv,hurt:0,dash:0,peakY:150});message(`남은 목숨 ${s.lives}`,'',1.2)}
+function markOut(s){if(!s.out){s.out=true;s.outAt=online.clock}}
 function onlineFinish(){const s=onlineRunner();if(!s||s.fin||s.out)return;s.fin=true;onlineSend({k:'fin'});message('완주!','결승선 통과 · 관전 중',2.2);tone(660,.4,'triangle',.06)}
 function trapLive(i){const tr=courseRun&&courseRun.trap&&courseRun.trap[i];if(!tr)return -1;const u=courseRun.t-tr.at,life=RUN_TRAPS[COURSES.run.traps[i][0]].life;return u>=0&&u<life?u:-1}
 function activateTrap(i){if(!courseRun||!courseRun.trap||!courseRun.trap[i]||trapLive(i)>=0)return false;courseRun.trap[i].at=courseRun.t;return true}
@@ -977,28 +991,39 @@ function onlineTick(dt){const o=online;if(!o)return;o.clock+=dt;
  else if(o.phase==='connecting'&&o.clock>ONLINE.joinWait)onlineEnd('방을 찾지 못했습니다. 코드를 확인하세요.');
  else if(o.phase!=='connecting'&&o.phase!=='closed'&&o.clock-(o.seen.host??o.clock)>ONLINE.timeout)onlineEnd('방장과 연결이 끊겨 방이 끝났습니다.');
  if(o.seen.host===undefined&&o.phase!=='connecting')o.seen.host=o.clock;
- for(const k of RUN_TYPES)o.cool[k]=Math.max(0,o.cool[k]-dt);
+ for(const k of RUN_TYPES)o.cool[k]=Math.max(0,o.cool[k]-dt);o.spearCD=Math.max(0,(o.spearCD||0)-dt);
  const r=o.round;if(!r)return;
  if(o.phase==='countdown'){r.t+=dt;if(r.t>=0){o.phase='run';r.t=0;message('출발!','',1)}return}
  if(o.phase==='result'){r.resultT=(r.resultT||0)+dt;if(r.resultT>=ONLINE.resultTime&&!r.advanced){r.advanced=true;if(r.result.winner||r.result.final){o.phase='over';mode='online';course=null;$('shell').classList.remove('online-play');layers('online');refreshOnlineUi()}else if(o.isHost)onlineNextRound()}return}
  if(o.phase!=='run')return;r.t+=dt;
- const s=onlineRunner();if(s&&!s.fin&&!s.out){if(player.x<cam+8)onlineLoseLife('edge');if(o.clock-o.posAt>=ONLINE.posEvery){o.posAt=o.clock;onlineSend({k:'pos',x:Math.round(player.x),y:Math.round(player.y),d:player.dir,l:s.lives,f:s.fin?1:0,o:s.out?1:0})}}
- if(o.isHost&&!r.ended){const all=r.runners.every(id=>r.state[id].fin||r.state[id].out||onlinePlayer(id)?.left);if(all||r.t>=ONLINE.roundTime)onlineEndRound()}}
-function onlineEndRound(){const o=online,r=o.round;r.ended=true;let elim=r.runners.filter(id=>!r.state[id].fin);if(!elim.length)elim=[r.killer];for(const id of elim){const p=onlinePlayer(id);if(p)p.alive=false}
+ const s=onlineRunner();if(s&&!s.fin&&!s.out){if(r.game==='run'&&player.x<cam+8)onlineLoseLife('edge');if(o.clock-o.posAt>=ONLINE.posEvery){o.posAt=o.clock;onlineSend({k:'pos',x:Math.round(player.x),y:Math.round(player.y),d:player.dir,l:s.lives,f:s.fin?1:0,o:s.out?1:0})}}
+ if(o.isHost&&!r.ended){if(r.game==='fall'){const standing=r.runners.filter(id=>!r.state[id].out&&!onlinePlayer(id)?.left);if(standing.length<=1||r.t>=ONLINE.fallTime)onlineEndRound()}else{const all=r.runners.every(id=>r.state[id].fin||r.state[id].out||onlinePlayer(id)?.left);if(all||r.t>=ONLINE.roundTime)onlineEndRound()}}}
+function onlineEndRound(){const o=online,r=o.round;r.ended=true;let elim;
+ if(r.game==='fall'){const gone=id=>r.state[id].out||onlinePlayer(id)?.left;elim=r.runners.filter(gone);
+  // 모두 떨어졌으면 마지막으로 떨어진 사람(0.5초 안)은 살아남는다.
+  if(elim.length===r.runners.length){const fell=r.runners.filter(id=>!onlinePlayer(id)?.left),last=Math.max(...fell.map(id=>r.state[id].outAt??-1));elim=elim.filter(id=>!fell.includes(id)||(r.state[id].outAt??-1)<last-.5)}}
+ else{elim=r.runners.filter(id=>!r.state[id].fin);if(!elim.length)elim=[r.killer]}for(const id of elim){const p=onlinePlayer(id);if(p)p.alive=false}
  const alive=o.players.filter(p=>p.alive&&!p.left).map(p=>p.id),winner=alive.length===1?alive[0]:null,m={k:'result',elim,alive,winner,final:alive.length<2};onlineSend(m);onlineApplyResult(m)}
 function onlineApplyResult(m){const o=online;if(!o.isHost){for(const p of o.players)p.alive=m.alive.includes(p.id)}const r=o.round||{no:0,state:{},runners:[],names:{}};r.result=m;r.resultT=0;r.advanced=false;o.round=r;o.phase='result';
  if(!course){o.phase='over';mode='online';layers('online')}
  const mine=m.elim.includes(o.me);message(m.winner?`우승: ${(onlinePlayer(m.winner)||{}).name||'?'}`:mine?'탈락':'다음 라운드로',m.elim.length?`탈락: ${m.elim.map(id=>(onlinePlayer(id)||{}).name||'?').join(', ')}`:'',4);refreshOnlineUi()}
 function onlineRestart(){const o=online;if(!o||!o.isHost||o.phase!=='over')return false;o.phase='lobby';o.round=null;o.players=o.players.filter(p=>!p.left).map(p=>({...p,alive:true}));onlineSend({k:'lobby'});onlineSend(rosterMsg());mode='online';layers('online');refreshOnlineUi();return true}
 // 화면: 자동으로 오른쪽으로 넘어간다. 주자는 화면 오른쪽 끝을 넘지 못한다.
-function onlineCamera(){const r=online.round,c=COURSES.run;cam=clamp((online.phase==='run'?r.t:0)*ONLINE.scroll,0,c.right-W);camY=0}
-function onlineStep(dt){const o=online;updateCourse(dt);if(onlineAmRunning()){updatePlayer(dt);if(online&&course){player.x=Math.min(player.x,cam+W-20);runTrapContacts(player)}}onlineCamera()}
+function onlineCamera(){const r=online.round,c=COURSES.run;if(r.game==='fall'){cam=0;camY=0;return}cam=clamp((online.phase==='run'?r.t:0)*ONLINE.scroll,0,c.right-W);camY=0}
+function onlineStep(dt){const o=online,fall=o.round.game==='fall';updateCourse(dt);if(onlineAmRunning()){updatePlayer(dt);if(online&&course&&!fall){player.x=Math.min(player.x,cam+W-20);runTrapContacts(player)}}if(online&&fall)updateOnlineSpears(dt);onlineCamera()}
+// 떨어지는 발판의 창: 던진 사람 화면에서 보내고, 맞았는지는 맞는 사람 화면이 판정해 스스로 밀려난다. 회피 중엔 안 맞는다.
+function onlineSpear(){const o=online,r=o&&o.round;if(!r||r.game!=='fall'||!onlineAmRunning()||o.spearCD>0||player.hurt>0||player.dash>0)return false;const p=player,x=Math.round(p.x+p.dir*26),y=Math.round(p.y-34);o.spearCD=ONLINE.spearCool;addSpear(o.me,x,y,p.dir);onlineSend({k:'spear',x,y,d:p.dir});p.atk=0;noise(.1,.03);tone(400,.1,'triangle',.04);return true}
+function addSpear(from,x,y,d){online.spears.push({from,x,y,vx:(d<0?-1:1)*ONLINE.spearSpeed,vy:-ONLINE.spearLift,age:0,hit:false})}
+function updateOnlineSpears(dt){const o=online;o.spears=o.spears.filter(s=>{const ox=s.x,oy=s.y;s.age+=dt;s.vy+=650*dt;s.x+=s.vx*dt;s.y+=s.vy*dt;
+  if(!s.hit&&s.from!==o.me&&onlineAmRunning()&&player.dash<=0&&segmentRect(ox,oy,s.x,s.y,playerRect())){s.hit=true;onlineKnock(s)}
+  return s.age<3&&s.y<900&&s.x>-400&&s.x<W+400})}
+function onlineKnock(s){const p=player,d=s.vx<0?-1:1;Object.assign(p,{vx:d*ONLINE.knock,vy:-ONLINE.knockUp,ground:false,hurt:ONLINE.knockTime,coyote:0,atk:0,dir:-d});p.jumps=Math.max(1,p.jumps);shake=9;flash=.1;burst(p.x,p.y-30,16,C.gold,240);noise(.16,.08);tone(150,.15,'sawtooth',.05)}
 function refreshOnlineUi(){const el=$('online');if(!el)return;const o=online,entry=!o,room=o&&['connecting','lobby'].includes(o.phase),over=o&&o.phase==='over',closed=o&&o.phase==='closed';
- $('onlineEntry').hidden=!entry;$('onlineRoom').hidden=!(room||over||closed);
+ $('onlineEntry').hidden=!entry;$('onlineRoom').hidden=!(room||over||closed);$('onlineGameRow').hidden=true;
  if(!o){$('onlineName').value=$('onlineName').value||(()=>{try{return localStorage.getItem('primalJourney.online.name')||''}catch(e){return ''}})();return}
  $('onlineCode').textContent=o.code;$('onlineStatus').textContent=closed?o.notice:o.phase==='connecting'?'방에 들어가는 중…':over?`우승: ${(onlinePlayer(o.round&&o.round.result&&o.round.result.winner)||{}).name||'없음'}`:o.isHost?`참가자 ${o.players.length} / 8 · 2명 이상이면 시작할 수 있습니다`:'방장이 시작하기를 기다리는 중';
  $('onlinePlayers').innerHTML=o.players.map(p=>`<li>${p.name.replace(/[<>&"]/g,'')}${p.id===(o.isHost?o.me:o.hostId)?' · 방장':''}${p.id===o.me?' (나)':''}${over&&!p.alive?' · 탈락':''}</li>`).join('');
- $('onlineStartBtn').hidden=!(o.isHost&&o.phase==='lobby');$('onlineStartBtn').disabled=o.players.length<2;$('onlineAgainBtn').hidden=!(o.isHost&&over)}
+ $('onlineStartBtn').hidden=!(o.isHost&&o.phase==='lobby');$('onlineGameRow').hidden=!(o.isHost&&o.phase==='lobby');$('onlineStartBtn').disabled=o.players.length<2;$('onlineAgainBtn').hidden=!(o.isHost&&over)}
 // 원시런 그리기: 함정, 다른 주자(보간), 킬러 표시.
 function drawRunTraps(){if(!course||!course.online||!courseRun.trap)return;const c=COURSES.run;
  c.traps.forEach((tr,i)=>{const [type,x,y,w]=tr,u=trapLive(i);
@@ -1012,13 +1037,15 @@ function drawRunTraps(){if(!course||!course.online||!courseRun.trap)return;const
 function drawRunPlayers(){const o=online,r=o.round;if(!r)return;const lag=.25;
  for(const id of r.runners){if(id===o.me)continue;const s=r.state[id],buf=o.remote[id];if(!buf||!buf.length||s.out||s.fin)continue;const t=o.clock-lag;let a=buf[0],b=buf[buf.length-1];for(let k=0;k<buf.length-1;k++)if(buf[k].t<=t&&buf[k+1].t>=t){a=buf[k];b=buf[k+1];break}const q=b.t===a.t?1:clamp((t-a.t)/(b.t-a.t),0,1);const x=lerp(a.x,b.x,q),y=lerp(a.y,b.y,q);
   drawPlayer({...player,x,y,dir:b.d||1,vx:Math.abs(b.x-a.x)>2?100:0,ground:true,atk:0,inv:0,unarmed:true},.75);g.font='12px sans-serif';g.textAlign='center';g.fillStyle='#e8ddbd';g.fillText(r.names[id]||'?',x,y-60)}
+ for(const s of o.spears||[]){const keep=spear;spear={x:s.x,y:s.y,angle:Math.atan2(s.vy,s.vx),state:'flying'};drawSpear();spear=keep}
  const me=r.state[o.me];if(me&&!me.out&&!me.fin){drawPlayer(player);g.font='12px sans-serif';g.textAlign='center';g.fillStyle='#ffe2a0';g.fillText('나',player.x,player.y-60)}}
-function onlineHud(){const o=online,r=o.round;if(!r)return;g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText(`원시런 · ${r.no}라운드`,640,30);
- const left=Math.max(0,ONLINE.roundTime-Math.max(0,r.t));g.font='13px sans-serif';g.fillStyle='#cfdcd2';g.fillText(o.phase==='countdown'?`${Math.ceil(-r.t)}`:o.phase==='run'?`남은 시간 ${Math.ceil(left)}초`:'',640,54);
- const isKiller=o.me===r.killer,me=r.state[o.me];g.textAlign='left';g.font='14px sans-serif';g.fillStyle=isKiller?'#ff9a7a':'#e4d8ba';g.fillText(isKiller?'킬러 · 함정으로 주자를 막아라':me?(me.fin?'완주! 관전 중':me.out?'탈락 · 관전 중':'주자'):'관전 중',38,34);
- if(me&&!isKiller){for(let i=0;i<ONLINE.lives;i++){g.save();g.translate(46+i*25,58);path([[0,-9],[7,-3],[5,5],[0,9],[-5,5],[-7,-3]],i<me.lives?'#e0bb79':'#28414a',i<me.lives?'#fff0c2':'#55747a',1);g.restore()}}
+function onlineHud(){const o=online,r=o.round;if(!r)return;const fall=r.game==='fall';g.textAlign='center';g.font='17px Batang, serif';g.fillStyle=C.bone;g.fillText(`${ONLINE_GAMES[r.game]} · ${r.no}라운드`,640,30);
+ const left=Math.max(0,(fall?ONLINE.fallTime:ONLINE.roundTime)-Math.max(0,r.t));g.font='13px sans-serif';g.fillStyle='#cfdcd2';g.fillText(o.phase==='countdown'?`${Math.ceil(-r.t)}`:o.phase==='run'?`남은 시간 ${Math.ceil(left)}초`:'',640,54);
+ const isKiller=!!r.killer&&o.me===r.killer,me=r.state[o.me];g.textAlign='left';g.font='14px sans-serif';g.fillStyle=isKiller?'#ff9a7a':'#e4d8ba';g.fillText(isKiller?'킬러 · 함정으로 주자를 막아라':me?(me.fin?'완주! 관전 중':me.out?'탈락 · 관전 중':fall?'버텨라 · 창으로 밀어내기':'주자'):'관전 중',38,34);
+ if(fall){let yy=60;if(me&&!me.out){const cd=o.spearCD||0;g.fillStyle=cd>0?'#7d8a90':'#ffe2a0';g.fillText(cd>0?`창 준비 중 ${cd.toFixed(1)}`:`창 준비 · ${keyName(bindings.throw)}`,38,yy)}yy=96;g.font='12px sans-serif';for(const id of r.runners){const s=r.state[id];g.fillStyle=s.out?'#8a6a64':'#cfdcd2';g.fillText(`${r.names[id]||'?'} ${s.out?'탈락':'생존'}`,38,yy);yy+=17}}
+ else{if(me&&!isKiller){for(let i=0;i<ONLINE.lives;i++){g.save();g.translate(46+i*25,58);path([[0,-9],[7,-3],[5,5],[0,9],[-5,5],[-7,-3]],i<me.lives?'#e0bb79':'#28414a',i<me.lives?'#fff0c2':'#55747a',1);g.restore()}}
  // 참가자 상태판
- let yy=96;g.font='12px sans-serif';for(const id of r.runners){const s=r.state[id];g.fillStyle=s.fin?'#bfe8a8':s.out?'#8a6a64':'#cfdcd2';g.fillText(`${r.names[id]||'?'} ${s.fin?'완주':s.out?'탈락':'♥'.repeat(Math.max(0,s.lives))}`,38,yy);yy+=17}g.fillStyle='#ff9a7a';g.fillText(`킬러: ${r.names[r.killer]||'?'}`,38,yy);
+ let yy=96;g.font='12px sans-serif';for(const id of r.runners){const s=r.state[id];g.fillStyle=s.fin?'#bfe8a8':s.out?'#8a6a64':'#cfdcd2';g.fillText(`${r.names[id]||'?'} ${s.fin?'완주':s.out?'탈락':'♥'.repeat(Math.max(0,s.lives))}`,38,yy);yy+=17}g.fillStyle='#ff9a7a';g.fillText(`킬러: ${r.names[r.killer]||'?'}`,38,yy)}
  if(isKiller){RUN_TYPES.forEach((k,i)=>{const x=440+i*110,y=640,cd=o.cool[k],ready=cd<=0&&COURSES.run.traps.some((tr,j)=>tr[0]===k&&tr[1]>cam-40&&tr[1]<cam+W+40&&trapLive(j)<0);g.fillStyle=ready?'#3a2a24ee':'#1a1f22cc';g.fillRect(x,y,96,44);g.strokeStyle=ready?'#ff9a7a':'#55606a';g.strokeRect(x,y,96,44);g.fillStyle=ready?'#ffe2c4':'#7d8a90';g.textAlign='center';g.font='14px sans-serif';g.fillText(`${i+1} ${RUN_TRAPS[k].name}`,x+48,y+27);if(cd>0){g.fillStyle='#ff9a7a88';g.fillRect(x,y+40,96*cd/ONLINE.trapCool,4)}})}
  if(texts.length){const t=texts[texts.length-1];g.save();g.globalAlpha=clamp(Math.min(t.life,t.max-t.life)*2,0,1);g.textAlign='center';g.fillStyle='#e8ddbd';g.font='32px Batang, serif';g.shadowColor='#000';g.shadowBlur=18;g.fillText(t.t,W/2,211);g.fillStyle='#a4bcb7';g.font='13px sans-serif';g.fillText(t.sub,W/2,240);g.restore()}}
 
@@ -1250,7 +1277,7 @@ function render(){if(mode==='title'||mode==='online'||mode==='records'||mode==='
     else if(state==='takeoff'){boss.y=FLOOR;pteraTakeoff()}
     else{boss.y=['walk','stuck'].includes(state)?FLOOR:245;if(state==='walk')pteraWalk();else pteraState(state,{fly:4,stuck:2}[state])}render();return true;
    }
-    window.primalJourney={online:{open:openOnlineLobby,create:onlineCreate,join:onlineJoin,start:onlineStart,restart:onlineRestart,leave:()=>onlineClose(true),trap:killerTrap,setTransport:f=>{makeTransport=f},state:()=>online?JSON.parse(JSON.stringify({me:online.me,code:online.code,isHost:online.isHost,phase:online.phase,notice:online.notice,players:online.players,round:online.round&&{no:online.round.no,killer:online.round.killer,runners:online.round.runners,state:online.round.state,t:online.round.t,result:online.round.result}})):null},start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,course:course?{stage,flag:courseRun.flag,t:courseRun.t}:null,camY,pools:stage===4?pools():null,swimming:stage===4&&isSwimming()})};
+    window.primalJourney={online:{open:openOnlineLobby,create:onlineCreate,join:onlineJoin,start:onlineStart,restart:onlineRestart,leave:()=>onlineClose(true),trap:killerTrap,setTransport:f=>{makeTransport=f},state:()=>online?JSON.parse(JSON.stringify({me:online.me,code:online.code,isHost:online.isHost,phase:online.phase,notice:online.notice,players:online.players,round:online.round&&{no:online.round.no,game:online.round.game,killer:online.round.killer,runners:online.round.runners,state:online.round.state,t:online.round.t,result:online.round.result}})):null},start,startStage,startStage3,previewStage3,retry,finishIntro,continueJourney,continueSaved,goHome,toggleDebug,closeDebug,debugPhase,debugStage,render,step:dt=>{update(dt);render()},getState:()=>({stage,mode,arena,checkpoint,cam,debugUsed,debugJourney,debugReturn,meteorEvent:meteorEvent?{...meteorEvent,pending:meteors.length}:null,meteors:meteors.map(m=>({...m})),progress:progress?JSON.parse(JSON.stringify(progress)):null,player:{...player},boss:{...boss},raptors:raptors.map(r=>({...r})),raptorPhase,summoned,howlRemaining,stageCleared,course:course?{stage,flag:courseRun.flag,t:courseRun.t}:null,camY,pools:stage===4?pools():null,swimming:stage===4&&isSwimming()})};
  function frame(ts){const dt=Math.min(.034,(ts-last)/1000||.016);last=ts;if(mode==='playing'||mode==='title'||mode==='online'||mode==='dead'||mode==='cutscene')update(dt);render();requestAnimationFrame(frame)}requestAnimationFrame(frame);
 })();
 </script>
