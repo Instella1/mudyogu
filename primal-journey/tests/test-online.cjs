@@ -83,6 +83,10 @@ check('a friend leaving: removed in the lobby, eliminated during a match; joinin
 check('pause, retry and debug are blocked during a match; Esc does not freeze the shared game',()=>{
  const r=started(2),a=r.runners[0];a.events.keydown({code:'Escape',preventDefault(){},repeat:false});assert.equal(a.t.mode,'playing');a.events.keydown({code:'KeyR',preventDefault(){},repeat:false});assert.equal(state(a).phase,'run');
  r.killer.events.keydown({code:'Digit2',preventDefault(){},repeat:false});assert(r.killer.t.o.cool.spike>0,'killer key 2 fires spikes')});
+check('typing the name / room code: game keys (WASD, JKL) and digits still type letters in the input boxes',()=>{
+ const e=boot(null);e.t.online.open();assert.equal(e.t.mode,'online');
+ for(const code of ['KeyW','KeyA','KeyS','KeyD','KeyJ','KeyK','KeyL','KeyR','Digit1','Space','Enter']){let blocked=false;e.events.keydown({code,target:{tagName:'INPUT'},preventDefault(){blocked=true},repeat:false});assert(!blocked,code+' must reach the input box')}
+ const r=room(2);let blocked=false;r.host.events.keydown({code:'KeyW',target:{tagName:'INPUT'},preventDefault(){blocked=true},repeat:false});assert(!blocked,'lobby input too')});
 check('every online screen renders without errors (lobby, countdown, run as killer/runner, result, over)',()=>{
  const r=started(3);for(const c of r.cs)c.t.render();step(r.bus,r.cs,1);for(const c of r.cs){c.draws.length=0;c.t.render();assert(c.draws.some(d=>d.text.includes('원시런')))}assert(r.killer.draws.some(d=>d.text.includes('킬러')))});
 check('Supabase Realtime wire format: join with broadcast config, heartbeat topic, broadcast event m',()=>{
