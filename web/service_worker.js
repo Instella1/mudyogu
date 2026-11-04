@@ -11,7 +11,7 @@
  *       (예: https://example.com/mudyogu/) 에서도 그대로 동작합니다.
  * ------------------------------------------------------------------ */
 
-const VERSION = 'mudyogu-v33';
+const VERSION = 'mudyogu-v34';
 const SHELL_CACHE = `${VERSION}-shell`;
 const GAME_CACHE = `${VERSION}-games`;
 
@@ -49,6 +49,7 @@ const PRECACHE_SHELL = [
   // 코드랩 (AI 대전은 오프라인, 온라인 대전만 인터넷)
   'games/codelab/index.html',
   'games/codelab/fonts/fonts.css',
+  'games/codelab/vendor/supabase.js',
 ];
 
 /** 용량이 큰 폰트 / 그래픽 엔진 (실패해도 설치는 계속) */

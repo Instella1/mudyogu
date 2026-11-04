@@ -244,6 +244,63 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
 .best{margin:6px 0 16px;text-align:center;color:var(--mut);font-size:14px;font-weight:700}
 .best b{font-family:var(--mf);color:var(--gold)}
 
+/* ── 온라인 ───────────────────────── */
+.inp{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:#0b1126;color:var(--ink);
+  font:inherit;font-size:20px;font-weight:800;outline:none;-webkit-user-select:text;user-select:text}
+.inp:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(69,214,255,.2)}
+.desc.bad{color:#ff8fa3}.desc.ok{color:var(--mint)}
+#sOnline{padding:20px 24px}
+.olWrap{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.olHead{display:flex;align-items:center;gap:12px}
+.olHead h2{margin:0;font-size:30px;flex:1}
+.meChip{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(62,240,176,.1);border:2px solid var(--mint);font-weight:800}
+.meChip:empty{display:none}
+.meChip .rt{font-family:var(--mf);color:var(--gold)}
+#olBody{flex:1;min-height:0;display:flex;gap:16px}
+.olActs{width:300px;display:flex;flex-direction:column;gap:12px}
+.olActs .tip{font-size:13px;color:var(--mut);line-height:1.5;padding:4px 4px 0}
+.olList{flex:1;min-width:0;display:flex;flex-direction:column;border-radius:18px;background:var(--panel);border:1px solid var(--line);overflow:hidden}
+.olLH{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:16px}
+.olLH .sp{flex:1}
+.conn{font-size:12px;font-weight:800;color:var(--mut)}
+.conn.ok{color:var(--mint)}.conn.bad{color:#ff8fa3}
+#roomList{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.rmRow{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:14px;background:#1a2350;text-align:left;width:100%;box-shadow:0 4px 0 #0c1230}
+.rmRow:active{transform:translateY(2px)}
+.rmRow .cd4{font-family:var(--mf);font-weight:700;font-size:24px;color:var(--cyan)}
+.rmRow .hn{flex:1;min-width:0;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rmRow .hn small{display:block;font-size:12px;color:var(--mut);font-weight:700}
+.rmRow .pc{font-family:var(--mf);font-weight:700;font-size:18px}
+.rmRow.off{opacity:.5}
+.tagp{font-size:12px;font-weight:800;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.1)}
+.tagp.play{background:rgba(255,84,112,.2);color:#ff9fb0}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mut);text-align:center;padding:20px;font-weight:700;line-height:1.5}
+.empty .ic{font-size:44px}
+.olStatus{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;white-space:pre-line;font-weight:700;line-height:1.6}
+.olStatus .ic{font-size:56px}
+.olStatus .btn{width:220px}
+#stage.port .olActs{width:100%;flex-direction:row}
+#stage.port .olActs .tip{display:none}
+#stage.port #olBody{flex-direction:column}
+#stage.port .olActs .btn.big{font-size:20px}
+.roomCard{width:min(680px,100%)}
+.rmHead{display:flex;align-items:flex-end;gap:12px;justify-content:space-between}
+.rmCode{font-size:56px;line-height:1;color:var(--cyan);letter-spacing:.08em;text-shadow:0 0 18px rgba(69,214,255,.5)}
+.rmCopy{width:auto;padding:10px 14px;font-size:14px}
+.rmSet{margin:12px 0;display:flex;gap:8px;flex-wrap:wrap}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#stage.port .slots{grid-template-columns:repeat(2,1fr)}
+.slot{position:relative;min-height:74px;border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.05);border:2px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+.slot.me{border-color:var(--mint);background:rgba(62,240,176,.08)}
+.slot.emptyS{border-style:dashed;align-items:center;color:var(--mut);font-size:13px;font-weight:700}
+.slot .nk{font-weight:900;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:22px}
+.slot .rt{font-family:var(--mf);font-size:13px;color:var(--gold)}
+.slot .kick{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:8px;background:rgba(255,84,112,.2);color:#ff9fb0;font-weight:900}
+.rmMsg{margin:14px 0;text-align:center;color:var(--mut);font-weight:700;min-height:22px}
+#toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:60;padding:12px 20px;border-radius:14px;
+  background:rgba(8,12,30,.96);border:2px solid var(--cyan);font-weight:800;display:none;white-space:pre-line;text-align:center;max-width:90%}
+#toast.on{display:block;animation:pop .25s}
+
 /* ── 모달 ─────────────────────────── */
 #modal{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;
   background:rgba(4,6,16,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
@@ -270,7 +327,7 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
     </div>
     <div class="menu">
       <button class="btn pri big" id="bAI">🤖 AI 대전</button>
-      <button class="btn big" id="bOnline" disabled>🌐 온라인 대전 <small>곧 열려요</small></button>
+      <button class="btn big" id="bOnline">🌐 온라인 대전</button>
       <div class="row">
         <button class="btn" id="bRules">📖 게임 방법</button>
         <button class="btn" id="bSound">🔊 소리 켜짐</button>
@@ -348,6 +405,47 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
     </div>
   </section>
 
+  <!-- 온라인: 닉네임 정하기 -->
+  <section id="sNick" class="scr center">
+    <div class="card">
+      <div class="cardHead"><button class="back" id="bNickBack" aria-label="뒤로">←</button><h2>코드랩 닉네임 정하기</h2></div>
+      <p class="mut" style="margin:6px 0 14px;line-height:1.5">온라인 대전에서 모두에게 보이는 이름이에요.<br><b style="color:var(--gold)">한 번 정하면 바꿀 수 없어요.</b> (코드랩 초기화를 하면 기록과 함께 지우고 다시 정할 수 있어요)</p>
+      <input id="nickIn" class="inp" maxlength="10" placeholder="닉네임 (2~10자)" autocomplete="off" spellcheck="false">
+      <div class="desc" id="nickHint">한글 · 영문 · 숫자 · _ 로 2~10자</div>
+      <button class="btn pri big" id="bNickOk" style="margin-top:14px" disabled>이 닉네임으로 정하기</button>
+    </div>
+  </section>
+
+  <!-- 온라인: 로비 -->
+  <section id="sOnline" class="scr">
+    <div class="olWrap">
+      <div class="olHead">
+        <button class="back" id="bOnBack" aria-label="뒤로">←</button>
+        <h2 class="h">🌐 온라인 대전</h2>
+        <button class="meChip" id="olMe"></button>
+      </div>
+      <div id="olBody"></div>
+    </div>
+  </section>
+
+  <!-- 온라인: 대기실 -->
+  <section id="sRoom" class="scr center">
+    <div class="card roomCard">
+      <div class="rmHead">
+        <div><div class="sm">방 코드</div><div class="rmCode mono" id="rmCode">----</div></div>
+        <button class="btn rmCopy" id="bRmCopy">📋 코드 복사</button>
+      </div>
+      <div class="rmSet" id="rmSet"></div>
+      <div class="slots" id="rmSlots"></div>
+      <div class="rmMsg" id="rmMsg"></div>
+      <div class="row">
+        <button class="btn" id="bRmLeave">방 나가기</button>
+        <button class="btn pri" id="bRmStart">게임 시작</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast"></div>
   <div id="modal"><div class="card" id="mCard"></div></div>
 </div>
 
@@ -1138,8 +1236,537 @@ $('#bAgain').onclick = () => startGame();
 MUD.onControl((m) => { if (m && m.type === 'pause') pause(); });
 MUD.ready();
 
+/* ─────────────────────────────────────────────────────────────
+ * 10. 온라인 (2단계: 닉네임 · 로비 · 대기실)
+ *   - 로그인 토큰은 앱이 넘겨준다 (MUD.requestAuth → onAuth). 갱신도 앱이 한다.
+ *   - 닉네임·레이팅은 Supabase 표(docs/supabase-codelab.sql), 방은 Realtime 채널만 쓴다.
+ *       codelab-lobby        : 방장이 자기 방 정보를 presence 로 올림 → 방 목록
+ *       codelab-room-<코드>   : 참가자 presence + broadcast(입장 요청/허락, 방 상태, 닫힘, 내보내기)
+ *   - 방의 주인은 방장 브라우저: 비밀번호 확인·인원 제한·참가자 명단을 방장이 관리한다.
+ *   - 인터넷이 있을 때만. 게임(AI 대전)은 오프라인 그대로.
+ * ───────────────────────────────────────────────────────────── */
+const SB_REAL = 'https://nvpvdkxovknhqglfbhmv.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52cHZka3hvdmtuaHFnbGZiaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODA1NDgsImV4cCI6MjEwODQ1NjU0OH0.sbayovYN3rAJIoqGXcBLzaEMlZ4CCIn7I_PO6pFRHUs';
+const QS = new URLSearchParams(location.search);
+const IS_LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+const SB_URL = (IS_LOCAL && QS.get('sb')) || SB_REAL;          // 로컬 테스트용 서버 바꾸기
+const O = { uid: '', token: '', sb: null, profile: null, lobby: null, lobbyOk: false, rooms: [],
+            room: null, ch: null, authWait: null, refreshT: null, joinT: null };
+const AUTH_MSG = {
+  guest: '온라인 대전은 뮤됴구 계정으로 로그인해야 할 수 있어요.\n앱 홈 → 설정 → 계정에서 로그인해 주세요.',
+  local: '지금 계정은 이 기기에만 저장되는 계정이에요.\n설정에서 로그아웃 후 온라인 계정으로 다시 로그인해 주세요.',
+  offline: '인터넷에 연결되어 있지 않아요.\n연결을 확인하고 다시 시도해 주세요.',
+  standalone: '온라인 대전은 뮤됴구 앱 안에서만 할 수 있어요.',
+  noreply: '앱에서 로그인 정보를 받지 못했어요.\n앱을 새로 고침한 뒤 다시 시도해 주세요.',
+};
+
+/* 로그인 토큰 */
+function getAuth() {
+  if (IS_LOCAL && QS.get('testAuth')) {
+    const uid = QS.get('testAuth');
+    return Promise.resolve({ signedIn: true, uid, accessToken: 'test-' + uid, expiresAt: Date.now() + 3600e3 });
+  }
+  if (!MUD.requestAuth) return Promise.resolve({ signedIn: false, reason: 'standalone' });
+  return new Promise((res) => {
+    const t = setTimeout(() => { O.authWait = null; res({ signedIn: false, reason: 'noreply' }); }, 6000);
+    O.authWait = (a) => { clearTimeout(t); O.authWait = null; res(a || { signedIn: false, reason: 'noreply' }); };
+    MUD.requestAuth();
+  });
+}
+if (MUD.onAuth) MUD.onAuth((a) => {
+  if (O.authWait) O.authWait(a);
+  else if (a && a.signedIn && a.uid === O.uid) applyToken(a);   // 주기적 갱신 응답
+});
+function applyToken(a) {
+  O.token = a.accessToken;
+  clearTimeout(O.refreshT);
+  const ms = Math.max(30e3, (a.expiresAt || 0) - Date.now() - 5 * 60e3);
+  O.refreshT = setTimeout(() => { if (MUD.requestAuth) MUD.requestAuth(); }, ms);
+  if (O.sb) { try { O.sb.realtime.setAuth(O.token); } catch (e) {} }
+}
+
+function loadLib() {
+  if (window.supabase && window.supabase.createClient) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'vendor/supabase.js';
+    s.onload = () => res();
+    s.onerror = () => rej(new Error('lib'));
+    document.head.appendChild(s);
+  });
+}
+function withTimeout(p, ms) {
+  return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+}
+function errText(e) {
+  const m = String((e && (e.message || e.details || e.code)) || e);
+  const code = e && e.code;
+  if (code === 'PGRST205' || code === 'PGRST202' || code === '42P01' || code === '42883' || /does not exist|Could not find/i.test(m)) {
+    return '코드랩 서버가 아직 준비되지 않았어요.\n(관리자: Supabase 에서 docs/supabase-codelab.sql 실행)';
+  }
+  if (/nickname_taken/.test(m)) return '이미 누가 쓰고 있는 닉네임이에요.';
+  if (/bad_nickname/.test(m)) return '한글 · 영문 · 숫자 · _ 로 2~10자만 쓸 수 있어요.';
+  if (/not_signed_in|JWT|jwt/.test(m)) return '로그인이 만료됐어요. 앱에서 다시 로그인해 주세요.';
+  if (/timeout/.test(m)) return '서버가 응답하지 않아요. 잠시 후 다시 시도해 주세요.';
+  return '서버에 연결하지 못했어요. 인터넷 연결을 확인해 주세요.';
+}
+
+let toastT = null;
+function toast(msg, ms) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.remove('on'); void t.offsetWidth; t.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('on'), ms || 2600);
+}
+
+/* 입장: 로그인 → 프로필 → (닉네임) → 로비 */
+async function goOnline() {
+  show('sOnline');
+  renderMeChip();
+  olStatus('⏳', '연결하는 중이에요…');
+  const a = await getAuth();
+  if (!a.signedIn) { olStatus('🔐', AUTH_MSG[a.reason] || AUTH_MSG.guest, true); return; }
+  if (O.uid && O.uid !== a.uid) leaveOnline(true);   // 다른 계정으로 바뀜
+  O.uid = a.uid;
+  applyToken(a);
+  try { await loadLib(); } catch (e) { olStatus('📡', '온라인 기능을 불러오지 못했어요.\n인터넷 연결을 확인해 주세요.', true); return; }
+  if (!O.sb) {
+    O.sb = window.supabase.createClient(SB_URL, SB_KEY, { accessToken: async () => O.token });
+  }
+  if (!(await loadProfile())) return;
+  if (!O.profile) { showNick(); return; }
+  enterLobby();
+}
+async function loadProfile() {
+  try {
+    const r = await withTimeout(O.sb.from('codelab_profiles').select('nickname,rating,games,wins').eq('user_id', O.uid).limit(1), 10000);
+    if (r.error) throw r.error;
+    O.profile = (r.data && r.data[0]) || null;
+    return true;
+  } catch (e) {
+    show('sOnline');
+    olStatus('⚠️', errText(e), true);
+    return false;
+  }
+}
+function olStatus(ic, text, retry) {
+  const b = $('#olBody');
+  b.innerHTML = '<div class="olStatus"><div class="ic">' + ic + '</div><div>' + esc(text) + '</div>' +
+    (retry ? '<button class="btn pri" id="bOlRetry">다시 시도</button>' : '') + '</div>';
+  if (retry) $('#bOlRetry').onclick = goOnline;
+}
+function renderMeChip() {
+  const c = $('#olMe');
+  c.innerHTML = O.profile ? '🙂 ' + esc(O.profile.nickname) + ' <span class="rt">🏅 ' + O.profile.rating + '</span>' : '';
+}
+
+/* 닉네임 */
+const NICK_RE = /^[가-힣A-Za-z0-9_]{2,10}$/;
+function showNick() {
+  show('sNick');
+  const inp = $('#nickIn');
+  inp.value = '';
+  nickCheck();
+  setTimeout(() => inp.focus(), 50);
+}
+function nickCheck() {
+  const v = $('#nickIn').value.trim();
+  const ok = NICK_RE.test(v);
+  const h = $('#nickHint');
+  h.textContent = !v ? '한글 · 영문 · 숫자 · _ 로 2~10자' : ok ? '좋아요! 이 닉네임을 쓸 수 있는지 확인할게요' : '한글(완성된 글자) · 영문 · 숫자 · _ 로 2~10자만 돼요';
+  h.className = 'desc' + (v ? (ok ? ' ok' : ' bad') : '');
+  $('#bNickOk').disabled = !ok;
+}
+$('#nickIn').addEventListener('input', nickCheck);
+$('#nickIn').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !$('#bNickOk').disabled) $('#bNickOk').click(); });
+$('#bNickBack').onclick = () => show('sTitle');
+$('#bNickOk').onclick = () => {
+  const n = $('#nickIn').value.trim();
+  openModal('<h2>‘' + esc(n) + '’</h2><p class="mut" style="margin:0 0 6px;line-height:1.5">이 닉네임으로 정할까요?<br><b style="color:var(--gold)">나중에 바꿀 수 없어요.</b></p>' +
+    '<div class="row"><button class="btn" id="nNo">다시 고를게요</button><button class="btn pri" id="nYes">정하기</button></div>');
+  $('#nNo').onclick = closeModal;
+  $('#nYes').onclick = async () => {
+    $('#nYes').disabled = true;
+    try {
+      const r = await withTimeout(O.sb.rpc('codelab_claim_nickname', { nick: n }), 10000);
+      if (r.error) throw r.error;
+      closeModal();
+      O.profile = r.data;
+      toast('반가워요, ' + O.profile.nickname + '!');
+      enterLobby();
+    } catch (e) {
+      closeModal();
+      if (/already_has_nickname/.test(String(e && e.message))) { if (await loadProfile()) enterLobby(); return; }
+      const h = $('#nickHint'); h.textContent = errText(e); h.className = 'desc bad';
+    }
+  };
+};
+
+/* 로비 */
+function enterLobby() {
+  show('sOnline');
+  renderMeChip();
+  $('#olBody').innerHTML =
+    '<div class="olActs">' +
+    '<button class="btn pri big" id="bMake">＋ 방 만들기</button>' +
+    '<button class="btn big" id="bCode"># 코드로 입장</button>' +
+    '<div class="tip">💡 방을 만들고 4자리 코드를 친구에게 알려 주세요. 2~6명이 모이면 시작할 수 있어요.</div>' +
+    '</div>' +
+    '<div class="olList"><div class="olLH"><b>열린 방</b><span class="mut" id="olCount"></span><span class="sp"></span><span class="conn" id="olConn">연결 중…</span></div>' +
+    '<div id="roomList"></div></div>';
+  $('#bMake').onclick = openMakeRoom;
+  $('#bCode').onclick = openCodeJoin;
+  renderRooms();
+  if (!O.lobby) {
+    const ch = O.sb.channel('codelab-lobby', { config: { presence: { key: O.uid } } });
+    ch.on('presence', { event: 'sync' }, () => { O.rooms = collectRooms(ch.presenceState()); renderRooms(); });
+    ch.subscribe((st) => {
+      O.lobbyOk = st === 'SUBSCRIBED';
+      renderConn(st);
+      if (O.lobbyOk && O.room && O.room.host) trackLobby();
+    });
+    O.lobby = ch;
+  } else renderConn(O.lobbyOk ? 'SUBSCRIBED' : 'CONNECTING');
+}
+function renderConn(st) {
+  const c = $('#olConn'); if (!c) return;
+  c.textContent = st === 'SUBSCRIBED' ? '● 실시간 연결됨' : st === 'CONNECTING' ? '연결 중…' : '● 연결 끊김 · 다시 연결 중';
+  c.className = 'conn' + (st === 'SUBSCRIBED' ? ' ok' : st === 'CONNECTING' ? '' : ' bad');
+}
+function collectRooms(state) {
+  const out = [];
+  Object.keys(state).forEach((k) => (state[k] || []).forEach((m) => { if (m && m.room && m.room.code) out.push(m.room); }));
+  const seen = {};
+  return out.filter((r) => (seen[r.code] ? false : (seen[r.code] = true)))
+    .sort((a, b) => (a.status === 'waiting' ? 0 : 1) - (b.status === 'waiting' ? 0 : 1) || b.created - a.created);
+}
+function renderRooms() {
+  const box = $('#roomList'); if (!box) return;
+  $('#olCount').textContent = O.rooms.length ? O.rooms.length + '개' : '';
+  if (!O.rooms.length) {
+    box.innerHTML = '<div class="empty"><div class="ic">🧪</div>지금 열린 방이 없어요.<br>방을 만들어 친구를 불러 보세요!</div>';
+    return;
+  }
+  box.innerHTML = '';
+  O.rooms.forEach((r) => {
+    const full = r.count >= r.max, playing = r.status !== 'waiting';
+    const b = document.createElement('button');
+    b.className = 'rmRow' + (full || playing ? ' off' : '');
+    b.innerHTML = '<span class="cd4">' + esc(r.code) + '</span>' +
+      '<span class="hn">' + esc(r.host) + '의 방<small>⏱ ' + r.min + '분' + (r.locked ? ' · 🔒 비밀번호' : '') + '</small></span>' +
+      '<span class="tagp' + (playing ? ' play' : '') + '">' + (playing ? '게임 중' : full ? '꽉 참' : '대기 중') + '</span>' +
+      '<span class="pc">' + r.count + '/' + r.max + '</span>';
+    b.onclick = () => {
+      if (playing) { toast('이미 게임이 시작된 방이에요'); return; }
+      if (full) { toast('방이 꽉 찼어요'); return; }
+      if (r.locked) askPassword(r.code); else joinRoom(r.code, '');
+    };
+    box.appendChild(b);
+  });
+}
+$('#bOnline').onclick = goOnline;
+$('#bOnBack').onclick = () => { leaveOnline(false); show('sTitle'); };
+$('#olMe').onclick = openMyInfo;
+
+/* 방 만들기 */
+const MK = { min: 8, max: 6, pw: false };
+function openMakeRoom() {
+  MK.min = SETUP.min;
+  openModal(
+    '<h2>＋ 방 만들기</h2>' +
+    '<div class="field"><div class="lab">게임 시간</div><div class="chips" id="mkTime"></div></div>' +
+    '<div class="field"><div class="lab">인원 제한</div><div class="chips" id="mkMax"></div></div>' +
+    '<div class="field"><div class="lab">비밀번호</div><div class="chips" id="mkPw"></div>' +
+    '<input id="mkPwIn" class="inp" maxlength="12" placeholder="비밀번호 (1~12자)" autocomplete="off" style="margin-top:10px;display:none"></div>' +
+    '<div class="row"><button class="btn" id="mkNo">취소</button><button class="btn pri" id="mkYes">만들기</button></div>');
+  const draw = () => {
+    chips($('#mkTime'), [6, 8, 10, 12].map((m) => [m, m + '분']), MK.min, (v) => { MK.min = v; draw(); });
+    chips($('#mkMax'), [2, 3, 4, 5, 6].map((n) => [n, n + '명']), MK.max, (v) => { MK.max = v; draw(); });
+    chips($('#mkPw'), [[false, '없음'], [true, '🔒 있음']], MK.pw, (v) => { MK.pw = v; draw(); if (v) $('#mkPwIn').focus(); });
+    $('#mkPwIn').style.display = MK.pw ? 'block' : 'none';
+  };
+  draw();
+  $('#mkNo').onclick = closeModal;
+  $('#mkYes').onclick = () => {
+    const pw = MK.pw ? $('#mkPwIn').value.trim() : '';
+    if (MK.pw && !pw) { $('#mkPwIn').focus(); toast('비밀번호를 입력해 주세요'); return; }
+    closeModal();
+    createRoom({ min: MK.min, max: MK.max, pw });
+  };
+}
+async function hashPw(code, pw) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('codelab:' + code + ':' + pw));
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) { return 'p:' + pw; }
+}
+function meMember() { return { uid: O.uid, nick: O.profile.nickname, rating: O.profile.rating }; }
+async function createRoom(cfg) {
+  if (!O.lobbyOk) { toast('실시간 서버에 아직 연결되지 않았어요. 잠시 후 다시 시도해 주세요.'); return; }
+  let code;
+  do { code = String(1000 + Math.floor(Math.random() * 9000)); } while (O.rooms.some((r) => r.code === code));
+  O.room = { code, host: true, hostUid: O.uid, min: cfg.min, max: cfg.max, locked: !!cfg.pw,
+             pwHash: cfg.pw ? await hashPw(code, cfg.pw) : '', status: 'waiting', members: [meMember()],
+             banned: [], created: Date.now() };
+  try { await openRoomChannel(code); } catch (e) { O.room = null; toast('방을 만들지 못했어요. 다시 시도해 주세요.'); return; }
+  await O.ch.track(meMember());
+  trackLobby();
+  showRoom();
+}
+function lobbyInfo() {
+  const R = O.room;
+  return { code: R.code, host: O.profile.nickname, hostUid: O.uid, min: R.min, max: R.max, locked: R.locked,
+           count: R.members.length, status: R.status, created: R.created };
+}
+function trackLobby() { if (O.lobby && O.lobbyOk && O.room && O.room.host) O.lobby.track({ room: lobbyInfo() }).catch(() => {}); }
+function publicRoom() {
+  const R = O.room;
+  return { code: R.code, hostUid: R.hostUid, min: R.min, max: R.max, locked: R.locked, status: R.status, members: R.members };
+}
+function rsend(event, payload) { if (O.ch) O.ch.send({ type: 'broadcast', event, payload }).catch(() => {}); }
+
+/* 방 채널 */
+function openRoomChannel(code) {
+  return new Promise((res, rej) => {
+    const ch = O.sb.channel('codelab-room-' + code, { config: { presence: { key: O.uid } } });
+    ch.on('broadcast', { event: 'join_req' }, (m) => onJoinReq(m.payload || {}));
+    ch.on('broadcast', { event: 'join_res' }, (m) => onJoinRes(m.payload || {}));
+    ch.on('broadcast', { event: 'room' }, (m) => onRoomState(m.payload || {}));
+    ch.on('broadcast', { event: 'closed' }, () => { if (O.room && !O.room.host && !O.room.pending) roomGone('방장이 방을 닫았어요'); });
+    ch.on('broadcast', { event: 'kick' }, (m) => { if (m.payload && m.payload.to === O.uid && O.room && !O.room.host) roomGone('방장이 방에서 내보냈어요'); });
+    ch.on('presence', { event: 'leave' }, (m) => onPresenceLeave(m.key));
+    let done = false;
+    ch.subscribe((st) => {
+      if (done) return;
+      if (st === 'SUBSCRIBED') { done = true; res(ch); }
+      else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT' || st === 'CLOSED') { done = true; O.sb.removeChannel(ch); rej(new Error(st)); }
+    });
+    O.ch = ch;
+  });
+}
+function closeRoomChannel() {
+  clearTimeout(O.joinT);
+  if (O.ch) { const ch = O.ch; O.ch = null; ch.untrack().catch(() => {}); O.sb.removeChannel(ch); }
+}
+
+/* 방장: 입장 요청 처리 */
+function onJoinReq(p) {
+  const R = O.room;
+  if (!R || !R.host || !p.uid) return;
+  const already = R.members.some((m) => m.uid === p.uid);
+  let reason = '';
+  if (p.uid === O.uid) reason = 'self';
+  else if (R.banned.indexOf(p.uid) >= 0) reason = 'kicked';
+  else if (R.status !== 'waiting' && !already) reason = 'playing';
+  else if (!already && R.members.length >= R.max) reason = 'full';
+  else if (R.locked && p.pw !== R.pwHash) reason = p.pw ? 'bad_pw' : 'need_pw';
+  if (!reason) {
+    const mem = { uid: p.uid, nick: String(p.nick || '?').slice(0, 10), rating: p.rating | 0 };
+    if (already) R.members = R.members.map((m) => (m.uid === p.uid ? mem : m)); else R.members.push(mem);
+  }
+  rsend('join_res', { to: p.uid, ok: !reason, reason, room: reason ? null : publicRoom() });
+  if (!reason) { rsend('room', publicRoom()); trackLobby(); renderRoom(); sfx('settle'); }
+}
+/* 참가자: 입장 */
+async function joinRoom(code, pw) {
+  if (!/^\d{4}$/.test(code)) { toast('방 코드는 숫자 4자리예요'); return; }
+  if (O.room) return;
+  O.room = { code, host: false, pending: true };
+  toast('방에 들어가는 중…', 6000);
+  try { await openRoomChannel(code); } catch (e) { O.room = null; toast('방에 연결하지 못했어요. 다시 시도해 주세요.'); return; }
+  O.room.pw = pw;
+  rsend('join_req', { uid: O.uid, nick: O.profile.nickname, rating: O.profile.rating, pw: pw ? await hashPw(code, pw) : '' });
+  O.joinT = setTimeout(() => {
+    if (O.room && O.room.pending) { closeRoomChannel(); O.room = null; toast('방을 찾을 수 없어요.\n코드를 확인해 주세요.'); }
+  }, 6000);
+}
+async function onJoinRes(p) {
+  const R = O.room;
+  if (!R || R.host || !R.pending || p.to !== O.uid) return;
+  clearTimeout(O.joinT);
+  const code = R.code;
+  if (!p.ok) {
+    closeRoomChannel(); O.room = null;
+    const msg = { need_pw: '', bad_pw: '비밀번호가 틀렸어요', full: '방이 꽉 찼어요', playing: '이미 게임이 시작된 방이에요',
+                  self: '같은 계정으로 이미 이 방에 있어요', kicked: '이 방에는 다시 들어갈 수 없어요' }[p.reason];
+    if (p.reason === 'need_pw' || p.reason === 'bad_pw') askPassword(code, msg);
+    else toast(msg || '방에 들어가지 못했어요');
+    return;
+  }
+  O.room = Object.assign({}, p.room, { host: false, pending: false });
+  await O.ch.track(meMember());
+  $('#toast').classList.remove('on');
+  sfx('settle');
+  showRoom();
+}
+function onRoomState(p) {
+  const R = O.room;
+  if (!R || R.host || R.pending || p.code !== R.code) return;
+  if (!(p.members || []).some((m) => m.uid === O.uid)) { roomGone('방에서 나가졌어요'); return; }
+  O.room = Object.assign({}, p, { host: false, pending: false });
+  renderRoom();
+}
+function onPresenceLeave(uid) {
+  const R = O.room;
+  if (!R || R.pending) return;
+  if (R.host) {
+    if (R.status === 'waiting' && R.members.some((m) => m.uid === uid)) {
+      R.members = R.members.filter((m) => m.uid !== uid);
+      rsend('room', publicRoom()); trackLobby(); renderRoom();
+    }
+  } else if (uid === R.hostUid && R.status === 'waiting') {
+    roomGone('방장이 나가서 방이 닫혔어요');
+  }
+}
+function roomGone(msg) {
+  closeRoomChannel();
+  O.room = null;
+  enterLobby();
+  toast(msg);
+}
+function leaveRoom() {
+  const R = O.room;
+  if (!R) return;
+  if (R.host) {
+    rsend('closed', {});
+    if (O.lobby) O.lobby.untrack().catch(() => {});
+  }
+  closeRoomChannel();
+  O.room = null;
+}
+/** 온라인에서 완전히 나감 (타이틀로) */
+function leaveOnline(all) {
+  leaveRoom();
+  if (O.lobby && O.sb) { O.sb.removeChannel(O.lobby); O.lobby = null; O.lobbyOk = false; }
+  if (all) { O.profile = null; O.uid = ''; clearTimeout(O.refreshT); }
+}
+
+/* 비밀번호 · 코드 입력 창 */
+function askPassword(code, msg) {
+  openModal('<h2>🔒 방 ' + esc(code) + '</h2>' + (msg ? '<p style="margin:0;color:#ff9fb0;font-weight:800">' + esc(msg) + '</p>' : '') +
+    '<input id="pwIn" class="inp" maxlength="12" placeholder="비밀번호" autocomplete="off">' +
+    '<div class="row"><button class="btn" id="pwNo">취소</button><button class="btn pri" id="pwYes">들어가기</button></div>');
+  const inp = $('#pwIn');
+  setTimeout(() => inp.focus(), 50);
+  const go = () => { const v = inp.value.trim(); if (!v) return; closeModal(); joinRoom(code, v); };
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  $('#pwNo').onclick = closeModal;
+  $('#pwYes').onclick = go;
+}
+function openCodeJoin() {
+  openModal('<h2># 코드로 입장</h2><input id="cdIn" class="inp mono" maxlength="4" inputmode="numeric" placeholder="4자리 숫자" autocomplete="off" style="font-size:30px;letter-spacing:.3em;text-align:center">' +
+    '<div class="row"><button class="btn" id="cdNo">취소</button><button class="btn pri" id="cdYes">들어가기</button></div>');
+  const inp = $('#cdIn');
+  setTimeout(() => inp.focus(), 50);
+  inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 4); });
+  const go = () => {
+    const c = inp.value;
+    if (!/^\d{4}$/.test(c)) { toast('숫자 4자리를 입력해 주세요'); return; }
+    closeModal();
+    const r = O.rooms.find((x) => x.code === c);
+    if (r && r.locked) askPassword(c); else joinRoom(c, '');
+  };
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  $('#cdNo').onclick = closeModal;
+  $('#cdYes').onclick = go;
+}
+
+/* 대기실 */
+function showRoom() { show('sRoom'); renderRoom(); }
+function renderRoom() {
+  const R = O.room;
+  if (!R || R.pending || !$('#sRoom').classList.contains('on')) return;
+  $('#rmCode').textContent = R.code;
+  $('#rmSet').innerHTML = '<span class="tagp">⏱ ' + R.min + '분</span><span class="tagp">👥 최대 ' + R.max + '명</span>' +
+    (R.locked ? '<span class="tagp">🔒 비밀번호</span>' : '<span class="tagp">🔓 공개</span>') + '<span class="tagp">🏁 100점</span>';
+  const box = $('#rmSlots');
+  box.innerHTML = '';
+  for (let i = 0; i < R.max; i++) {
+    const m = R.members[i];
+    const d = document.createElement('div');
+    if (!m) { d.className = 'slot emptyS'; d.textContent = '기다리는 중…'; box.appendChild(d); continue; }
+    d.className = 'slot' + (m.uid === O.uid ? ' me' : '');
+    d.innerHTML = '<div class="nk">' + (m.uid === R.hostUid ? '👑 ' : '') + esc(m.nick) + (m.uid === O.uid ? ' (나)' : '') + '</div>' +
+      '<div class="rt">🏅 ' + m.rating + '</div>' +
+      (R.host && m.uid !== O.uid ? '<button class="kick" title="내보내기">✕</button>' : '');
+    if (R.host && m.uid !== O.uid) d.querySelector('.kick').onclick = () => kick(m);
+    box.appendChild(d);
+  }
+  const n = R.members.length;
+  const st = $('#bRmStart');
+  st.style.display = R.host ? '' : 'none';
+  st.disabled = n < 2;
+  st.textContent = n < 2 ? '2명부터 시작' : '게임 시작 (' + n + '명)';
+  $('#rmMsg').textContent = R.host
+    ? (n < 2 ? '친구에게 방 코드 ' + R.code + ' 를 알려 주세요' : '모두 모였으면 시작하세요!')
+    : '방장이 시작하길 기다리는 중…';
+}
+function kick(m) {
+  openModal('<h2>내보낼까요?</h2><p class="mut" style="margin:0 0 6px">' + esc(m.nick) + ' 님은 이 방에 다시 들어올 수 없어요.</p>' +
+    '<div class="row"><button class="btn" id="kNo">취소</button><button class="btn pri" id="kYes">내보내기</button></div>');
+  $('#kNo').onclick = closeModal;
+  $('#kYes').onclick = () => {
+    closeModal();
+    const R = O.room; if (!R || !R.host) return;
+    R.banned.push(m.uid);
+    R.members = R.members.filter((x) => x.uid !== m.uid);
+    rsend('kick', { to: m.uid });
+    rsend('room', publicRoom()); trackLobby(); renderRoom();
+  };
+}
+$('#bRmLeave').onclick = () => {
+  const R = O.room;
+  const go = () => { closeModal(); leaveRoom(); enterLobby(); };
+  if (R && R.host && R.members.length > 1) {
+    openModal('<h2>방을 닫을까요?</h2><p class="mut" style="margin:0 0 6px">방장이 나가면 방이 닫히고 모두 로비로 돌아가요.</p>' +
+      '<div class="row"><button class="btn" id="lNo">취소</button><button class="btn pri" id="lYes">닫고 나가기</button></div>');
+    $('#lNo').onclick = closeModal;
+    $('#lYes').onclick = go;
+  } else go();
+};
+$('#bRmCopy').onclick = () => {
+  const c = O.room && O.room.code; if (!c) return;
+  const done = () => toast('방 코드 ' + c + ' 를 복사했어요');
+  try { navigator.clipboard.writeText(c).then(done, () => toast('방 코드: ' + c)); } catch (e) { toast('방 코드: ' + c); }
+};
+$('#bRmStart').onclick = () => {
+  openModal('<h2>🚧 준비 중</h2><p class="mut" style="margin:0 0 6px;line-height:1.5">온라인 게임 진행은 다음 업데이트(3단계)에서 열려요.<br>지금은 방 만들기와 입장까지 해 볼 수 있어요.</p><button class="btn pri" id="sOk">확인</button>');
+  $('#sOk').onclick = closeModal;
+};
+
+/* 내 정보 · 코드랩 초기화 */
+function openMyInfo() {
+  const P = O.profile; if (!P) return;
+  openModal('<h2>🙂 ' + esc(P.nickname) + '</h2>' +
+    '<div class="rmSet"><span class="tagp">🏅 레이팅 ' + P.rating + '</span><span class="tagp">🎮 ' + P.games + '판</span><span class="tagp">🏆 1등 ' + P.wins + '번</span></div>' +
+    '<button class="btn" id="miReset">🗑 코드랩 초기화 (닉네임 · 기록 삭제)</button><button class="btn pri" id="miOk">닫기</button>');
+  $('#miOk').onclick = closeModal;
+  $('#miReset').onclick = () => {
+    if (O.room) { toast('방에서 나간 뒤에 할 수 있어요'); return; }
+    openModal('<h2>⚠️ 코드랩 초기화</h2><p class="mut" style="margin:0;line-height:1.5">닉네임 · 레이팅 · 대전 기록이 <b style="color:#ff9fb0">모두 지워지고 되돌릴 수 없어요.</b><br>계속하려면 닉네임 <b style="color:var(--ink)">' + esc(P.nickname) + '</b> 을 똑같이 입력하세요.</p>' +
+      '<input id="rsIn" class="inp" maxlength="10" autocomplete="off">' +
+      '<div class="row"><button class="btn" id="rsNo">취소</button><button class="btn pri" id="rsYes" disabled>초기화</button></div>');
+    $('#rsIn').addEventListener('input', () => { $('#rsYes').disabled = $('#rsIn').value.trim() !== P.nickname; });
+    $('#rsNo').onclick = openMyInfo;
+    $('#rsYes').onclick = async () => {
+      $('#rsYes').disabled = true;
+      try {
+        const r = await withTimeout(O.sb.rpc('codelab_reset_profile'), 10000);
+        if (r.error) throw r.error;
+        closeModal();
+        O.profile = null;
+        if (O.lobby) { O.sb.removeChannel(O.lobby); O.lobby = null; O.lobbyOk = false; }
+        toast('코드랩을 초기화했어요. 새 닉네임을 정해 주세요.');
+        showNick();
+      } catch (e) { closeModal(); toast(errText(e)); }
+    };
+  };
+}
+window.addEventListener('pagehide', () => { try { leaveRoom(); } catch (e) {} });
+
 /* 테스트용 (Playwright) */
-window.__codelab = { SOL, COUNT, ROWS, LEVELS, get G() { return G; }, get me() { return me; }, evalTokens };
+window.__codelab = { SOL, COUNT, ROWS, LEVELS, O, get G() { return G; }, get me() { return me; }, evalTokens };
 </script>
 </body>
 </html>

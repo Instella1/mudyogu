@@ -95,13 +95,18 @@
   방장이 끊기면 남은 사람 중 먼저 들어온 사람이 이어받는다.
 - 실시간 통신: Supabase Realtime(broadcast + presence). 라이브러리는 **로컬 파일**로 넣는다 (외부 URL 금지 규칙).
 - 테이블(SQL 은 `docs/supabase-codelab.sql`, 사용자가 Supabase SQL Editor 에서 한 번 실행):
-  `codelab_profiles`(닉네임·레이팅), `codelab_rooms`(방 목록), `codelab_matches`(대전 기록).
-  결과 저장·레이팅 계산·비밀번호 확인은 DB 함수(RPC)로.
-- 게임이 계정을 알아야 하므로 앱 → 게임으로 로그인 정보를 넘기는 SDK 확장이 필요 (`game_screen.dart` + `mudyogu-sdk.js`).
+  `codelab_profiles`(닉네임·레이팅), `codelab_matches`(대전 기록). 쓰기는 RPC 로만
+  (`codelab_claim_nickname` · `codelab_reset_profile` · `codelab_record_match` — 레이팅 계산 포함).
+- **방은 표 없이 Realtime 채널만** (2단계에서 바꿈): `codelab-lobby` 에 방장이 방 정보를 presence 로 올려 목록을 만들고
+  (방장이 끊기면 자동으로 사라짐), `codelab-room-<코드>` 에서 입장 요청/허락·방 상태·닫힘·내보내기를 broadcast 로 주고받는다.
+  비밀번호는 SHA-256(코드+비번) 으로 보내고 방장이 확인 (서버에 저장 안 함).
+- 로그인: 게임이 `MUD.requestAuth()` → 앱(`game_screen.dart`)이 `freshCloudSession()` 으로 갱신한 토큰을 `auth` 메시지로 넘김.
+  토큰 갱신은 앱만 한다 (게임이 refresh 하면 앱의 토큰이 무효가 됨). 게임은 만료 5분 전에 다시 요청.
+- 로컬 테스트: `?sb=http://127.0.0.1:포트&testAuth=<uid>` (localhost 에서만) → 가짜 Supabase 서버로 붙는다.
 - AI 대전은 인터넷 없이 동작. 온라인 기록은 Supabase 에 있으므로 진행 코드는 두지 않는다.
 
 ## 6. 만드는 순서 (제안)
 1. **AI 대전** — 화면·규칙·판정·AI 를 먼저 완성 → 사용자 확인 ✅ (2026-11-04, 온라인 버튼은 '곧 열려요')
-2. **닉네임 · 로비 · 방** — SQL + 방 목록/코드/비밀번호
+2. **닉네임 · 로비 · 방** — SQL + 방 목록/코드/비밀번호 ✅ (2026-11-04, 게임 시작 버튼은 '준비 중')
 3. **온라인 대전** — 실시간 진행, 끊김 처리
 4. **기록 · 랭킹 · 효과음** 마무리 → 배포

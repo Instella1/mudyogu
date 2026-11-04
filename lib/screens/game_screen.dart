@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/account.dart';
 import '../models/game_info.dart';
+import '../services/cloud_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/game_host.dart';
@@ -62,6 +63,12 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
+    if (event is Map && event['type'] == 'requestAuth') {
+      // 온라인 대전 게임(코드랩)이 로그인 정보를 달라고 할 때 → 곧 만료되면 새로 받아 넘긴다
+      _sendAuth(state);
+      return;
+    }
+
     if (event is Map && event['type'] == 'resetBest') {
       // 게임 안 '최고 기록 초기화' → 앱에 보관된 최고 기록도 0 으로
       state.resetBestScore(gameId);
@@ -85,6 +92,31 @@ class _GameScreenState extends State<GameScreen> {
         }
       });
     }
+  }
+
+  /// 게임에 Supabase 로그인 토큰을 넘긴다 (같은 출처 iframe 에만 전송됨).
+  /// 토큰 갱신은 앱만 한다 — 게임이 refresh 토큰을 쓰면 앱의 토큰이 무효가 되기 때문.
+  Future<void> _sendAuth(AppState state) async {
+    final CloudSession? s = await state.auth.freshCloudSession();
+    if (!mounted) return;
+    if (s == null) {
+      final String reason = !state.isSignedIn
+          ? 'guest'
+          : (state.auth.isCloudLinked ? 'offline' : 'local');
+      _controller.send(<String, dynamic>{
+        'type': 'auth',
+        'signedIn': false,
+        'reason': reason,
+      });
+      return;
+    }
+    _controller.send(<String, dynamic>{
+      'type': 'auth',
+      'signedIn': true,
+      'uid': s.uid,
+      'accessToken': s.accessToken,
+      'expiresAt': s.expiresAt.millisecondsSinceEpoch,
+    });
   }
 
   void _toastSaved(int best) {

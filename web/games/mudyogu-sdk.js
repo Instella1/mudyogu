@@ -26,6 +26,7 @@
     var initHandlers = [];
     var controlHandlers = [];
     var codeHandlers = [];
+    var authHandlers = [];
     var lastPayload = null;
     var readySent = false;
 
@@ -92,6 +93,33 @@
       post({ type: 'resetBest' });
     }
 
+    /**
+     * 앱의 온라인 계정(Supabase) 로그인 정보를 요청합니다. 답은 onAuth 로 옵니다.
+     *   { signedIn:true, uid, accessToken, expiresAt(ms) }
+     *   { signedIn:false, reason:'guest'|'local'|'offline' }  (앱 밖에서 열면 reason:'standalone')
+     */
+    function requestAuth() {
+      if (!embedded) {
+        setTimeout(function () { emitAuth({ type: 'auth', signedIn: false, reason: 'standalone' }); }, 0);
+        return;
+      }
+      post({ type: 'requestAuth' });
+    }
+
+    function onAuth(handler) {
+      if (typeof handler === 'function') authHandlers.push(handler);
+    }
+
+    function emitAuth(data) {
+      for (var a = 0; a < authHandlers.length; a++) {
+        try {
+          authHandlers[a](data);
+        } catch (err) {
+          /* 무시 */
+        }
+      }
+    }
+
     /** 최고 기록 갱신 등 단순 점수 전송 */
     function score(value) {
       save({ score: value });
@@ -142,6 +170,13 @@
         return;
       }
 
+      if (data.type === 'auth') {
+        // 로그인 토큰은 앱(부모 창)이 보낸 것만 받는다
+        if (event.source !== global.parent) return;
+        emitAuth(data);
+        return;
+      }
+
       if (data.type === 'pause' || data.type === 'resume' || data.type === 'state') {
         for (var j = 0; j < controlHandlers.length; j++) {
           try {
@@ -172,6 +207,8 @@
       saveCode: saveCode,
       requestCode: requestCode,
       resetBest: resetBest,
+      requestAuth: requestAuth,
+      onAuth: onAuth,
       onCode: onCode,
       score: score,
       onInit: onInit,
