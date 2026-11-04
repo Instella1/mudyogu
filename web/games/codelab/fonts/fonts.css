@@ -1,0 +1,4 @@
+/* 코드랩 오프라인 폰트 (포케퀴즈와 같은 서브셋: 게임 글자 + 상용 한글 2350자)
+   Black Han Sans / Space Mono — SIL Open Font License (OFL-*.txt) */
+@font-face{font-family:'Black Han Sans';font-style:normal;font-weight:400;font-display:swap;src:url('BlackHanSans-Regular.woff2') format('woff2')}
+@font-face{font-family:'Space Mono';font-style:normal;font-weight:700;font-display:swap;src:url('SpaceMono-Bold.woff2') format('woff2')}

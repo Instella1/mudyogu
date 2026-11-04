@@ -194,6 +194,7 @@ class _GameGlyph extends StatelessWidget {
     'haniljeon': Icons.sports_martial_arts_rounded,
     'pokequiz': Icons.catching_pokemon_rounded,
     'tower-drop': Icons.apartment_rounded,
+    'codelab': Icons.calculate_rounded,
   };
 
   @override

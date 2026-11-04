@@ -69,6 +69,23 @@
       "bestScoreLabel": "최고 층수",
       "builtIn": false,
       "aspect": "16/9"
+    },
+    {
+      "id": "codelab",
+      "title": "코드랩",
+      "tagline": "주사위 3개로 피라미드 숫자를 가장 먼저 만들어라",
+      "entry": "games/codelab/index.html",
+      "accent": "#45D6FF",
+      "tags": [
+        "수학",
+        "순발력",
+        "대전"
+      ],
+      "version": "1.0.0",
+      "supportsState": false,
+      "bestScoreLabel": "레이팅",
+      "builtIn": false,
+      "aspect": "16/9"
     }
   ]
 }
