@@ -19,7 +19,7 @@ Flutter PWA 미니게임 허브. HTML 게임 5개를 iframe 으로 얹어 돌린
 - 게임에 외부 URL 금지 (폰트·라이브러리는 로컬). 예외: 포케퀴즈 포켓몬 그림(PokeAPI sprites, 저작권·용량),
   타워 크래시 전체 랭킹(Supabase — 온라인일 때만, 게임은 오프라인 그대로. SQL 은 `docs/supabase-ranking.sql`),
   코드랩 온라인 대전(Supabase REST + Realtime, 라이브러리는 로컬 `vendor/supabase.js`. SQL 은 `docs/supabase-codelab.sql`)
-- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v34`)
+- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v35`)
 - `flutter build web` 만 돌리지 말고 `./build.sh` (patch_web.py 포함)
 
 ## 게임 5개
@@ -29,7 +29,7 @@ Flutter PWA 미니게임 허브. HTML 게임 5개를 iframe 으로 얹어 돌린
 | `hanilnam-life` | 한(일)남 LIFE | `MUDX1\|hanilnam-life\|` (전체), 리포트 코드(base64) | 첫 화면 ▶ 전체 기록 옮기기 |
 | `pokequiz` | 포케퀴즈 | `PKQ1\|` | 🏅 기록저장실 → 진행 코드 옮기기 |
 | `tower-drop` | 타워 크래시 | `MUDX1\|tower-drop\|` | 첫 화면 💾 진행 코드 → 불러와서 합치기 |
-| `codelab` | 코드랩 | 없음 (온라인 기록은 Supabase) | 기획서 `docs/CODELAB-SPEC.md` — 지금 2단계(닉네임·로비·방)까지 |
+| `codelab` | 코드랩 | 없음 (온라인 기록은 Supabase) | 기획서 `docs/CODELAB-SPEC.md` — 지금 3단계(온라인 대전 진행)까지 |
 
 계정은 Supabase 온라인 계정(어느 기기에서든 로그인). 게임 localStorage 는 계정별로 바꿔 끼우고 온라인에 동기화
 (`lib/services/sync_service.dart`, SQL `docs/supabase-accounts.sql`). 게임 기록은 꼭 localStorage 에 쓸 것.

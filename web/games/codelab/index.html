@@ -1051,7 +1051,10 @@ function showResults(reason) {
   $('#rRating').innerHTML = online() ? '🏅 레이팅 저장 중…' : '';
   $('#rBtnsAI').style.display = online() ? 'none' : '';
   $('#rBtnsOn').style.display = online() ? '' : 'none';
-  setTimeout(() => { show('sResult'); sfx(me.rank === 1 && me.st !== 'left' ? 'win' : 'end'); }, 900);
+  setTimeout(() => {
+    if (online() && !O.room) return;          // 그사이 방에서 나갔으면 띄우지 않음
+    show('sResult'); sfx(me.rank === 1 && me.st !== 'left' ? 'win' : 'end');
+  }, 900);
   if (online() && typeof recordMatch === 'function') recordMatch();
 }
 
@@ -2178,6 +2181,7 @@ function quitOnline() {
   const playing = G.gid && G.phase !== 'over' && me;
   if (playing) { recordMatch(true); me.st = 'left'; }
   rsend('quit', { uid: O.uid });
+  if (O.room) O.room.pending = true;          // 이제 이 방 소식(게임 끝 등)은 받지 않음
   G.running = false; G.events = []; G.phase = 'over';
   clearInterval(rollTimer);
   setTimeout(() => { leaveRoom(); enterLobby(); toast(playing ? '기권했어요 (꼴등으로 기록)' : '방에서 나왔어요'); }, 200);
