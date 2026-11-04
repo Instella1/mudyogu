@@ -34,9 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkUpdate();
       _checkOffline();
-      final String? merge = context.read<AppState>().lastMergeNotice;
+      final AppState state = context.read<AppState>();
+      final String? merge = state.lastMergeNotice;
       if (merge != null) {
         _showMergeNotice(merge);
+      }
+      if (state.takeAskNewPassword()) {
+        showChangePasswordDialog(context, state, afterTempLogin: true);
       }
     });
   }
@@ -110,7 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       if (state.mustChangePassword)
                         _GuestNotice(
-                          text: '임시 비밀번호로 로그인했어요. 앞으로 쓸 새 비밀번호를 정해 주세요.',
+                          text:
+                              '메일로 받은 링크(임시 로그인)로 들어왔어요. 앞으로 쓸 새 비밀번호를 정해 주세요.',
                           button: '비밀번호 정하기',
                           onSignIn: () => showChangePasswordDialog(
                             context,

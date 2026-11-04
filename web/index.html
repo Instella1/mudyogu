@@ -180,6 +180,25 @@
       })();
     </script>
     <script>
+      // '비밀번호를 잊었어요' 메일의 로그인 링크로 들어왔을 때 (주소 끝 #access_token=...&type=magiclink)
+      // → 토큰을 sessionStorage 에 맡겨 두고 주소에서 지운다. 앱(Flutter)이 켜지면서 받아서 로그인하고
+      //   '새 비밀번호 정하기' 창을 띄운다. (localStorage 는 게임 기록 보관함이 통째로 바꿔 끼우므로 쓰지 않음)
+      (function () {
+        var h = location.hash || '';
+        if (h.indexOf('access_token=') < 0 || h.indexOf('type=recovery') >= 0) return;
+        var q = new URLSearchParams(h.replace(/^#\/?/, ''));
+        try {
+          sessionStorage.setItem('mud.linkLogin', JSON.stringify({
+            access_token: q.get('access_token'),
+            refresh_token: q.get('refresh_token') || '',
+            expires_in: Number(q.get('expires_in')) || 3600,
+            type: q.get('type') || ''
+          }));
+        } catch (e) {}
+        history.replaceState(null, '', location.pathname + location.search);
+      })();
+    </script>
+    <script>
       // 비밀번호 재설정 메일의 링크로 들어왔을 때 (주소 끝 #...type=recovery)
       // → 새 비밀번호 입력창을 띄워 Supabase 에 바꿔 달라고 한다. Flutter 가 주소의 # 를
       //   길(route)로 읽지 않도록, 앱이 뜨기 전에 주소에서 지운다.

@@ -4,6 +4,7 @@ import '../models/account.dart';
 import '../models/game_info.dart';
 import '../services/auth_service.dart';
 import '../services/catalog_service.dart';
+import '../services/game_storage.dart';
 import '../services/local_store.dart';
 import '../services/progress_service.dart';
 import '../services/settings_service.dart';
@@ -18,7 +19,9 @@ class AppState extends ChangeNotifier {
     required CatalogService catalog,
     required SettingsService settings,
     required SyncService sync,
-  }) : _store = store,
+    GameStorage games = const GameStorage(),
+  }) : _games = games,
+       _store = store,
        _auth = auth,
        _progress = progress,
        _catalog = catalog,
@@ -31,6 +34,15 @@ class AppState extends ChangeNotifier {
   final CatalogService _catalog;
   final SettingsService _settings;
   final SyncService _sync;
+  final GameStorage _games;
+
+  /// 메일 로그인 링크로 방금 들어옴 → 홈에서 '새 비밀번호 정하기' 창을 한 번 띄운다
+  bool _askNewPassword = false;
+  bool takeAskNewPassword() {
+    final bool v = _askNewPassword;
+    _askNewPassword = false;
+    return v;
+  }
 
   bool _booting = true;
   String? _lastMergeNotice;
@@ -72,6 +84,18 @@ class AppState extends ChangeNotifier {
     await _catalog.load();
     await _progress.load();
     await _sync.migrateOnce();
+    // 메일의 로그인 링크로 들어왔으면 그 계정으로 로그인
+    final String? link = _games.takeLinkLogin();
+    if (link != null) {
+      await _sync.beforeSwitch();
+      final AuthResult r = await _auth.signInWithLink(link);
+      if (r.ok) {
+        await _sync.afterSwitch(_auth.currentEmail);
+        _askNewPassword = true;
+      } else {
+        _lastMergeNotice = '로그인 링크가 만료됐거나 잘못됐어요. 다시 받아 주세요.';
+      }
+    }
     // 다른 기기에서 더 새로 저장한 기록이 있으면 받아온다 (너무 오래 걸리면 화면부터 띄움)
     try {
       await _sync.pullOnBoot().timeout(const Duration(seconds: 5));

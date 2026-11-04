@@ -257,10 +257,16 @@ class CloudService {
 
   /// 비밀번호를 잊었을 때: 메일로 '임시 비밀번호'(일회용 숫자 코드)를 보낸다.
   /// 계정의 원래 비밀번호는 바뀌지 않는다 → 남이 내 이메일로 요청해도 나는 원래 비밀번호로 계속 로그인 가능.
-  Future<CloudError> sendTempPassword(String email) async {
+  Future<CloudError> sendTempPassword(
+    String email, {
+    String? redirectTo,
+  }) async {
+    final String q = redirectTo == null
+        ? ''
+        : '?redirect_to=${Uri.encodeQueryComponent(redirectTo)}';
     final http.Response? r = await _send(
       () => _http.post(
-        _u('/auth/v1/otp'),
+        _u('/auth/v1/otp$q'),
         headers: _headers(),
         body: jsonEncode(<String, dynamic>{
           'email': email,
@@ -310,6 +316,34 @@ class CloudService {
     final CloudSession? s = CloudSession.fromAuthResponse(
       jsonDecode(r.body) as Map<String, dynamic>,
     );
+    return s == null
+        ? const CloudResult<CloudSession>.fail(CloudError.unknown)
+        : CloudResult<CloudSession>(s);
+  }
+
+  /// 메일 링크로 받은 토큰으로 세션 만들기 (토큰 → 사용자 정보)
+  Future<CloudResult<CloudSession>> sessionFromLink({
+    required String accessToken,
+    required String refreshToken,
+    required int expiresIn,
+  }) async {
+    final http.Response? r = await _send(
+      () => _http.get(_u('/auth/v1/user'), headers: _headers(accessToken)),
+    );
+    if (r == null) {
+      return const CloudResult<CloudSession>.fail(CloudError.network);
+    }
+    if (r.statusCode >= 300) {
+      return const CloudResult<CloudSession>.fail(
+        CloudError.invalidCredentials,
+      );
+    }
+    final CloudSession? s = CloudSession.fromAuthResponse(<String, dynamic>{
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+      'expires_in': expiresIn,
+      'user': jsonDecode(r.body),
+    });
     return s == null
         ? const CloudResult<CloudSession>.fail(CloudError.unknown)
         : CloudResult<CloudSession>(s);

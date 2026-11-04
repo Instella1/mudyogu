@@ -107,8 +107,8 @@ class _AuthScreenState extends State<AuthScreen> {
         _mode = AuthMode.signIn;
         _password.clear();
         _info =
-            '메일로 임시 비밀번호(숫자)를 보냈어요. 아래 비밀번호 칸에 넣고 로그인해 주세요. '
-            '원래 비밀번호도 그대로 쓸 수 있어요.';
+            '메일을 보냈어요. 메일의 \'Log In\' 링크를 누르면 바로 로그인되고 새 비밀번호를 정할 수 있어요. '
+            '메일에 숫자가 있으면 아래 비밀번호 칸에 넣어도 돼요. 원래 비밀번호도 그대로 쓸 수 있어요.';
       });
       return;
     }
@@ -225,7 +225,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 6),
                       Text(
                         _isReset
-                            ? '가입한 이메일로 임시 비밀번호(숫자)를 보내 드려요. 원래 비밀번호는 바뀌지 않아요.'
+                            ? '가입한 이메일로 로그인 링크를 보내 드려요. 원래 비밀번호는 바뀌지 않아요.'
                             : '이메일과 비밀번호만 있으면 어느 기기에서든 기록이 이어져요.',
                         style: theme.textTheme.bodySmall,
                       ),
@@ -384,7 +384,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 _isSignUp
                                     ? '계정 만들기'
                                     : _isReset
-                                    ? '임시 비밀번호 받기'
+                                    ? '로그인 링크 받기'
                                     : '로그인',
                               ),
                       ),

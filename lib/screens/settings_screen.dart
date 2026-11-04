@@ -163,7 +163,7 @@ class SettingsScreen extends StatelessWidget {
                         icon: Icons.password_rounded,
                         title: '비밀번호 변경',
                         subtitle: state.mustChangePassword
-                            ? '임시 비밀번호로 로그인했어요 · 새 비밀번호를 정해 주세요'
+                            ? '메일로 받은 링크(임시 로그인)로 들어왔어요 · 새 비밀번호를 정해 주세요'
                             : '모든 기기에서 새 비밀번호로 로그인해요',
                         onTap: () async {
                           final bool ok = await showChangePasswordDialog(

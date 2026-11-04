@@ -317,6 +317,27 @@ class AuthService {
     return AuthResult.fail(_fromCloud(r.error));
   }
 
+  /// 메일의 로그인 링크로 들어왔을 때: 그 토큰으로 로그인 (원래 비밀번호는 그대로) → 새 비밀번호 정하게 함
+  Future<AuthResult> signInWithLink(String raw) async {
+    Map<String, dynamic> j;
+    try {
+      j = jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return AuthResult.fail(AuthFailure.unknown);
+    }
+    final CloudResult<CloudSession> r = await _cloud.sessionFromLink(
+      accessToken: (j['access_token'] ?? '').toString(),
+      refreshToken: (j['refresh_token'] ?? '').toString(),
+      expiresIn: (j['expires_in'] as num?)?.toInt() ?? 3600,
+    );
+    if (!r.ok) return AuthResult.fail(_fromCloud(r.error));
+    final String mail = normalizeEmail(r.value!.email);
+    await _cacheAccount(mail, _newSalt() + _newSalt(), r.value!.nickname);
+    await _startSession(mail, r.value);
+    await _session.put('mustChangePw', true);
+    return const AuthResult(ok: true, tempLogin: true);
+  }
+
   static final RegExp _tempRe = RegExp(r'^\d{6,10}$');
 
   /// 임시 비밀번호로 로그인해서 아직 새 비밀번호를 정하지 않은 상태
@@ -368,7 +389,12 @@ class AuthService {
     if (!_emailRe.hasMatch(mail)) {
       return AuthResult.fail(AuthFailure.emailInvalid);
     }
-    final CloudError e = await _cloud.sendTempPassword(mail);
+    // 무료 요금제의 기본 메일엔 숫자 대신 '로그인 링크'만 들어간다 → 링크를 누르면 이 사이트로 돌아와 로그인
+    final Uri u = Uri.base;
+    final CloudError e = await _cloud.sendTempPassword(
+      mail,
+      redirectTo: '${u.scheme}://${u.authority}${u.path}',
+    );
     if (e == CloudError.invalidCredentials) {
       return AuthResult.fail(AuthFailure.notFound);
     }

@@ -87,7 +87,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
           children: <Widget>[
             Text(
               widget.afterTempLogin
-                  ? '임시 비밀번호로 로그인했어요. 앞으로 쓸 비밀번호를 정해 주세요. '
+                  ? '메일로 받은 링크(임시 로그인)로 들어왔어요. 앞으로 쓸 비밀번호를 정해 주세요. '
                         '정하기 전까지는 원래 비밀번호도 그대로 쓸 수 있어요.'
                   : '앞으로 쓸 비밀번호를 정해 주세요. 다른 기기에서도 새 비밀번호로 로그인해요.',
               style: theme.textTheme.bodySmall,

@@ -52,4 +52,16 @@ class GameStorage {
       }).toJS,
     );
   }
+
+  /// 메일 로그인 링크로 들어왔을 때 index.html 이 맡겨 둔 토큰 (한 번 읽으면 지움)
+  String? takeLinkLogin() {
+    try {
+      final web.Storage s = web.window.sessionStorage;
+      final String? v = s.getItem('mud.linkLogin');
+      if (v != null) s.removeItem('mud.linkLogin');
+      return v;
+    } catch (_) {
+      return null;
+    }
+  }
 }

@@ -8,4 +8,7 @@ class GameStorage {
 
   /// 브라우저 탭이 숨겨질 때(다른 앱으로 전환·창 닫기 직전) 호출
   void onHidden(void Function() callback) {}
+
+  /// 메일 로그인 링크로 들어왔을 때 index.html 이 맡겨 둔 토큰 (한 번 읽으면 지움)
+  String? takeLinkLogin() => null;
 }
