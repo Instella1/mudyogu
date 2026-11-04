@@ -10,6 +10,7 @@ import '../services/pwa_service.dart';
 import '../services/settings_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/change_password_dialog.dart';
 import '../widgets/common.dart';
 import 'auth_screen.dart';
 import 'welcome_screen.dart';
@@ -39,11 +40,7 @@ class SettingsScreen extends StatelessWidget {
             children: <Widget>[
               // 계정
               _SectionLabel('계정'),
-              _Card(
-                children: <Widget>[
-                  _AccountTile(state: state),
-                ],
-              ),
+              _Card(children: <Widget>[_AccountTile(state: state)]),
               const SizedBox(height: 20),
 
               // 테마
@@ -84,13 +81,15 @@ class SettingsScreen extends StatelessWidget {
                     title: '업데이트 확인',
                     subtitle: '새 버전이 있으면 알려드려요',
                     onTap: () async {
-                      final bool has =
-                          await PwaService.instance.checkForUpdate();
+                      final bool has = await PwaService.instance
+                          .checkForUpdate();
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            has ? '새 버전이 있어요. 상단 배너에서 새로고침해 주세요.' : '최신 버전을 사용 중이에요.',
+                            has
+                                ? '새 버전이 있어요. 상단 배너에서 새로고침해 주세요.'
+                                : '최신 버전을 사용 중이에요.',
                           ),
                         ),
                       );
@@ -159,6 +158,25 @@ class SettingsScreen extends StatelessWidget {
                           : '켜짐 · 다른 기기에서 로그인해도 기록이 이어져요 (눌러서 지금 저장)',
                       onTap: () => _syncNow(context, state),
                     ),
+                    if (!state.isLocalOnly)
+                      _InfoTile(
+                        icon: Icons.password_rounded,
+                        title: '비밀번호 변경',
+                        subtitle: state.mustChangePassword
+                            ? '임시 비밀번호로 로그인했어요 · 새 비밀번호를 정해 주세요'
+                            : '모든 기기에서 새 비밀번호로 로그인해요',
+                        onTap: () async {
+                          final bool ok = await showChangePasswordDialog(
+                            context,
+                            state,
+                          );
+                          if (ok && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('비밀번호를 바꿨어요.')),
+                            );
+                          }
+                        },
+                      ),
                     _InfoTile(
                       icon: Icons.logout_rounded,
                       title: '로그아웃',
@@ -179,9 +197,8 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: '기록을 계정에 저장할 수 있어요',
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => const AuthScreen(
-                            mode: AuthMode.signIn,
-                          ),
+                          builder: (_) =>
+                              const AuthScreen(mode: AuthMode.signIn),
                         ),
                       ),
                     ),
@@ -267,10 +284,7 @@ class SettingsScreen extends StatelessWidget {
           controller: controller,
           autofocus: true,
           maxLength: 12,
-          decoration: const InputDecoration(
-            hintText: '새 닉네임',
-            counterText: '',
-          ),
+          decoration: const InputDecoration(hintText: '새 닉네임', counterText: ''),
         ),
         actions: <Widget>[
           TextButton(
@@ -534,11 +548,7 @@ class _ChoiceTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: <Widget>[
-            Icon(
-              icon,
-              size: 19,
-              color: selected ? AppColors.brandDeep : null,
-            ),
+            Icon(icon, size: 19, color: selected ? AppColors.brandDeep : null),
             const SizedBox(width: 13),
             Expanded(
               child: Text(
@@ -760,11 +770,7 @@ class _SaveCodeChip extends StatelessWidget {
 }
 
 /// 보관된 저장 코드를 보여주고 복사할 수 있는 시트
-void _showSaveCode(
-  BuildContext context,
-  GameInfo game,
-  GameProgress progress,
-) {
+void _showSaveCode(BuildContext context, GameInfo game, GameProgress progress) {
   final String code = progress.saveCode;
   showModalBottomSheet<void>(
     context: context,
@@ -842,9 +848,9 @@ void _showSaveCode(
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: code));
                 if (!ctx.mounted) return;
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  const SnackBar(content: Text('기록 코드를 복사했어요')),
-                );
+                ScaffoldMessenger.of(
+                  ctx,
+                ).showSnackBar(const SnackBar(content: Text('기록 코드를 복사했어요')));
               },
               icon: const Icon(Icons.copy_rounded, size: 17),
               label: const Text('코드 복사'),

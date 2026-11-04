@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/change_password_dialog.dart';
 import '../widgets/common.dart';
 
 enum AuthMode { signUp, signIn, reset }
@@ -29,6 +30,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _busy = false;
   bool _obscure = true;
   String? _error;
+  String? _info;
 
   @override
   void dispose() {
@@ -48,7 +50,7 @@ class _AuthScreenState extends State<AuthScreen> {
       case AuthMode.signIn:
         return '로그인';
       case AuthMode.reset:
-        return '비밀번호 재설정';
+        return '비밀번호를 잊었어요';
     }
   }
 
@@ -57,6 +59,7 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       _busy = true;
       _error = null;
+      _info = null;
     });
 
     final AppState state = context.read<AppState>();
@@ -78,7 +81,7 @@ class _AuthScreenState extends State<AuthScreen> {
           );
           break;
         case AuthMode.reset:
-          result = await state.sendPasswordReset(_email.text);
+          result = await state.sendTempPassword(_email.text);
           break;
       }
     } catch (error) {
@@ -103,15 +106,17 @@ class _AuthScreenState extends State<AuthScreen> {
       setState(() {
         _mode = AuthMode.signIn;
         _password.clear();
+        _info =
+            '메일로 임시 비밀번호(숫자)를 보냈어요. 아래 비밀번호 칸에 넣고 로그인해 주세요. '
+            '원래 비밀번호도 그대로 쓸 수 있어요.';
       });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('비밀번호 재설정 메일을 보냈어요. 메일의 링크를 눌러 새 비밀번호를 정해 주세요.'),
-          duration: Duration(seconds: 5),
-        ),
-      );
       return;
+    }
+
+    // 임시 비밀번호로 들어왔으면 바로 새 비밀번호를 정하게 한다
+    if (result.tempLogin) {
+      await showChangePasswordDialog(context, state, afterTempLogin: true);
+      if (!mounted) return;
     }
 
     Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
@@ -220,7 +225,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 6),
                       Text(
                         _isReset
-                            ? '가입한 이메일로 비밀번호 재설정 링크를 보내 드려요.'
+                            ? '가입한 이메일로 임시 비밀번호(숫자)를 보내 드려요. 원래 비밀번호는 바뀌지 않아요.'
                             : '이메일과 비밀번호만 있으면 어느 기기에서든 기록이 이어져요.',
                         style: theme.textTheme.bodySmall,
                       ),
@@ -298,6 +303,30 @@ class _AuthScreenState extends State<AuthScreen> {
                           },
                         ),
 
+                      if (_info != null) ...<Widget>[
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 11,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.brand.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.brand.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Text(
+                            _info!,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: AppColors.brandDeep,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
                       if (_error != null) ...<Widget>[
                         const SizedBox(height: 14),
                         Container(
@@ -355,7 +384,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 _isSignUp
                                     ? '계정 만들기'
                                     : _isReset
-                                    ? '재설정 메일 보내기'
+                                    ? '임시 비밀번호 받기'
                                     : '로그인',
                               ),
                       ),

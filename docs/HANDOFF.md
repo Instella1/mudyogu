@@ -217,7 +217,11 @@ flutter_app/
 
 ### 온라인 계정 (Supabase — 타워 크래시 랭킹과 같은 프로젝트)
 
-- 계정: Supabase Auth (이메일/비밀번호). 비밀번호 재설정은 메일 링크 → `web/index.html` 이 새 비밀번호 입력창을 띄움
+- 계정: Supabase Auth (이메일/비밀번호)
+- 비밀번호를 잊었을 때: 메일로 **임시 비밀번호**(일회용 숫자, Supabase 이메일 OTP) → 로그인 화면 비밀번호 칸에 넣으면
+  `/auth/v1/verify` 로 로그인 → '새 비밀번호 정하기' 창. 원래 비밀번호는 안 바뀌므로 남이 내 이메일로 요청해도
+  잠기지 않음(새 비밀번호를 정하기 전까지 둘 다 사용 가능). ⚠️ Supabase **Magic Link 메일 템플릿에 `{{ .Token }}`** 이 있어야
+  숫자가 메일에 나옴. (옛 메일 링크 방식용 `index.html` 재설정 창은 남아 있음)
 - 기록: 테이블 `mud_saves` (계정당 한 줄, RLS 로 내 줄만) → `docs/supabase-accounts.sql`
 - 기록 묶음 = `{ ls: 게임 localStorage 전체('flutter.' 로 시작하지 않는 키), progress: 진행상황 }`
 - 흐름 (`lib/services/sync_service.dart`)
@@ -390,7 +394,7 @@ python3 tools/add_game.py ~/Downloads/새게임.zip \
 
 ### 새 버전 배포 (GitHub 자동 배포)
 
-1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v39`)
+1. `web/service_worker.js` 의 `VERSION` **반드시 증가** (현재 `mudyogu-v40`)
 2. GitHub `main` 브랜치에 올린다(push)
 3. 끝. `.github/workflows/deploy.yml` 이 자동으로
    `flutter analyze` → 외부 URL 검사 → `./build.sh` → 상대경로 패치 → GitHub Pages 배포

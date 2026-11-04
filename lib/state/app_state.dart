@@ -134,8 +134,17 @@ class AppState extends ChangeNotifier {
     return result;
   }
 
-  Future<AuthResult> sendPasswordReset(String email) =>
-      _auth.sendPasswordReset(email);
+  Future<AuthResult> sendTempPassword(String email) =>
+      _auth.sendTempPassword(email);
+
+  /// 임시 비밀번호로 로그인해서 새 비밀번호를 정해야 하는 상태
+  bool get mustChangePassword => _auth.mustChangePassword;
+
+  Future<AuthResult> changePassword(String newPassword) async {
+    final AuthResult r = await _auth.changePassword(newPassword);
+    if (r.ok) notifyListeners();
+    return r;
+  }
 
   Future<void> continueAsGuest() async {
     await _sync.beforeSwitch();

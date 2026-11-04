@@ -66,6 +66,7 @@ class AuthResult {
     this.failure = AuthFailure.none,
     this.recoveryCode,
     this.migrated = false,
+    this.tempLogin = false,
   });
 
   final bool ok;
@@ -76,6 +77,9 @@ class AuthResult {
 
   /// 이 기기에만 있던 옛 계정을 온라인 계정으로 옮겨 만들었음
   final bool migrated;
+
+  /// 메일로 받은 임시 비밀번호로 로그인했음 → 새 비밀번호를 정하게 한다
+  final bool tempLogin;
 
   String get message => failure.message;
 
@@ -294,7 +298,45 @@ class AuthService {
       );
     }
 
+    // 메일로 받은 임시 비밀번호(숫자)로 로그인 — 원래 비밀번호도 그대로 살아 있다
+    if (r.error == CloudError.invalidCredentials &&
+        _tempRe.hasMatch(password.trim())) {
+      final CloudResult<CloudSession> t = await _cloud.signInWithTempPassword(
+        email: mail,
+        code: password.trim(),
+      );
+      if (t.ok) {
+        // 닉네임은 남겨 두되, 일회용 숫자는 비밀번호로 저장하지 않는다 (아무도 모르는 값으로 캐시)
+        await _cacheAccount(mail, _newSalt() + _newSalt(), t.value!.nickname);
+        await _startSession(mail, t.value);
+        await _session.put('mustChangePw', true);
+        return const AuthResult(ok: true, tempLogin: true);
+      }
+    }
+
     return AuthResult.fail(_fromCloud(r.error));
+  }
+
+  static final RegExp _tempRe = RegExp(r'^\d{6,10}$');
+
+  /// 임시 비밀번호로 로그인해서 아직 새 비밀번호를 정하지 않은 상태
+  bool get mustChangePassword =>
+      isSignedIn && (_session.get('mustChangePw') as bool? ?? false);
+
+  /// 새 비밀번호로 바꾼다 (온라인 필수). 이 기기 캐시도 새 비밀번호로.
+  Future<AuthResult> changePassword(String newPassword) async {
+    final String? mail = currentEmail;
+    if (mail == null) return AuthResult.fail(AuthFailure.notFound);
+    if (newPassword.length < 6) {
+      return AuthResult.fail(AuthFailure.weakPassword);
+    }
+    final CloudSession? s = await freshCloudSession();
+    if (s == null) return AuthResult.fail(AuthFailure.network);
+    final CloudError e = await _cloud.changePassword(s, newPassword);
+    if (e != CloudError.none) return AuthResult.fail(_fromCloud(e));
+    await _cacheAccount(mail, newPassword, currentNicknameOf(mail));
+    await _session.delete('mustChangePw');
+    return AuthResult.success;
   }
 
   String currentNicknameOf(String mail) {
@@ -320,15 +362,16 @@ class AuthService {
     return null;
   }
 
-  // ── 비밀번호 재설정 (메일로 링크) ─────────────────────────────
-  Future<AuthResult> sendPasswordReset(String email) async {
+  // ── 비밀번호를 잊었을 때: 임시 비밀번호를 메일로 ──────────────────
+  Future<AuthResult> sendTempPassword(String email) async {
     final String mail = normalizeEmail(email);
     if (!_emailRe.hasMatch(mail)) {
       return AuthResult.fail(AuthFailure.emailInvalid);
     }
-    final Uri u = Uri.base;
-    final String back = '${u.scheme}://${u.authority}${u.path}';
-    final CloudError e = await _cloud.sendPasswordReset(mail, back);
+    final CloudError e = await _cloud.sendTempPassword(mail);
+    if (e == CloudError.invalidCredentials) {
+      return AuthResult.fail(AuthFailure.notFound);
+    }
     return e == CloudError.none
         ? AuthResult.success
         : AuthResult.fail(_fromCloud(e));
@@ -352,11 +395,13 @@ class AuthService {
   // ── 세션 ────────────────────────────────────────────────────
   Future<void> continueAsGuest() async {
     await _session.put('isGuest', true);
+    await _session.delete('mustChangePw');
     await _session.delete('email');
     await _session.delete('cloud');
   }
 
   Future<void> signOut() async {
+    await _session.delete('mustChangePw');
     await _session.delete('email');
     await _session.delete('cloud');
     await _session.put('isGuest', false);

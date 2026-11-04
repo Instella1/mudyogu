@@ -7,6 +7,7 @@ import '../models/game_info.dart';
 import '../services/pwa_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/change_password_dialog.dart';
 import '../widgets/common.dart';
 import '../widgets/game_card.dart';
 import '../widgets/update_banner.dart';
@@ -106,6 +107,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           onUpdate: () => PwaService.instance.applyUpdate(),
                           onDismiss: () =>
                               setState(() => _bannerDismissed = true),
+                        ),
+                      if (state.mustChangePassword)
+                        _GuestNotice(
+                          text: '임시 비밀번호로 로그인했어요. 앞으로 쓸 새 비밀번호를 정해 주세요.',
+                          button: '비밀번호 정하기',
+                          onSignIn: () => showChangePasswordDialog(
+                            context,
+                            state,
+                            afterTempLogin: true,
+                          ),
                         ),
                       if (state.isSignedIn == false || state.isLocalOnly)
                         _GuestNotice(

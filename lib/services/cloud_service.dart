@@ -255,20 +255,77 @@ class CloudService {
         : CloudResult<CloudSession>(n);
   }
 
-  /// 비밀번호 재설정 메일 (메일 속 링크 → 사이트의 index.html 이 새 비밀번호 입력창을 띄움)
-  Future<CloudError> sendPasswordReset(String email, String redirectTo) async {
+  /// 비밀번호를 잊었을 때: 메일로 '임시 비밀번호'(일회용 숫자 코드)를 보낸다.
+  /// 계정의 원래 비밀번호는 바뀌지 않는다 → 남이 내 이메일로 요청해도 나는 원래 비밀번호로 계속 로그인 가능.
+  Future<CloudError> sendTempPassword(String email) async {
     final http.Response? r = await _send(
       () => _http.post(
-        _u(
-          '/auth/v1/recover?redirect_to=${Uri.encodeQueryComponent(redirectTo)}',
-        ),
+        _u('/auth/v1/otp'),
         headers: _headers(),
-        body: jsonEncode(<String, dynamic>{'email': email}),
+        body: jsonEncode(<String, dynamic>{
+          'email': email,
+          'create_user': false,
+        }),
       ),
     );
     if (r == null) return CloudError.network;
-    if (r.statusCode >= 300) return _authError(r);
+    if (r.statusCode >= 300) {
+      final String t = _errText(r);
+      // 가입 안 된 이메일 (create_user:false)
+      if (t.contains('signups not allowed') ||
+          t.contains('otp_disabled') ||
+          t.contains('not found')) {
+        return CloudError.invalidCredentials;
+      }
+      return _authError(r);
+    }
     return CloudError.none;
+  }
+
+  /// 임시 비밀번호(메일로 받은 숫자)로 로그인
+  Future<CloudResult<CloudSession>> signInWithTempPassword({
+    required String email,
+    required String code,
+  }) async {
+    final http.Response? r = await _send(
+      () => _http.post(
+        _u('/auth/v1/verify'),
+        headers: _headers(),
+        body: jsonEncode(<String, dynamic>{
+          'type': 'email',
+          'email': email,
+          'token': code,
+        }),
+      ),
+    );
+    if (r == null) {
+      return const CloudResult<CloudSession>.fail(CloudError.network);
+    }
+    if (r.statusCode >= 300) {
+      final CloudError e = _authError(r);
+      return CloudResult<CloudSession>.fail(
+        e == CloudError.unknown ? CloudError.invalidCredentials : e,
+      );
+    }
+    final CloudSession? s = CloudSession.fromAuthResponse(
+      jsonDecode(r.body) as Map<String, dynamic>,
+    );
+    return s == null
+        ? const CloudResult<CloudSession>.fail(CloudError.unknown)
+        : CloudResult<CloudSession>(s);
+  }
+
+  /// 로그인된 상태에서 비밀번호 변경
+  Future<CloudError> changePassword(CloudSession s, String password) async {
+    final http.Response? r = await _send(
+      () => _http.put(
+        _u('/auth/v1/user'),
+        headers: _headers(s.accessToken),
+        body: jsonEncode(<String, dynamic>{'password': password}),
+      ),
+    );
+    if (r == null) return CloudError.network;
+    return r.statusCode >= 300 ? _authError(r) : CloudError.none;
   }
 
   Future<CloudError> updateNickname(CloudSession s, String nickname) async {
