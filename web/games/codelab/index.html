@@ -2434,7 +2434,7 @@ async function recordMatch(quit) {
     if (r.data && O.profile) Object.assign(O.profile, { rating: r.data.rating, games: r.data.games, wins: r.data.wins });
     const after = O.profile ? O.profile.rating : before, d = after - before;
     if (!quit) $('#rRating').innerHTML = '🏅 레이팅 ' + before + ' → ' + after + ' <b class="' + (d < 0 ? 'neg' : '') + '">(' + (d >= 0 ? '+' : '') + d + ')</b>' +
-      ' <small class="mut">· 상대 평균 ' + avg + '</small>';
+      ' <small class="mut">· 상대 평균 ' + avg + ' · 참가 보상 +' + Math.min(7, 2 + Math.round(Math.min(400, me.score) / 20)) + ' 포함</small>';
     renderMeChip();
     reportRating();
     if (!quit) { rsend('rt', { uid: O.uid, rating: after }); onRating({ uid: O.uid, rating: after }); }
