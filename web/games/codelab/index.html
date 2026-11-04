@@ -307,6 +307,46 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
   background:rgba(8,12,30,.96);border:2px solid var(--cyan);font-weight:800;display:none;white-space:pre-line;text-align:center;max-width:90%}
 #toast.on{display:block;animation:pop .25s}
 
+/* ── 랭킹 · 내 기록 ───────────────── */
+#sBoard{padding:20px 24px}
+.tabs{display:flex;gap:6px}
+.tab{padding:9px 14px;border-radius:12px;background:#1d2752;font-weight:800;box-shadow:0 3px 0 #0c1230}
+.tab.sel{background:linear-gradient(#5ee9ff,#22b8e6);color:#04202b;box-shadow:0 3px 0 #0b6e8c}
+.bdSum{display:flex;gap:8px;flex-wrap:wrap}
+.bdSum:empty{display:none}
+.bdSum .tagp{font-size:14px;padding:6px 12px}
+.bdSum .tagp b{font-family:var(--mf);color:var(--gold)}
+#bdList{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.rkRow{display:grid;grid-template-columns:56px 1fr 90px 120px;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:#1a2350}
+.rkRow.me{background:rgba(62,240,176,.12);box-shadow:0 0 0 2px var(--mint)}
+.rkRow .no{font-family:var(--mf);font-weight:700;font-size:20px;text-align:center;color:var(--mut)}
+.rkRow .no.top{font-size:24px}
+.rkRow .nk{font-weight:900;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rkRow .rt{font-family:var(--mf);font-weight:700;font-size:20px;color:var(--gold);text-align:right}
+.rkRow .gw{font-size:12px;color:var(--mut);font-weight:700;text-align:right}
+.rkHead{background:none;padding:0 14px;font-size:12px;color:var(--mut);font-weight:800}
+.mtRow{display:grid;grid-template-columns:96px 74px 1fr 70px 110px;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:#1a2350;text-align:left;width:100%}
+.mtRow .dt{font-size:13px;color:var(--mut);font-weight:700}
+.mtRow .rk{font-weight:900;font-size:18px}
+.mtRow .ppl{font-size:13px;color:var(--mut);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtRow .pt{font-family:var(--mf);font-weight:700;font-size:18px;text-align:right}
+.mtRow .dr{font-family:var(--mf);font-weight:700;font-size:16px;text-align:right;color:var(--mint)}
+.mtRow .dr.neg{color:#ff8fa3}
+.mtDet{margin:-2px 0 6px;padding:8px 14px;border-radius:0 0 12px 12px;background:rgba(255,255,255,.04);display:none;font-size:14px}
+.mtDet.on{display:block}
+.mtDet div{display:flex;gap:10px;padding:3px 0}
+.mtDet div span:first-child{width:40px;color:var(--mut);font-weight:800}
+.mtDet div span:nth-child(2){flex:1;font-weight:800}
+.mtDet div span:last-child{font-family:var(--mf);font-weight:700}
+#stage.port .olHead{flex-wrap:wrap}
+#stage.port .tabs{width:100%}
+#stage.port .tab{flex:1}
+#stage.port .rkRow{grid-template-columns:44px 1fr 70px}
+#stage.port .rkRow .gw{display:none}
+#stage.port .mtRow{grid-template-columns:62px 64px 1fr 82px}
+#stage.port .mtRow .ppl{display:none}
+.olActs .row .btn{font-size:16px;padding:12px 8px}
+
 /* ── 모달 ─────────────────────────── */
 #modal{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;
   background:rgba(4,6,16,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
@@ -453,6 +493,19 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
         <button class="btn" id="bRmLeave">방 나가기</button>
         <button class="btn pri" id="bRmStart">게임 시작</button>
       </div>
+    </div>
+  </section>
+
+  <!-- 온라인: 랭킹 · 내 기록 -->
+  <section id="sBoard" class="scr">
+    <div class="olWrap">
+      <div class="olHead">
+        <button class="back" id="bBdBack" aria-label="뒤로">←</button>
+        <h2 class="h" id="bdTitle">🏆 전체 랭킹</h2>
+        <div class="tabs"><button class="tab" data-t="rank">🏆 랭킹</button><button class="tab" data-t="mine">📜 내 기록</button></div>
+      </div>
+      <div class="bdSum" id="bdSum"></div>
+      <div class="olList"><div id="bdList"></div></div>
     </div>
   </section>
 
@@ -648,6 +701,8 @@ const SFX = {
   timeout: () => { tone(392, .18, 'triangle', .09); tone(294, .26, 'triangle', .09, .16); },
   noroll: () => tone(330, .12, 'triangle', .07),
   win: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, .22, 'triangle', .15, i * .11)),
+  start: () => { [392, 523, 659].forEach((f, i) => tone(f, .12, 'square', .06, i * .1)); tone(784, .3, 'triangle', .14, .32); },
+  jackpot: () => { [784, 988, 1175, 1568].forEach((f, i) => tone(f, .14, 'triangle', .15, i * .06)); [1568, 1319, 1568].forEach((f, i) => tone(f, .1, 'sine', .08, .3 + i * .08)); },
   end: () => [392, 349, 330, 262].forEach((f, i) => tone(f, .25, 'triangle', .11, i * .14)),
 };
 function sfx(n) { try { if (SFX[n]) SFX[n](); } catch (e) {} }
@@ -807,6 +862,7 @@ function setupGame(players, min, level, gid) {
   me = players.find((p) => p.me);
   assignColors();
   enterGameScreen();
+  sfx('start');
   at(700, nextRound);
 }
 /** 게임 화면을 지금 G 대로 처음부터 그린다 */
@@ -1004,7 +1060,7 @@ function fxClaim(p, exprText, x) {
   renderScores(p);
   renderKeys();
   renderExpr();
-  if (p.me) { sfx('good'); vib(40); } else { sfx('opp'); vib(15); }
+  if (p.me) { sfx(x.card.p >= 7 ? 'jackpot' : 'good'); vib(x.card.p >= 7 ? [40, 60, 80] : 40); } else { sfx('opp'); vib(15); }
 }
 function fxRefill(row, slot) { renderSlot(row, slot, true); renderLegend(); }
 function fxTimeout(row, slot, expr) {
@@ -1556,12 +1612,16 @@ function enterLobby() {
     '<div class="olActs">' +
     '<button class="btn pri big" id="bMake">＋ 방 만들기</button>' +
     '<button class="btn big" id="bCode"># 코드로 입장</button>' +
+    '<div class="row"><button class="btn" id="bRank">🏆 랭킹</button><button class="btn" id="bMine">📜 내 기록</button></div>' +
     '<div class="tip">💡 방을 만들고 4자리 코드를 친구에게 알려 주세요. 2~6명이 모이면 시작할 수 있어요.</div>' +
     '</div>' +
     '<div class="olList"><div class="olLH"><b>열린 방</b><span class="mut" id="olCount"></span><span class="sp"></span><span class="conn" id="olConn">연결 중…</span></div>' +
     '<div id="roomList"></div></div>';
   $('#bMake').onclick = openMakeRoom;
   $('#bCode').onclick = openCodeJoin;
+  $('#bRank').onclick = () => openBoard('rank');
+  $('#bMine').onclick = () => openBoard('mine');
+  reportRating();
   renderRooms();
   if (!O.lobby) {
     const ch = O.sb.channel('codelab-lobby', { config: { presence: { key: O.uid } } });
@@ -2046,7 +2106,7 @@ function onGs(m) {
   if (newGame || !onScreen) {
     enterGameScreen();
     if (G.phase === 'play') { traySettle(); fxPlay(); }
-    if (ev.t === 'start' || newGame) sfx('settle');
+    if (ev.t === 'start' || newGame) sfx('start');
     return;
   }
   switch (ev.t) {
@@ -2204,6 +2264,7 @@ async function recordMatch(quit) {
     const after = O.profile ? O.profile.rating : before, d = after - before;
     if (!quit) $('#rRating').innerHTML = '🏅 레이팅 ' + before + ' → ' + after + ' <b class="' + (d < 0 ? 'neg' : '') + '">(' + (d >= 0 ? '+' : '') + d + ')</b>';
     renderMeChip();
+    reportRating();
     if (!quit) { rsend('rt', { uid: O.uid, rating: after }); onRating({ uid: O.uid, rating: after }); }
   } catch (e) {
     NET.recorded = '';
@@ -2220,6 +2281,94 @@ function onRating(p) {
   rsend('room', publicRoom());
   renderRoom();
 }
+/* ─────────────────────────────────────────────────────────────
+ * 12. 랭킹 · 내 기록 (4단계)
+ * ───────────────────────────────────────────────────────────── */
+/** 앱 홈 카드의 '최고 레이팅' (앱은 가장 높았던 값을 보관) */
+function reportRating() { if (O.profile) { try { MUD.save({ score: O.profile.rating, isGameOver: false }); } catch (e) {} } }
+let BD = 'rank';
+function openBoard(tab) {
+  BD = tab || BD;
+  show('sBoard');
+  $$('.tab').forEach((t) => t.classList.toggle('sel', t.dataset.t === BD));
+  $('#bdTitle').textContent = BD === 'rank' ? '🏆 전체 랭킹' : '📜 내 대전 기록';
+  loadBoard();
+}
+$$('.tab').forEach((t) => { t.onclick = () => { sfx('click'); openBoard(t.dataset.t); }; });
+$('#bBdBack').onclick = () => enterLobby();
+function fmtDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+async function loadBoard() {
+  const tab = BD, list = $('#bdList');
+  list.innerHTML = '<div class="empty"><div class="ic">⏳</div>불러오는 중…</div>';
+  $('#bdSum').innerHTML = '';
+  try {
+    if (tab === 'rank') {
+      const r = await withTimeout(O.sb.from('codelab_profiles').select('user_id,nickname,rating,games,wins')
+        .order('rating', { ascending: false }).order('wins', { ascending: false }).limit(100), 10000);
+      if (r.error) throw r.error;
+      if (BD !== tab) return;
+      const rows = r.data || [];
+      let myRank = 0;
+      rows.forEach((x, i) => { x.no = i > 0 && rows[i - 1].rating === x.rating ? rows[i - 1].no : i + 1; if (x.user_id === O.uid) myRank = x.no; });
+      if (!myRank && O.profile) {
+        const c = await withTimeout(O.sb.from('codelab_profiles').select('user_id', { count: 'exact', head: true }).gt('rating', O.profile.rating), 10000);
+        if (!c.error && typeof c.count === 'number') myRank = c.count + 1;
+      }
+      if (BD !== tab) return;
+      $('#bdSum').innerHTML = O.profile
+        ? '<span class="tagp">🙂 ' + esc(O.profile.nickname) + '</span><span class="tagp">내 순위 <b>' + (myRank ? myRank + '위' : '-') + '</b></span><span class="tagp">🏅 <b>' + O.profile.rating + '</b></span>'
+        : '';
+      if (!rows.length) { list.innerHTML = '<div class="empty"><div class="ic">🏆</div>아직 랭킹이 없어요.<br>첫 대전의 주인공이 되어 보세요!</div>'; return; }
+      const medal = (n) => ['🥇', '🥈', '🥉'][n - 1];
+      list.innerHTML = '<div class="rkRow rkHead"><span>순위</span><span>닉네임</span><span style="text-align:right">레이팅</span><span style="text-align:right">전적</span></div>' +
+        rows.map((x) => '<div class="rkRow' + (x.user_id === O.uid ? ' me' : '') + '">' +
+          '<span class="no' + (x.no <= 3 ? ' top' : '') + '">' + (medal(x.no) || x.no) + '</span>' +
+          '<span class="nk">' + esc(x.nickname) + (x.user_id === O.uid ? ' (나)' : '') + '</span>' +
+          '<span class="rt">' + x.rating + '</span>' +
+          '<span class="gw">' + x.games + '판 · 1등 ' + x.wins + '번</span></div>').join('');
+    } else {
+      const r = await withTimeout(O.sb.from('codelab_matches')
+        .select('match_id,played_at,players,rank,points,cards,rating_before,rating_after,detail')
+        .eq('user_id', O.uid).order('played_at', { ascending: false }).limit(50), 10000);
+      if (r.error) throw r.error;
+      if (BD !== tab) return;
+      const rows = r.data || [];
+      const P = O.profile || { games: 0, wins: 0, rating: 1000 };
+      const best = rows.reduce((m, x) => Math.max(m, x.rating_after), P.rating);
+      $('#bdSum').innerHTML = '<span class="tagp">🎮 <b>' + P.games + '</b>판</span><span class="tagp">🏆 1등 <b>' + P.wins + '</b>번</span>' +
+        '<span class="tagp">승률 <b>' + (P.games ? Math.round(P.wins / P.games * 100) : 0) + '%</b></span><span class="tagp">🏅 지금 <b>' + P.rating + '</b> · 최고 <b>' + best + '</b></span>';
+      if (!rows.length) { list.innerHTML = '<div class="empty"><div class="ic">📜</div>아직 온라인 대전 기록이 없어요.<br>방을 만들어 첫 판을 해 보세요!</div>'; return; }
+      list.innerHTML = '';
+      rows.forEach((x) => {
+        const d = x.rating_after - x.rating_before;
+        const det = (Array.isArray(x.detail) ? x.detail : []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99));
+        const others = det.filter((y) => y.nick !== (O.profile && O.profile.nickname)).map((y) => y.nick);
+        const b = document.createElement('button');
+        b.className = 'mtRow';
+        b.innerHTML = '<span class="dt">' + fmtDate(x.played_at) + '</span>' +
+          '<span class="rk">' + (x.rank === 1 ? '🏆 ' : '') + x.rank + '<small class="mut">/' + x.players + '</small></span>' +
+          '<span class="ppl">vs ' + esc(others.join(', ') || '-') + '</span>' +
+          '<span class="pt">' + x.points + 'P</span>' +
+          '<span class="dr' + (d < 0 ? ' neg' : '') + '">' + (d >= 0 ? '+' : '') + d + ' <small class="mut">→' + x.rating_after + '</small></span>';
+        const box = document.createElement('div');
+        box.className = 'mtDet';
+        box.innerHTML = det.map((y) => '<div><span>' + (y.left ? '🏳' : y.rank + '등') + '</span><span>' + esc(y.nick) + '</span><span>' + y.points + 'P · 카드 ' + y.cards + '</span></div>').join('');
+        b.onclick = () => { box.classList.toggle('on'); sfx('click'); };
+        list.appendChild(b);
+        list.appendChild(box);
+      });
+    }
+  } catch (e) {
+    if (BD !== tab) return;
+    list.innerHTML = '<div class="empty"><div class="ic">⚠️</div>' + esc(errText(e)).replace(/\n/g, '<br>') + '<button class="btn" id="bdRetry" style="width:200px;margin-top:8px">다시 시도</button></div>';
+    $('#bdRetry').onclick = loadBoard;
+  }
+}
+
 $('#bToRoom').onclick = () => { if (O.room && !O.room.pending) showRoom(); else enterLobby(); };
 $('#bToLobby').onclick = () => { leaveRoom(); enterLobby(); };
 $('#bRmStart').onclick = hostStartGame;

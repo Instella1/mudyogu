@@ -83,7 +83,7 @@
       ],
       "version": "1.0.0",
       "supportsState": false,
-      "bestScoreLabel": "레이팅",
+      "bestScoreLabel": "최고 레이팅",
       "builtIn": false,
       "aspect": "16/9"
     }
