@@ -405,6 +405,7 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
       <div class="field"><div class="lab">AI 상대 수</div><div class="chips" id="cCount"></div></div>
       <div class="field"><div class="lab">난이도</div><div class="chips" id="cLevel"></div><div class="desc" id="levelDesc"></div></div>
       <div class="field"><div class="lab">게임 시간</div><div class="chips" id="cTime"></div></div>
+      <div class="field"><div class="lab">라운드 시간 (주사위 한 번)</div><div class="chips" id="cSec"></div></div>
       <div class="hint">🏁 <b>100점</b>을 먼저 모으거나, 카드 100장이 다 떨어지거나, 시간이 끝나면 게임 끝!</div>
       <button class="btn pri big" id="bStart">시작하기</button>
     </div>
@@ -569,7 +570,8 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;', '<':'&lt;
 const QS = new URLSearchParams(location.search);
 const IS_LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);   // 로컬 테스트일 때만 테스트 옵션 허용
 const GOAL = 100;          // 목표 점수 (고정)
-const ROUND_MS = 15000;    // 주사위 한 번에 15초
+const ROUND_MS = 15000;    // 주사위 한 번에 기본 15초 (설정에서 15·20·25초)
+const SEC_CHOICES = [15, 20, 25];
 const REVEAL_MS = 2300;    // 정답 식 보여주는 시간
 const TB_MS = 30000;       // 타이브레이커: 1등 동점자끼리 주사위 1번, 30초 안에 먼저 찾으면 1등
 const TB_INTRO_MS = 6000;  // 타이브레이커 시작 전 설명 + 카운트다운
@@ -682,7 +684,8 @@ function evalTokens(toks, dice) {
  * 2. 설정 · 소리 · 진동
  * ───────────────────────────────────────────────────────────── */
 const S = Object.assign({ sound: true, vib: true }, store.get('codelab:settings', {}));
-const SETUP = Object.assign({ count: 3, level: 'normal', min: 8 }, store.get('codelab:ai', {}));
+const SETUP = Object.assign({ count: 3, level: 'normal', min: 8, sec: 15 }, store.get('codelab:ai', {}));
+if (SEC_CHOICES.indexOf(SETUP.sec) < 0) SETUP.sec = 15;
 const LEVELS = {
   easy:   { name: '쉬움',   desc: '천천히 풀고 쉬운 카드를 주로 노려요',      base: 9000, rowF: [1, 1.35, 1.7, 2.0], see: [.8, .45, .2, .08], greed: 0,   err: .08 },
   normal: { name: '보통',   desc: '적당히 빠르고, 가끔 윗줄도 노려요',          base: 6500, rowF: [1, 1.3, 1.6, 1.9],  see: [.92, .7, .45, .25], greed: .15, err: .04 },
@@ -816,6 +819,7 @@ function renderSetup() {
   chips($('#cCount'), [1, 2, 3, 4, 5].map((n) => [n, n + '명']), SETUP.count, (v) => { SETUP.count = v; renderSetup(); });
   chips($('#cLevel'), Object.keys(LEVELS).map((k) => [k, LEVELS[k].name]), SETUP.level, (v) => { SETUP.level = v; renderSetup(); });
   chips($('#cTime'), [6, 8, 10, 12].map((m) => [m, m + '분']), SETUP.min, (v) => { SETUP.min = v; renderSetup(); });
+  chips($('#cSec'), SEC_CHOICES.map((n) => [n, n + '초']), SETUP.sec, (v) => { SETUP.sec = v; renderSetup(); });
   $('#levelDesc').textContent = LEVELS[SETUP.level].desc;
   store.set('codelab:ai', SETUP);
 }
@@ -834,10 +838,10 @@ function openRules(onClose, okLabel) {
   openModal(
     '<h2>📖 게임 방법</h2>' +
     '<ul class="rules">' +
-    '<li><span>🎲</span><span>1~13 주사위 <b>3개</b>가 굴러가고, 동시에 <b>15초</b>가 시작돼요.</span></li>' +
+    '<li><span>🎲</span><span>1~13 주사위 <b>3개</b>가 굴러가고, 동시에 <b>' + ((G && G.sec) || SETUP.sec || 15) + '초</b>가 시작돼요 (15·20·25초 중 선택).</span></li>' +
     '<li><span>🧮</span><span><code>+ − × ÷ ( )</code> 로 <b>주사위 3개를 모두 한 번씩</b> 써서 피라미드의 숫자를 만드세요.</span></li>' +
     '<li><span>⚡</span><span><b>가장 먼저</b> 맞힌 사람이 카드를 가져가요. 위로 갈수록 어렵지만 점수가 높아요 (1~2 · 3~4 · 5~6 · 7~8점).</span></li>' +
-    '<li><span>❌</span><span>틀린 식을 내면 그 라운드는 쉬어야 해요. 아무도 못 맞히면 다시 굴려요.</span></li>' +
+    '<li><span>❌</span><span>틀린 식을 내면 그 라운드는 쉬어야 해요. 아무도 못 맞히거나 <b>모두 틀리면</b> 바로 다시 굴려요.</span></li>' +
     '<li><span>➗</span><span>중간에 분수가 나와도 괜찮아요. 최종 답만 맞으면 돼요. 예: <code>(13 ÷ 2) × 4 = 26</code></span></li>' +
     '<li><span>🏁</span><span><b>100점</b> 먼저 · 카드 100장 소진 · 시간 끝 중 하나면 게임 끝!</span></li>' +
     '<li><span>⚔️</span><span>1등이 동점이면 동점자끼리 <b>타이브레이커</b>: 주사위 1번, <b>30초</b> 안에 아무 카드나 먼저 만들면 1등! (아무도 못 찾으면 공동 1등)</span></li>' +
@@ -883,13 +887,13 @@ function startGame() {
   for (let i = 0; i < SETUP.count; i++) {
     players.push({ me: false, ai: true, uid: 'ai' + i, name: AI_NAMES[i], score: 0, cards: 0, got: [], locked: false, st: 'on' });
   }
-  setupGame(players, SETUP.min, SETUP.level, 'ai-' + Date.now().toString(36));
+  setupGame(players, SETUP.min, SETUP.level, 'ai-' + Date.now().toString(36), SETUP.sec);
 }
 /** 새 판 준비 (AI 대전 · 온라인 방장 공통) */
-function setupGame(players, min, level, gid) {
+function setupGame(players, min, level, gid, sec) {
   const decks = ROWS.map((r) => shuffle(r.cards.map((c) => Object.assign({}, c))));
   G = {
-    running: true, paused: false, phase: 'start', clock: 0, events: [], round: 0, gid, min,
+    running: true, paused: false, phase: 'start', clock: 0, events: [], round: 0, gid, min, sec: sec || 15,
     endAt: min * 60000, level, players, decks,
     board: ROWS.map((r, ri) => Array.from({ length: r.size }, () => decks[ri].pop() || null)),
     dice: [0, 0, 0], cands: [], roundEnd: 0, roundMs: ROUND_MS, lastSec: -1, timeTxt: '', result: null, tb: null,
@@ -960,7 +964,7 @@ function roll() {
       return;
     }
     G.phase = 'play';
-    G.roundMs = G.tb ? TB_MS : ROUND_MS;
+    G.roundMs = G.tb ? TB_MS : (G.sec || 15) * 1000;
     G.roundEnd = G.clock + G.roundMs;
     G.lastSec = -1;
     fxDice(); fxPlay();
@@ -991,6 +995,11 @@ function lockPlayer(p, vtxt) {
   fxLock(p, vtxt);
   emit({ t: 'lock', uid: p.uid, v: vtxt });
   if (G.tb && G.phase === 'play' && G.players.every((x) => x.locked)) tbNone();
+  // 지금 게임 중인 사람이 전원 틀렸으면 남은 시간을 기다리지 않고 바로 정답 공개 → 다음 굴림
+  else if (!G.tb && G.phase === 'play') {
+    const on = G.players.filter((x) => x.st === 'on');
+    if (on.length && on.every((x) => x.locked)) at(700, () => { if (G.phase === 'play') timeout(true); });
+  }
 }
 
 /** 카드 획득 → 정답 식 공개 → 다음 굴림 */
@@ -1009,12 +1018,12 @@ function claim(p, exprText, x) {
   at(REVEAL_MS, () => { fxRevealEnd(); nextRound(); });
 }
 
-function timeout() {
+function timeout(allWrong) {
   if (G.tb) { tbNone(); return; }
   G.phase = 'reveal';
   const best = G.cands.slice().sort((a, b) => b.card.p - a.card.p || Math.random() - .5)[0];
-  fxTimeout(best.row, best.slot, best.expr);
-  emit({ t: 'timeout', row: best.row, slot: best.slot, expr: best.expr });
+  fxTimeout(best.row, best.slot, best.expr, !!allWrong);
+  emit({ t: 'timeout', row: best.row, slot: best.slot, expr: best.expr, all: !!allWrong });
   at(REVEAL_MS, () => { fxRevealEnd(); nextRound(); });
 }
 
@@ -1196,13 +1205,13 @@ function fxClaim(p, exprText, x) {
   if (p.me) { sfx(x.card.p >= 7 ? 'jackpot' : 'good'); vib(x.card.p >= 7 ? [40, 60, 80] : 40); } else { sfx('opp'); vib(15); }
 }
 function fxRefill(row, slot) { renderSlot(row, slot, true); renderLegend(); }
-function fxTimeout(row, slot, expr) {
+function fxTimeout(row, slot, expr, allWrong) {
   NET.pending = false;
   hideMsg();
   renderKeys();
   renderExpr();
   slotEl(row, slot).classList.add('hint');
-  banner('#ffd25a', '⏰ 시간 끝! 이런 답이 있었어요', expr);
+  banner('#ffd25a', allWrong ? '😵 모두 틀렸어요! 이런 답이 있었어요' : '⏰ 시간 끝! 이런 답이 있었어요', expr);
   sfx('timeout');
 }
 function fxRevealEnd() {
@@ -1799,7 +1808,7 @@ function renderRooms() {
     const b = document.createElement('button');
     b.className = 'rmRow' + ((full || playing) && !mine ? ' off' : '');
     b.innerHTML = '<span class="cd4">' + esc(r.code) + '</span>' +
-      '<span class="hn">' + esc(r.host) + '의 방<small>⏱ ' + r.min + '분' + (r.locked ? ' · 🔒 비밀번호' : '') + '</small></span>' +
+      '<span class="hn">' + esc(r.host) + '의 방<small>⏱ ' + r.min + '분 · ' + (r.sec || 15) + '초' + (r.locked ? ' · 🔒 비밀번호' : '') + '</small></span>' +
       '<span class="tagp' + (playing ? ' play' : '') + '">' + (mine ? '▶ 다시 들어가기' : playing ? '게임 중' : full ? '꽉 참' : '대기 중') + '</span>' +
       '<span class="pc">' + r.count + '/' + r.max + '</span>';
     b.onclick = () => {
@@ -1816,18 +1825,20 @@ $('#bOnBack').onclick = () => { leaveOnline(false); show('sTitle'); };
 $('#olMe').onclick = openMyInfo;
 
 /* 방 만들기 */
-const MK = { min: 8, max: 6, pw: false };
+const MK = { min: 8, max: 6, pw: false, sec: 15 };
 function openMakeRoom() {
-  MK.min = SETUP.min;
+  MK.min = SETUP.min; MK.sec = SETUP.sec;
   openModal(
     '<h2>＋ 방 만들기</h2>' +
     '<div class="field"><div class="lab">게임 시간</div><div class="chips" id="mkTime"></div></div>' +
+    '<div class="field"><div class="lab">라운드 시간</div><div class="chips" id="mkSec"></div></div>' +
     '<div class="field"><div class="lab">인원 제한</div><div class="chips" id="mkMax"></div></div>' +
     '<div class="field"><div class="lab">비밀번호</div><div class="chips" id="mkPw"></div>' +
     '<input id="mkPwIn" class="inp" maxlength="12" placeholder="비밀번호 (1~12자)" autocomplete="off" style="margin-top:10px;display:none"></div>' +
     '<div class="row"><button class="btn" id="mkNo">취소</button><button class="btn pri" id="mkYes">만들기</button></div>');
   const draw = () => {
     chips($('#mkTime'), [6, 8, 10, 12].map((m) => [m, m + '분']), MK.min, (v) => { MK.min = v; draw(); });
+    chips($('#mkSec'), SEC_CHOICES.map((n) => [n, n + '초']), MK.sec, (v) => { MK.sec = v; draw(); });
     chips($('#mkMax'), [2, 3, 4, 5, 6].map((n) => [n, n + '명']), MK.max, (v) => { MK.max = v; draw(); });
     chips($('#mkPw'), [[false, '없음'], [true, '🔒 있음']], MK.pw, (v) => { MK.pw = v; draw(); if (v) $('#mkPwIn').focus(); });
     $('#mkPwIn').style.display = MK.pw ? 'block' : 'none';
@@ -1838,7 +1849,7 @@ function openMakeRoom() {
     const pw = MK.pw ? $('#mkPwIn').value.trim() : '';
     if (MK.pw && !pw) { $('#mkPwIn').focus(); toast('비밀번호를 입력해 주세요'); return; }
     closeModal();
-    createRoom({ min: MK.min, max: MK.max, pw });
+    createRoom({ min: MK.min, max: MK.max, pw, sec: MK.sec });
   };
 }
 async function hashPw(code, pw) {
@@ -1852,7 +1863,7 @@ async function createRoom(cfg) {
   if (!O.lobbyOk) { toast('실시간 서버에 아직 연결되지 않았어요. 잠시 후 다시 시도해 주세요.'); return; }
   let code;
   do { code = String(1000 + Math.floor(Math.random() * 9000)); } while (O.rooms.some((r) => r.code === code));
-  O.room = { code, host: true, hostUid: O.uid, min: cfg.min, max: cfg.max, locked: !!cfg.pw,
+  O.room = { code, host: true, hostUid: O.uid, min: cfg.min, sec: cfg.sec || 15, max: cfg.max, locked: !!cfg.pw,
              pwHash: cfg.pw ? await hashPw(code, cfg.pw) : '', status: 'waiting', members: [meMember()],
              banned: [], created: Date.now() };
   try { await openRoomChannel(code); } catch (e) { O.room = null; toast('방을 만들지 못했어요. 다시 시도해 주세요.'); return; }
@@ -1862,13 +1873,13 @@ async function createRoom(cfg) {
 }
 function lobbyInfo() {
   const R = O.room;
-  return { code: R.code, host: O.profile.nickname, hostUid: O.uid, min: R.min, max: R.max, locked: R.locked,
+  return { code: R.code, host: O.profile.nickname, hostUid: O.uid, min: R.min, sec: R.sec || 15, max: R.max, locked: R.locked,
            count: R.members.length, status: R.status, created: R.created, uids: R.members.map((m) => m.uid) };
 }
 function trackLobby() { if (O.lobby && O.lobbyOk && O.room && O.room.host) O.lobby.track({ room: lobbyInfo() }).catch(() => {}); }
 function publicRoom() {
   const R = O.room;
-  return { code: R.code, hostUid: R.hostUid, min: R.min, max: R.max, locked: R.locked, status: R.status, members: R.members };
+  return { code: R.code, hostUid: R.hostUid, min: R.min, sec: R.sec || 15, max: R.max, locked: R.locked, status: R.status, members: R.members };
 }
 function rsend(event, payload) { if (O.ch) O.ch.send({ type: 'broadcast', event, payload }).catch(() => {}); }
 
@@ -2049,7 +2060,7 @@ function renderRoom() {
   const R = O.room;
   if (!R || R.pending || !$('#sRoom').classList.contains('on')) return;
   $('#rmCode').textContent = R.code;
-  $('#rmSet').innerHTML = '<span class="tagp">⏱ ' + R.min + '분</span><span class="tagp">👥 최대 ' + R.max + '명</span>' +
+  $('#rmSet').innerHTML = '<span class="tagp">⏱ ' + R.min + '분</span><span class="tagp">🎲 ' + (R.sec || 15) + '초</span><span class="tagp">👥 최대 ' + R.max + '명</span>' +
     (R.locked ? '<span class="tagp">🔒 비밀번호</span>' : '<span class="tagp">🔓 공개</span>') + '<span class="tagp">🏁 100점</span>';
   const box = $('#rmSlots');
   box.innerHTML = '';
@@ -2143,7 +2154,7 @@ function snapshot() {
   const R = O.room || {};
   return {
     epoch: NET.epoch, seq: ++NET.seq, hostUid: O.uid, code: R.code, max: R.max, locked: !!R.locked,
-    gid: G.gid, min: G.min, round: G.round, phase: G.phase, dice: G.dice, board: G.board, decks: G.decks,
+    gid: G.gid, min: G.min, sec: G.sec || 15, round: G.round, phase: G.phase, dice: G.dice, board: G.board, decks: G.decks,
     players: G.players.map((p) => ({ uid: p.uid, nick: p.name, rating: p.rating, score: p.score, cards: p.cards, got: p.got,
       locked: !!p.locked, st: p.st, rank: p.rank || 0, leftAt: p.leftAt || 0, offAt: p.offAt || 0, joined: p.joined })),
     rl: G.phase === 'play' ? Math.max(0, G.roundEnd - G.clock) : 0, gl: timeLeft(), roundMs: G.roundMs, tb: G.tb,
@@ -2166,7 +2177,7 @@ function hostStartGame() {
   NET.mode = 'host'; NET.epoch = 1; NET.seq = 0; NET.hostUid = O.uid; NET.myLock = -1; NET.hostGoneAt = 0;
   const players = R.members.map((m, i) => ({ uid: m.uid, name: m.nick, rating: m.rating, me: m.uid === O.uid, ai: false,
     score: 0, cards: 0, got: [], locked: false, st: 'on', joined: i }));
-  setupGame(players, R.min, 'normal', R.code + '-' + Date.now().toString(36));
+  setupGame(players, R.min, 'normal', R.code + '-' + Date.now().toString(36), R.sec || 15);
   rsend('room', publicRoom());
   trackLobby();
   emit({ t: 'start' });
@@ -2260,7 +2271,7 @@ function onGs(m) {
       break;
     }
     case 'refill': fxRefill(ev.row, ev.slot); break;
-    case 'timeout': fxTimeout(ev.row, ev.slot, ev.expr); break;
+    case 'timeout': fxTimeout(ev.row, ev.slot, ev.expr, !!ev.all); break;
     case 'tb': fxTiebreak(gs.tbLeft); break;
     case 'tbwin': {
       const p = G.players.find((x) => x.uid === ev.uid);
@@ -2281,7 +2292,7 @@ function onGs(m) {
   }
 }
 function applyState(gs) {
-  G.gid = gs.gid; G.min = gs.min; G.round = gs.round; G.phase = gs.phase; G.dice = gs.dice;
+  G.gid = gs.gid; G.min = gs.min; G.sec = gs.sec || 15; G.round = gs.round; G.phase = gs.phase; G.dice = gs.dice;
   G.board = gs.board; G.decks = gs.decks;
   G.running = false; G.paused = false; G.events = []; G.level = 'normal';
   G.result = gs.reason ? { reason: gs.reason } : null;
@@ -2337,7 +2348,7 @@ function becomeHost() {
   G.running = true; G.paused = false; G.timeTxt = '';
   G.players.forEach((p) => { p.locked = p.st === 'left'; });
   const R = O.room;
-  O.room = { code: R.code, host: true, hostUid: O.uid, min: G.min, max: R.max || 6, locked: !!R.locked, pwHash: '',
+  O.room = { code: R.code, host: true, hostUid: O.uid, min: G.min, sec: G.sec || 15, max: R.max || 6, locked: !!R.locked, pwHash: '',
              status: 'playing', members: G.players.filter((p) => p.st !== 'left').map((p) => ({ uid: p.uid, nick: p.name, rating: p.rating })),
              banned: [], created: Date.now() };
   trackLobby();
@@ -2408,13 +2419,22 @@ async function recordMatch(quit) {
   const rank = quit ? n : me.rank;
   const detail = G.players.map((p) => ({ nick: p.name, rank: p.me && quit ? n : (p.rank || 0), points: p.score, cards: p.cards, left: p.st === 'left' || (p.me && !!quit) }));
   const before = O.profile ? O.profile.rating : 0;
+  // 이번 판 상대들의 평균 레이팅 → 나보다 센 상대들 사이에서 잘하면 더 많이 오르고, 약한 상대에게 지면 더 많이 내린다
+  const opp = G.players.filter((p) => !p.me && typeof p.rating === 'number');
+  const avg = opp.length ? Math.round(opp.reduce((a, p) => a + p.rating, 0) / opp.length) : before;
   try {
-    const r = await withTimeout(O.sb.rpc('codelab_record_match', { p_match_id: G.gid, p_players: n, p_rank: rank,
-      p_points: Math.min(400, me.score), p_cards: me.cards, p_detail: detail }), 10000);
+    const args = { p_match_id: G.gid, p_players: n, p_rank: rank,
+      p_points: Math.min(400, me.score), p_cards: me.cards, p_detail: detail };
+    let r = await withTimeout(O.sb.rpc('codelab_record_match', Object.assign({ p_avg: avg }, args)), 10000);
+    // 새 SQL(docs/supabase-codelab-rating.sql)을 아직 안 돌렸으면 옛 계산으로라도 저장
+    if (r.error && /p_avg|function|PGRST202|schema cache/i.test(errText(r.error))) {
+      r = await withTimeout(O.sb.rpc('codelab_record_match', args), 10000);
+    }
     if (r.error) throw r.error;
     if (r.data && O.profile) Object.assign(O.profile, { rating: r.data.rating, games: r.data.games, wins: r.data.wins });
     const after = O.profile ? O.profile.rating : before, d = after - before;
-    if (!quit) $('#rRating').innerHTML = '🏅 레이팅 ' + before + ' → ' + after + ' <b class="' + (d < 0 ? 'neg' : '') + '">(' + (d >= 0 ? '+' : '') + d + ')</b>';
+    if (!quit) $('#rRating').innerHTML = '🏅 레이팅 ' + before + ' → ' + after + ' <b class="' + (d < 0 ? 'neg' : '') + '">(' + (d >= 0 ? '+' : '') + d + ')</b>' +
+      ' <small class="mut">· 상대 평균 ' + avg + '</small>';
     renderMeChip();
     reportRating();
     if (!quit) { rsend('rt', { uid: O.uid, rating: after }); onRating({ uid: O.uid, rating: after }); }
