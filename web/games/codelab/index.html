@@ -249,6 +249,7 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
 .sc.off{opacity:.55}
 .sc.left{opacity:.35;filter:grayscale(1)}
 .sc .stt{font-size:11px;font-weight:800;color:#ff9fb0}
+.sc.tbp{box-shadow:0 0 0 2px var(--gold),0 0 16px rgba(255,210,90,.4)}
 
 /* ── 온라인 ───────────────────────── */
 .inp{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:#0b1126;color:var(--ink);
@@ -539,6 +540,7 @@ const IS_LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);   // 로�
 const GOAL = 100;          // 목표 점수 (고정)
 const ROUND_MS = 15000;    // 주사위 한 번에 15초
 const REVEAL_MS = 2300;    // 정답 식 보여주는 시간
+const TB_MS = 30000;       // 타이브레이커: 1등 동점자끼리 주사위 1번, 30초 안에 먼저 찾으면 1등
 
 /* ─────────────────────────────────────────────────────────────
  * 1. 수학: 주사위 조합 455가지 → 각각 만들 수 있는 1~100 과 '보기 좋은' 식
@@ -805,7 +807,8 @@ function openRules(onClose, okLabel) {
     '<li><span>⚡</span><span><b>가장 먼저</b> 맞힌 사람이 카드를 가져가요. 위로 갈수록 어렵지만 점수가 높아요 (1~2 · 3~4 · 5~6 · 7~8점).</span></li>' +
     '<li><span>❌</span><span>틀린 식을 내면 그 라운드는 쉬어야 해요. 아무도 못 맞히면 다시 굴려요.</span></li>' +
     '<li><span>➗</span><span>중간에 분수가 나와도 괜찮아요. 최종 답만 맞으면 돼요. 예: <code>(13 ÷ 2) × 4 = 26</code></span></li>' +
-    '<li><span>🏁</span><span><b>100점</b> 먼저 · 카드 100장 소진 · 시간 끝 중 하나면 게임 끝! 동점이면 카드를 적게 쓴 사람이 이겨요.</span></li>' +
+    '<li><span>🏁</span><span><b>100점</b> 먼저 · 카드 100장 소진 · 시간 끝 중 하나면 게임 끝!</span></li>' +
+    '<li><span>⚔️</span><span>1등이 동점이면 동점자끼리 <b>타이브레이커</b>: 주사위 1번, <b>30초</b> 안에 아무 카드나 먼저 만들면 1등! (아무도 못 찾으면 공동 1등)</span></li>' +
     '</ul>' +
     '<div class="keyhelp kbonly">⌨️ 키보드: <kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd> <kbd>(</kbd> <kbd>)</kbd> · 주사위 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> · <kbd>Backspace</kbd> 지우기 · <kbd>Enter</kbd> 제출 · <kbd>Esc</kbd> 일시정지</div>' +
     '<button class="btn pri big" id="mOk">' + (okLabel || '확인') + '</button>'
@@ -857,7 +860,7 @@ function setupGame(players, min, level, gid) {
     running: true, paused: false, phase: 'start', clock: 0, events: [], round: 0, gid, min,
     endAt: min * 60000, level, players, decks,
     board: ROWS.map((r, ri) => Array.from({ length: r.size }, () => decks[ri].pop() || null)),
-    dice: [0, 0, 0], cands: [], roundEnd: 0, lastSec: -1, timeTxt: '', result: null,
+    dice: [0, 0, 0], cands: [], roundEnd: 0, roundMs: ROUND_MS, lastSec: -1, timeTxt: '', result: null, tb: null,
   };
   me = players.find((p) => p.me);
   assignColors();
@@ -920,11 +923,12 @@ function roll() {
       G.phase = 'noroll';
       fxDice(); fxNoroll();
       emit({ t: 'noroll' });
-      at(1300, () => { trayMsg(''); if (!checkEnd()) roll(); });
+      at(1300, () => { trayMsg(''); if (G.tb || !checkEnd()) roll(); });
       return;
     }
     G.phase = 'play';
-    G.roundEnd = G.clock + ROUND_MS;
+    G.roundMs = G.tb ? TB_MS : ROUND_MS;
+    G.roundEnd = G.clock + G.roundMs;
     G.lastSec = -1;
     fxDice(); fxPlay();
     if (!online()) planAI(G.cands);
@@ -953,10 +957,12 @@ function lockPlayer(p, vtxt) {
   p.locked = true;
   fxLock(p, vtxt);
   emit({ t: 'lock', uid: p.uid, v: vtxt });
+  if (G.tb && G.phase === 'play' && G.players.every((x) => x.locked)) tbNone();
 }
 
 /** 카드 획득 → 정답 식 공개 → 다음 굴림 */
 function claim(p, exprText, x) {
+  if (G.tb) { tbWin(p, exprText, x); return; }
   G.phase = 'reveal';
   G.board[x.row][x.slot] = null;
   p.score += x.card.p; p.cards++; p.got.push(x.card);
@@ -971,6 +977,7 @@ function claim(p, exprText, x) {
 }
 
 function timeout() {
+  if (G.tb) { tbNone(); return; }
   G.phase = 'reveal';
   const best = G.cands.slice().sort((a, b) => b.card.p - a.card.p || Math.random() - .5)[0];
   fxTimeout(best.row, best.slot, best.expr);
@@ -982,7 +989,7 @@ function timeout() {
 function planAI(c) {
   const r = G.round, L = LEVELS[G.level];
   G.players.forEach((p) => {
-    if (!p.ai) return;
+    if (!p.ai || p.locked) return;
     let best = null;
     c.forEach((x) => {
       if (Math.random() >= L.see[x.row]) return;
@@ -990,7 +997,7 @@ function planAI(c) {
       const eff = t / (1 + L.greed * (x.card.p - 1));
       if (!best || eff < best.eff) best = { x, t, eff };
     });
-    if (!best || best.t > ROUND_MS - 150) return;
+    if (!best || best.t > G.roundMs - 150) return;
     if (Math.random() < L.err) {
       at(best.t * 0.6, () => { if (G.round === r && G.phase === 'play') lockPlayer(p, ''); });
       return;
@@ -1002,12 +1009,13 @@ function planAI(c) {
   });
 }
 
-/** 순위: 남은 사람은 점수 → 카드 적은 순(같으면 공동), 기권한 사람은 그 뒤(늦게 나간 사람이 위) */
+/** 순위: 남은 사람은 점수 순(같으면 공동 — 1등 동점은 타이브레이커 승자만 1등), 기권한 사람은 그 뒤(늦게 나간 사람이 위) */
 function rankPlayers() {
-  const act = activePlayers().sort((a, b) => b.score - a.score || a.cards - b.cards);
+  const W = G.tb ? G.tb.winner : null;
+  const act = activePlayers().sort((a, b) => b.score - a.score || (b.uid === W) - (a.uid === W));
   act.forEach((p, i) => {
     const prev = act[i - 1];
-    p.rank = (prev && prev.score === p.score && prev.cards === p.cards) ? prev.rank : i + 1;
+    p.rank = (prev && prev.score === p.score && prev.uid !== W) ? prev.rank : i + 1;
   });
   const gone = G.players.filter((p) => p.st === 'left').sort((a, b) => (b.leftAt || 0) - (a.leftAt || 0));
   gone.forEach((p, i) => { p.rank = act.length + i + 1; });
@@ -1016,6 +1024,13 @@ function rankPlayers() {
 
 function finish(reason) {
   if (G.phase === 'over') return;
+  if (!G.tb && reason !== 'alone') {
+    const act = activePlayers();
+    const top = Math.max.apply(null, act.map((p) => p.score));
+    const tied = act.filter((p) => p.score === top);
+    if (tied.length >= 2) { startTiebreak(reason, tied); return; }
+  }
+  if (G.tb) G.tb.done = true;               // (타이브레이커 도중 혼자 남는 등) 승자 없이 끝
   G.phase = 'over';
   G.events = [];
   G.running = false;
@@ -1026,14 +1041,77 @@ function finish(reason) {
   showResults(reason);
 }
 
+/* ── 타이브레이커 ── */
+function inTb(p) { return !!G.tb && G.tb.uids.indexOf(p.uid) >= 0; }
+function startTiebreak(reason, tied) {
+  G.tb = { reason, uids: tied.map((p) => p.uid), winner: null, done: false };
+  G.events = [];
+  G.phase = 'tb';
+  G.round++;
+  G.players.forEach((p) => { p.locked = p.st === 'left' || !inTb(p); });
+  fxTiebreak();
+  emit({ t: 'tb' });
+  at(2600, roll);
+}
+function tbWin(p, exprText, x) {
+  G.phase = 'reveal';
+  G.tb.winner = p.uid; G.tb.done = true;
+  fxTbWin(p, exprText, x);
+  emit({ t: 'tbwin', uid: p.uid, expr: exprText, row: x.row, slot: x.slot });
+  at(REVEAL_MS + 400, () => { fxRevealEnd(); finish(G.tb.reason); });
+}
+function tbNone() {
+  G.phase = 'reveal';
+  G.tb.done = true;
+  const best = G.cands.slice().sort((a, b) => b.card.p - a.card.p)[0];
+  fxTbNone(best.row, best.slot, best.expr);
+  emit({ t: 'tbnone', row: best.row, slot: best.slot, expr: best.expr });
+  at(REVEAL_MS + 400, () => { fxRevealEnd(); finish(G.tb.reason); });
+}
+function fxTiebreak() {
+  fxRevealEnd();
+  clearExpr();
+  hideMsg();
+  $('#gRound').textContent = '⚔️ 타이브레이커';
+  const names = G.players.filter(inTb).map((p) => (p.me ? '나' : p.ai ? p.name : p.name));
+  banner('#ffd25a', '⚔️ 1등 동점! 타이브레이커', names.join(' vs '));
+  if (me && !inTb(me)) showMsg('👀 1등 동점자끼리 타이브레이커 중이에요', true, 0);
+  else showMsg('⚔️ 주사위 1번 · 30초 · 먼저 찾으면 1등!', true, 0);
+  renderScores();
+  renderKeys();
+  sfx('start');
+}
+function fxTbWin(p, exprText, x) {
+  NET.pending = false;
+  hideMsg();
+  const el = slotEl(x.row, x.slot);
+  el.style.setProperty('--pc', p.color);
+  el.classList.remove('aim'); el.classList.add('hint');
+  banner(p.color, '🏆 ' + (p.me ? '내가' : who(p)) + ' 타이브레이커 승리!', exprText);
+  renderScores(p.me ? null : null);
+  renderKeys();
+  renderExpr();
+  if (p.me) { sfx('jackpot'); vib([40, 60, 80]); } else sfx('opp');
+}
+function fxTbNone(row, slot, expr) {
+  NET.pending = false;
+  hideMsg();
+  renderKeys();
+  renderExpr();
+  slotEl(row, slot).classList.add('hint');
+  banner('#ffd25a', '⏰ 아무도 못 찾았어요 · 공동 1등', expr);
+  sfx('timeout');
+}
+
 /* ── 화면 연출 (모든 모드 공통) ── */
 function fxRoll() {
   fxRevealEnd();
   NET.pending = false;
-  $('#gRound').textContent = '라운드 ' + G.round;
+  $('#gRound').textContent = G.tb ? '⚔️ 타이브레이커' : '라운드 ' + G.round;
   syncBoard();
   clearExpr();
   hideMsg();
+  if (G.tb && me && !inTb(me)) showMsg('👀 1등 동점자끼리 타이브레이커 중이에요', true, 0);
   trayMsg('');
   $('#rbar').classList.add('idle'); $('#rbar').classList.remove('hot');
   $('#rfill').style.width = '100%'; $('#rsec').textContent = '';
@@ -1094,8 +1172,10 @@ function showResults(reason) {
   const why = reason === 'score' ? (top.me ? '내가' : who(top)) + ' 100점 달성!'
     : reason === 'cards' ? '카드 100장을 모두 썼어요'
     : reason === 'alone' ? '다른 사람이 모두 나갔어요' : '⏱ 시간 종료';
+  const tbw = G.tb && G.tb.winner ? G.players.find((p) => p.uid === G.tb.winner) : null;
+  const tbTxt = !G.tb ? '' : tbw ? '<br>⚔️ 타이브레이커: ' + (tbw.me ? '내가' : who(tbw)) + ' 승리' : '<br>⚔️ 타이브레이커: 아무도 못 찾아 공동 1등';
   $('#rTitle').innerHTML = me.st === 'left' ? '🏳 기권' : me.rank === 1 ? '🏆 1등!' : me.rank + '등';
-  $('#rReason').innerHTML = why + ' · ' + (online() ? '온라인 ' + G.players.length + '명' : LEVELS[G.level].name + ' AI ' + (G.players.length - 1) + '명');
+  $('#rReason').innerHTML = why + ' · ' + (online() ? '온라인 ' + G.players.length + '명' : LEVELS[G.level].name + ' AI ' + (G.players.length - 1) + '명') + tbTxt;
   const medal = (k) => ['🥇', '🥈', '🥉'][k - 1] || k + '등';
   $('#rList').innerHTML = ranked.map((p) =>
     '<div class="rl' + (p.me ? ' me' : '') + '" style="--pc:' + p.color + '">' +
@@ -1131,23 +1211,25 @@ requestAnimationFrame(loop);
 setInterval(() => { if (document.hidden) step(performance.now()); }, 250);
 
 function drawTimes(left, rl) {
+  const total = G.roundMs || ROUND_MS;
   const sec = Math.ceil(left / 1000);
   const txt = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
   if (txt !== G.timeTxt) { G.timeTxt = txt; $('#gTime').textContent = txt; $('#gTime').classList.toggle('hot', sec <= 30); }
   if (rl === null) return;
-  $('#rfill').style.width = Math.max(0, rl / ROUND_MS * 100) + '%';
+  $('#rfill').style.width = Math.max(0, Math.min(1, rl / total) * 100) + '%';
   const s = Math.max(0, Math.ceil(rl / 1000));
   if (s !== G.lastSec) {
     G.lastSec = s;
     $('#rsec').textContent = s ? s + '초' : '';
     $('#rbar').classList.toggle('hot', s <= 5);
     if (s <= 5 && s > 0) sfx('tick');
+    else if (s <= 10 && s > 5 && G.tb) sfx('click');
   }
 }
 function frame() {
   const left = timeLeft();
   drawTimes(left, G.phase === 'play' ? G.roundEnd - G.clock : null);
-  if (left <= 0 && G.phase !== 'reveal') { finish('time'); return; }
+  if (left <= 0 && G.phase !== 'reveal' && !G.tb) { finish('time'); return; }
   if (G.phase === 'play' && G.roundEnd - G.clock <= 0) timeout();
 }
 function clientFrame() {
@@ -1232,7 +1314,8 @@ function renderScores(gotP) {
   G.players.forEach((p) => {
     if (p.me) return;
     const d = document.createElement('div');
-    d.className = 'sc' + (p.locked && p.st !== 'left' ? ' x' : '') + (p === gotP ? ' got' : '') + (p.st === 'off' ? ' off' : p.st === 'left' ? ' left' : '');
+    const outTb = G.tb && !inTb(p);
+    d.className = 'sc' + (p.locked && p.st !== 'left' && !outTb ? ' x' : '') + (p === gotP ? ' got' : '') + (p.st === 'off' || outTb ? ' off' : p.st === 'left' ? ' left' : '') + (G.tb && inTb(p) ? ' tbp' : '');
     d.style.setProperty('--pc', p.color);
     const sub = p.st === 'off' ? '<div class="stt">📡 연결 끊김</div>' : p.st === 'left' ? '<div class="stt">🏳 기권</div>' : '<div class="cn">카드 ' + p.cards + '장</div>';
     d.innerHTML = (lead > 0 && p.score === lead ? '<span class="crown">👑</span>' : '') +
@@ -2007,7 +2090,7 @@ function snapshot() {
     gid: G.gid, min: G.min, round: G.round, phase: G.phase, dice: G.dice, board: G.board, decks: G.decks,
     players: G.players.map((p) => ({ uid: p.uid, nick: p.name, rating: p.rating, score: p.score, cards: p.cards, got: p.got,
       locked: !!p.locked, st: p.st, rank: p.rank || 0, leftAt: p.leftAt || 0, offAt: p.offAt || 0, joined: p.joined })),
-    rl: G.phase === 'play' ? Math.max(0, G.roundEnd - G.clock) : 0, gl: timeLeft(),
+    rl: G.phase === 'play' ? Math.max(0, G.roundEnd - G.clock) : 0, gl: timeLeft(), roundMs: G.roundMs, tb: G.tb,
     reason: G.result ? G.result.reason : '',
   };
 }
@@ -2120,6 +2203,13 @@ function onGs(m) {
     }
     case 'refill': fxRefill(ev.row, ev.slot); break;
     case 'timeout': fxTimeout(ev.row, ev.slot, ev.expr); break;
+    case 'tb': fxTiebreak(); break;
+    case 'tbwin': {
+      const p = G.players.find((x) => x.uid === ev.uid);
+      if (p) fxTbWin(p, ev.expr, { row: ev.row, slot: ev.slot });
+      break;
+    }
+    case 'tbnone': fxTbNone(ev.row, ev.slot, ev.expr); break;
     case 'lock': {
       const p = G.players.find((x) => x.uid === ev.uid);
       if (!p) break;
@@ -2137,6 +2227,8 @@ function applyState(gs) {
   G.board = gs.board; G.decks = gs.decks;
   G.running = false; G.paused = false; G.events = []; G.level = 'normal';
   G.result = gs.reason ? { reason: gs.reason } : null;
+  G.tb = gs.tb || null;
+  G.roundMs = gs.roundMs || ROUND_MS;
   G.players = gs.players.map((x) => ({ uid: x.uid, name: x.nick, rating: x.rating, me: x.uid === O.uid, ai: false,
     score: x.score, cards: x.cards, got: x.got || [], locked: x.locked, st: x.st, rank: x.rank, leftAt: x.leftAt,
     offAt: x.offAt, joined: x.joined }));
@@ -2197,7 +2289,9 @@ function becomeHost() {
   syncBoard();
   renderScores();
   emit({ t: 'hb' });
-  if (!checkEnd()) at(600, nextRound);
+  if (G.tb && !G.tb.done) { G.players.forEach((p) => { p.locked = p.st === 'left' || !inTb(p); }); at(600, roll); }
+  else if (G.tb) at(600, () => finish(G.tb.reason));
+  else if (!checkEnd()) at(600, nextRound);
 }
 
 /* 연결 상태 점검 (매 프레임) */
