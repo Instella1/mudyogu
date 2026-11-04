@@ -150,9 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     builder:
                         (BuildContext context, SliverConstraints constraints) {
                           final double width = constraints.crossAxisExtent;
-                          final int columns = width > 900
-                              ? 5
-                              : width > 700
+                          // 넓은 화면(크롬북)은 한 줄에 4개씩 (사용자 요청)
+                          final int columns = width > 700
                               ? 4
                               : width > 480
                               ? 3
