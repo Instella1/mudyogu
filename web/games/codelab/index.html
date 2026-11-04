@@ -250,6 +250,22 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
 .sc.left{opacity:.35;filter:grayscale(1)}
 .sc .stt{font-size:11px;font-weight:800;color:#ff9fb0}
 .sc.tbp{box-shadow:0 0 0 2px var(--gold),0 0 16px rgba(255,210,90,.4)}
+#tbIntro{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(4,6,16,.78);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+#tbIntro.on{display:flex}
+.tbCard{width:min(560px,100%);text-align:center;padding:24px 26px;border-radius:24px;background:linear-gradient(#2a2410,#151022);
+  border:2px solid var(--gold);box-shadow:0 0 40px rgba(255,210,90,.35);animation:pop .35s cubic-bezier(.2,1.5,.4,1)}
+.tbT{font-family:var(--hf);font-size:30px;color:var(--gold)}
+.tbS{font-family:var(--hf);font-size:52px;line-height:1.1;color:#fff;text-shadow:0 0 18px rgba(255,210,90,.7)}
+.tbNames{margin:12px 0 4px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tbNames span{padding:6px 14px;border-radius:99px;font-weight:900;font-size:17px;background:rgba(255,255,255,.08);border:2px solid var(--pc)}
+.tbNames i{font-style:normal;color:var(--mut);font-weight:900;align-self:center}
+.tbRules{list-style:none;margin:14px 0 6px;padding:0;display:flex;flex-direction:column;gap:7px;font-size:17px;font-weight:700;text-align:left}
+.tbRules li{background:rgba(255,255,255,.05);border-radius:12px;padding:8px 14px}
+.tbRules b{color:var(--gold)}
+.tbMe{min-height:22px;font-weight:900;color:var(--mint);margin-top:6px}
+.tbMe.spec{color:var(--mut)}
+.tbCount{margin-top:8px;font-family:var(--mf);font-weight:700;font-size:56px;line-height:1;color:var(--gold);animation:pop .3s}
 
 /* ── 온라인 ───────────────────────── */
 .inp{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:#0b1126;color:var(--ink);
@@ -423,6 +439,21 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
       <div id="exprBox"><div id="tokens"></div><div id="eqv"></div><div id="emsg"></div></div>
       <button id="bSubmit" class="btn pri">제출<kbd>Enter</kbd></button>
     </div>
+    <div id="tbIntro">
+      <div class="tbCard">
+        <div class="tbT">⚔️ 1등 동점!</div>
+        <div class="tbS">타이브레이커</div>
+        <div class="tbNames" id="tbNames"></div>
+        <ul class="tbRules">
+          <li>🎲 주사위를 <b>딱 1번</b> 굴려요</li>
+          <li>⏱ <b>30초</b> 안에 판의 <b>아무 카드나</b> 먼저 만들면 <b>1등!</b></li>
+          <li>❌ 틀리면 탈락 · 아무도 못 찾으면 <b>공동 1등</b></li>
+          <li>➕ 점수는 더하지 않아요</li>
+        </ul>
+        <div class="tbMe" id="tbMe"></div>
+        <div class="tbCount" id="tbCount">5</div>
+      </div>
+    </div>
     <div id="keys">
       <button class="k op" data-k="+">+</button>
       <button class="k op" data-k="−">−</button>
@@ -541,6 +572,7 @@ const GOAL = 100;          // 목표 점수 (고정)
 const ROUND_MS = 15000;    // 주사위 한 번에 15초
 const REVEAL_MS = 2300;    // 정답 식 보여주는 시간
 const TB_MS = 30000;       // 타이브레이커: 1등 동점자끼리 주사위 1번, 30초 안에 먼저 찾으면 1등
+const TB_INTRO_MS = 6000;  // 타이브레이커 시작 전 설명 + 카운트다운
 
 /* ─────────────────────────────────────────────────────────────
  * 1. 수학: 주사위 조합 455가지 → 각각 만들 수 있는 1~100 과 '보기 좋은' 식
@@ -871,6 +903,7 @@ function setupGame(players, min, level, gid) {
 /** 게임 화면을 지금 G 대로 처음부터 그린다 */
 function enterGameScreen() {
   closeModal();
+  hideTbIntro();
   clearExpr();
   NET.pending = false;
   stage.classList.remove('paused');
@@ -1044,14 +1077,14 @@ function finish(reason) {
 /* ── 타이브레이커 ── */
 function inTb(p) { return !!G.tb && G.tb.uids.indexOf(p.uid) >= 0; }
 function startTiebreak(reason, tied) {
-  G.tb = { reason, uids: tied.map((p) => p.uid), winner: null, done: false };
+  G.tb = { reason, uids: tied.map((p) => p.uid), winner: null, done: false, rollAt: G.clock + TB_INTRO_MS };
   G.events = [];
   G.phase = 'tb';
   G.round++;
   G.players.forEach((p) => { p.locked = p.st === 'left' || !inTb(p); });
   fxTiebreak();
   emit({ t: 'tb' });
-  at(2600, roll);
+  at(TB_INTRO_MS, roll);
 }
 function tbWin(p, exprText, x) {
   G.phase = 'reveal';
@@ -1068,19 +1101,41 @@ function tbNone() {
   emit({ t: 'tbnone', row: best.row, slot: best.slot, expr: best.expr });
   at(REVEAL_MS + 400, () => { fxRevealEnd(); finish(G.tb.reason); });
 }
-function fxTiebreak() {
+let tbTimer = null;
+function fxTiebreak(leftMs) {
   fxRevealEnd();
   clearExpr();
   hideMsg();
   $('#gRound').textContent = '⚔️ 타이브레이커';
-  const names = G.players.filter(inTb).map((p) => (p.me ? '나' : p.ai ? p.name : p.name));
-  banner('#ffd25a', '⚔️ 1등 동점! 타이브레이커', names.join(' vs '));
-  if (me && !inTb(me)) showMsg('👀 1등 동점자끼리 타이브레이커 중이에요', true, 0);
-  else showMsg('⚔️ 주사위 1번 · 30초 · 먼저 찾으면 1등!', true, 0);
+  const tied = G.players.filter(inTb);
+  $('#tbNames').innerHTML = tied.map((p) => '<span style="--pc:' + p.color + '">' + (p.me ? '🙂 나' : who(p)) + '</span>').join('<i>vs</i>');
+  const mine = me && inTb(me);
+  $('#tbMe').textContent = mine ? '🔥 나도 동점자! 준비하세요' : '👀 나는 동점이 아니라 구경해요';
+  $('#tbMe').className = 'tbMe' + (mine ? '' : ' spec');
+  if (me && !mine) showMsg('👀 1등 동점자끼리 타이브레이커 중이에요', true, 0);
+  // 카운트다운 (설명 시간이 끝나면 방장이 주사위를 굴린다)
+  const end = performance.now() + (leftMs === undefined ? TB_INTRO_MS : leftMs);
+  const tick = () => {
+    const n = Math.ceil((end - performance.now()) / 1000);
+    if (n <= 0) { $('#tbCount').textContent = '🎲'; clearInterval(tbTimer); return; }
+    const c = $('#tbCount');
+    if (c.textContent !== String(Math.min(5, n))) {
+      c.textContent = String(Math.min(5, n));
+      c.style.animation = 'none'; void c.offsetWidth; c.style.animation = '';
+      if (n <= 3) sfx('tick');
+    }
+  };
+  clearInterval(tbTimer);
+  $('#tbCount').textContent = '';
+  tick();
+  tbTimer = setInterval(tick, 100);
+  $('#tbIntro').classList.add('on');
   renderScores();
   renderKeys();
   sfx('start');
+  vib([30, 50, 30]);
 }
+function hideTbIntro() { clearInterval(tbTimer); $('#tbIntro').classList.remove('on'); }
 function fxTbWin(p, exprText, x) {
   NET.pending = false;
   hideMsg();
@@ -1151,6 +1206,7 @@ function fxTimeout(row, slot, expr) {
   sfx('timeout');
 }
 function fxRevealEnd() {
+  hideTbIntro();
   $('#banner').classList.remove('on');
   $$('.cd.hint').forEach((el) => el.classList.remove('hint'));
 }
@@ -2091,6 +2147,7 @@ function snapshot() {
     players: G.players.map((p) => ({ uid: p.uid, nick: p.name, rating: p.rating, score: p.score, cards: p.cards, got: p.got,
       locked: !!p.locked, st: p.st, rank: p.rank || 0, leftAt: p.leftAt || 0, offAt: p.offAt || 0, joined: p.joined })),
     rl: G.phase === 'play' ? Math.max(0, G.roundEnd - G.clock) : 0, gl: timeLeft(), roundMs: G.roundMs, tb: G.tb,
+    tbLeft: G.phase === 'tb' && G.tb ? Math.max(0, G.tb.rollAt - G.clock) : 0,
     reason: G.result ? G.result.reason : '',
   };
 }
@@ -2189,6 +2246,7 @@ function onGs(m) {
   if (newGame || !onScreen) {
     enterGameScreen();
     if (G.phase === 'play') { traySettle(); fxPlay(); }
+    if (G.phase === 'tb') fxTiebreak(gs.tbLeft || 0);
     if (ev.t === 'start' || newGame) sfx('start');
     return;
   }
@@ -2203,7 +2261,7 @@ function onGs(m) {
     }
     case 'refill': fxRefill(ev.row, ev.slot); break;
     case 'timeout': fxTimeout(ev.row, ev.slot, ev.expr); break;
-    case 'tb': fxTiebreak(); break;
+    case 'tb': fxTiebreak(gs.tbLeft); break;
     case 'tbwin': {
       const p = G.players.find((x) => x.uid === ev.uid);
       if (p) fxTbWin(p, ev.expr, { row: ev.row, slot: ev.slot });
