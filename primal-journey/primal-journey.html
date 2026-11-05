@@ -1049,7 +1049,7 @@ function refreshOnlineUi(){const el=$('online');if(!el)return;const o=online,ent
  $('onlinePlayers').innerHTML=o.players.map(p=>`<li>${p.name.replace(/[<>&"]/g,'')}${p.id===(o.isHost?o.me:o.hostId)?' · 방장':''}${p.id===o.me?' (나)':''}${over&&!p.alive?' · 탈락':''}</li>`).join('');
  $('onlineStartBtn').hidden=!(o.isHost&&o.phase==='lobby');$('onlineGameRow').hidden=!(o.isHost&&o.phase==='lobby');$('onlineStartBtn').disabled=o.players.length<2;$('onlineAgainBtn').hidden=!(o.isHost&&over)}
 // 원시런 그리기: 함정, 다른 주자(보간), 킬러 표시.
-function drawRunTraps(){if(!course||!course.online||!courseRun.trap)return;const c=COURSES.run;
+function drawRunTraps(){if(!course||!course.online)return;if(course.rider){const [ex,ey,,eh]=course.end;for(let y=ey;y<ey+eh;y+=20){g.fillStyle=((y/20)%2)?'#f2e3b8':'#2a2318';g.fillRect(ex,y,14,20)}g.font='16px Batang, serif';g.textAlign='center';g.fillStyle='#f2e3b8';g.fillText('결승선',ex+7,ey-12)}if(!courseRun.trap)return;const c=COURSES.run;
  c.traps.forEach((tr,i)=>{const [type,x,y,w]=tr,u=trapLive(i);
   if(type==='floor'){const q=u<0?null:trapGeom(i,u);if(q&&q.gone){g.save();g.globalAlpha=.25;g.setLineDash([6,6]);line([[x,y],[x+w,y]],'#d9cfb4',2);g.setLineDash([]);g.restore();return}const sh=q&&q.tell?Math.sin(time*70)*3:0;g.fillStyle='#4a3c2a';g.fillRect(x+sh,y,w,22);line([[x+sh,y],[x+w+sh,y]],'#c9b48c',3);for(let k=1;k<4;k++)line([[x+sh+k*w/4,y+2],[x+sh+k*w/4-5,y+18]],'#2a2016',1.5);return}
   if(u<0){if(type==='mace'){line([[x,c.ceil],[x,c.ceil+30]],'#6d6658',3);ellipse(x,c.ceil,7,7,'#4a4339')}if(type==='rock')path([[x-18,c.ceil],[x,c.ceil+26],[x+18,c.ceil]],'#3a3428');if(type==='spike')for(let k=x;k<x+w;k+=15)ellipse(k+7,y-1,3,1.5,'#9a8f78');return}
