@@ -200,9 +200,9 @@
 - 수치 `SPINO`(웅덩이 `pools`, 전투장 끝 `right`), AI `updateSpino`, `spinoGoal`, `chooseSpinoAttack`, `checkSpinoPhases`, 시계 `spinoEnvironment`(어둠·밀물·범람), 범람 `floodPush`, `drawFlood`, 물 `pools()`, `poolAt`, `tideAmount`, `isSwimming`, `regionShift`, 판정 `spinoBodyRect`, `spinoAttackRect`, `spinoContacts`, `hurtSpino`, `drown`.
 - 그리기 `drawMoonShore`, `drawWaterBack`, `drawWaterFront`, `drawSpino`, `drawSpinoFin`, `drawDarkness`, `spinoHud`.
 
-## 8-3. 온라인 대전 (2026-10-30 추가 · 미니게임 1 「원시런」, 2026-11-02 미니게임 2 「떨어지는 발판」)
+## 8-3. 온라인 대전 (2026-10-30 추가 · 미니게임 1 「원시런」, 2026-11-02 미니게임 2 「떨어지는 발판」, 2026-11-05 미니게임 3 「랩터라이더」)
 
-4지역 클리어(`stageRecords[4].clears>0`) 후 타이틀에 **온라인 대전** 버튼이 생긴다. 폴가이즈처럼 여러 미니게임을 돌려 마지막 1명이 우승. 사용자가 미니게임을 하나씩(총 10개 정도) 알려주면 만들어 끼운다 — 현재 1·2번.
+4지역 클리어(`stageRecords[4].clears>0`) 후 타이틀에 **온라인 대전** 버튼이 생긴다. 폴가이즈처럼 여러 미니게임을 돌려 마지막 1명이 우승. 사용자가 미니게임을 하나씩(총 10개 정도) 알려주면 만들어 끼운다 — 현재 1·2·3번.
 - 방장 로비의 **미니게임** 선택: 무작위(직전 게임은 피함) / 특정 게임만 계속. 시험할 때 쓰기 좋다.
 
 ### 방 · 통신
@@ -226,7 +226,17 @@
 - **창 던지기(L)로 밀어내기**: 피해 없음, 맞으면 820으로 밀리고 위로 380 튐, 0.3초 조작 불가. 재사용 1.2초. 무적 회피(K) 중엔 안 맞음. 맞았는지는 **맞는 사람 화면이 판정**(던진 사람은 위치·방향만 보냄).
 - **60초 제한**, 버틴 사람은 전원 통과(**탈락자가 없을 수도 있음**). 1명만 남으면 바로 끝. 마지막 사람들이 동시에(0.5초 안) 떨어지면 그들은 살아남는다.
 
+### 랩터라이더 (`COURSES.ride`, 사용자 확정)
+- 전원 각자 랩터를 타고(못 내림) 가로 9000 동굴 맵을 달려 결승선(x 8800)까지. 킬러 없음. 랩터 색 **빨·주·노·초·파·남·보·흰** 8종(방 참가 순서, 모든 화면 같음, 꾸밈용).
+- 랩터: 달리기 420, **높은 점프 1번만**(-900, 높이 약 245, 공중 점프 없음), **돌진 8초에 1번**(0.45초 동안 950으로 수평 돌진, 돌진 중엔 장애물 무시). 창·근접 공격 없음.
+- **체력 3**: 가시·철퇴·낙석에 1 깎임. 체력이 다 닳거나 구덩이에 빠지면 **마지막 세이브포인트(깃발 3개)**에서 체력 3으로 다시. 체력으로 탈락하지는 않음. 깃발은 여정 저장을 건드리지 않음.
+- 화면은 **나를 따라감**(완주하면 아직 달리는 선두를 따라감). 왼쪽에 **순위판**(완주 순서 → 남은 사람은 거리 %, 탈락 구간은 붉게), 체력·돌진 게이지.
+- 탈락: **2~4명 하위 1명, 5~7명 하위 2명, 8명 하위 3명**(`rideCut`). 그 인원만 남으면 바로 끝. **120초 제한** — 못 들어온 사람은 거리순으로 순위. 나간 사람은 탈락 인원에 먼저 셈.
+- 맵: 가시 → 구덩이 → 큰 철퇴 2 → 계단·가시 → 깃발1 → 큰 구덩이 → 낙석 3 → 움직이는 발판 2 → 깃발2 → 무너지는 다리(혼자만 무너짐) → 가시·철퇴 → 높은 벽 위 깃발3 → 구덩이 → 가시 2 → 결승선. 완주 봇이 돌진 없이 한 번 점프만으로 통과 확인(`test-course`).
+- 탄 모습 `drawRider`(색 랩터 = `drawRaptor` 에 `skin/dark` 덮어쓰기 + 위에 인록). 장애물 판정 몸은 탄 크기(52×66), 벽·바닥 충돌은 그대로.
+
 ### 코드 위치
+- 랩터라이더 `RIDE`, `rideCut`, `rideRanking`, `rideColor`, `rideHud`, `drawRider`, 완주 시각 `markFin`. 탑승 물리는 `updatePlayer` 의 `rider` 분기.
 - 미니게임 고르기 `pickGame`, `ONLINE_GAMES`. 떨어지는 발판 창 `onlineSpear`, `addSpear`, `updateOnlineSpears`, `onlineKnock`, 탈락 시각 `markOut`.
 - 통신 `supabaseTransport`, 방 `onlineOpen/onlineCreate/onlineJoin/onlineEnd/onlineClose`, 수신 `onlineReceive`, 라운드 `onlineStart/onlineNextRound/onlineBeginRound/onlineEndRound/onlineApplyResult`, 진행 `onlineTick`, `onlineStep`, `onlineCamera`.
 - 러너 `onlineLoseLife`, `onlineFinish`, 함정 `killerTrap`, `activateTrap`, `trapGeom`, `trapFloors`, `runTrapContacts`, 그리기 `drawRunTraps`, `drawRunPlayers`, `onlineHud`, UI `openOnlineLobby`, `refreshOnlineUi`, `onlineKey`.
@@ -288,7 +298,7 @@ node test-spino.cjs
 node test-course.cjs
 ```
 
-마지막 개발 시 보고된 결과: **242개 통과**(밸런스43 + 랩터44 + 여정10 + 디버그13 + 프테라노돈53 + 스피노27 + 코스25 + 온라인27). `./run-tests.sh`로 한 번에 실행. 인수인계 시 다시 실행한 결과는 `검사결과.txt` 참고.
+마지막 개발 시 보고된 결과: **249개 통과**(밸런스43 + 랩터44 + 여정10 + 디버그13 + 프테라노돈53 + 스피노27 + 코스26 + 온라인33). `./run-tests.sh`로 한 번에 실행. 인수인계 시 다시 실행한 결과는 `검사결과.txt` 참고.
 
 - DOM/Canvas/localStorage를 모의한 Node vm 회귀 검사. 실제 브라우저 플레이 품질을 완전히 보장하지 않는다.
 - 프테라노돈 자연 반복 궤적은 고정 간격으로 검사하며 순간이동 회귀 방지, 예측 추격, 입 충돌, 메테오 정확30개, 동시 AI, 저장 보호 등이 검사 대상.
@@ -305,4 +315,4 @@ node test-course.cjs
 - 프테라노돈을 고정 지점으로 순간이동시키거나 메테오 동안 멈추게 하지 말 것.
 - 현재 메테오는 옛 초음파 ‘범위 확대’ 상태가 아니라 **전혀 다른 소환형 공격**이다.
 - 온라인 검사(`test-online.cjs`)는 가짜 통신으로 돈다. 실제 Supabase 연결은 작업 환경에서 막혀 있어 **브라우저 창 2개로 직접 확인**해야 한다.
-- 다음 할 일: 사용자가 온라인 미니게임 3~10번을 하나씩 알려줌 → 만들고 대전에 끼우기(`ONLINE_GAMES`에 추가, `onlineBeginRound`·`onlineTick` 끝 판정·`onlineEndRound`·`onlineStep`·`onlineHud`에 분기).
+- 다음 할 일: 사용자가 온라인 미니게임 4~10번을 하나씩 알려줌 → 만들고 대전에 끼우기(`ONLINE_GAMES`에 추가, `onlineBeginRound`·`onlineTick` 끝 판정·`onlineEndRound`·`onlineStep`·`onlineHud`에 분기).

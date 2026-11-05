@@ -8,7 +8,7 @@ function boot(bus,storage={}){
  const ctx=new Proxy({createLinearGradient:()=>gradient,createRadialGradient:()=>gradient,fillText(text,x,y){draws.push({text:String(text),x,y})}},{get:(o,k)=>o[k]||(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
  const el=id=>els[id]??={hidden:false,value:'',innerHTML:'',textContent:'',getContext:()=>ctx,setAttribute(k,v){this[k]=v},classList:{toggle(){},add(){},remove(){}},addEventListener(){},focus(){}};
  const events={};const box={console,Math,JSON,localStorage:{getItem:k=>storage[k]||null,setItem(k,v){storage[k]=v}},document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener:(k,f)=>events[k]=f},requestAnimationFrame(){},matchMedia:()=>({matches:false}),setTimeout,setInterval:()=>0,clearInterval(){}};
- const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,updatePlayer,throwSpear,pickGame,fallCourse:()=>COURSES.fall,killerTrap,trapLive,trapGeom,activateTrap,onlineUnlocked,runBlocks:()=>[...COURSES.run.blocks,...trapFloors().map(f=>[f.x,f.y,f.w,20])],refreshContinue,supabaseTransport,get o(){return online},get p(){return player},get cam(){return cam},get mode(){return mode},get keys(){return keys},get press(){return press},get run(){return courseRun},get records(){return stageRecords},tick:dt=>update(dt)};})();`);
+ const js=source.replace(/\}\)\(\);\s*$/,`globalThis.t={...window.primalJourney,updatePlayer,throwSpear,pickGame,fallCourse:()=>COURSES.fall,rideCut,rideColor,RIDE,rideCourse:()=>COURSES.ride,killerTrap,trapLive,trapGeom,activateTrap,onlineUnlocked,runBlocks:()=>[...COURSES.run.blocks,...trapFloors().map(f=>[f.x,f.y,f.w,20])],refreshContinue,supabaseTransport,get o(){return online},get p(){return player},get cam(){return cam},get mode(){return mode},get keys(){return keys},get press(){return press},get run(){return courseRun},get records(){return stageRecords},tick:dt=>update(dt)};})();`);
  vm.createContext(box);vm.runInContext(js,box);if(bus)box.t.online.setTransport(bus.factory);return{t:box.t,els,draws,events,box};
 }
 let count=0;function check(label,f){f();console.log('PASS: '+label);count++}
@@ -121,6 +121,40 @@ check('fall: if the last players all drop at once, those who fell last stay in',
 check('fall: renders lobby picker, run and spectator HUD without errors',()=>{
  const r=fallStarted(2),[a,b]=r.cs;a.t.throwSpear();r.bus.flush();for(const c of r.cs){c.draws.length=0;c.t.render();assert(c.draws.some(d=>d.text.includes('떨어지는 발판')))}
  a.t.p.x=-300;hoverFor(r,1.5,[b]);a.t.render();const lobby=room(2);assert.equal(lobby.host.els.onlineGameRow.hidden,false);assert.equal(lobby.cs[1].els.onlineGameRow.hidden,true)});
+// ── 3번 랩터라이더 ──
+function rideStarted(n=3,storage){const bus=makeBus(),cs=[];const host=boot(bus,storage);host.t.online.create('방장');bus.flush();cs.push(host);for(let i=1;i<n;i++){const c=boot(bus);c.t.online.join('친구'+i,host.t.o.code);cs.push(c);bus.flush();bus.flush()}step(bus,cs,.2);host.t.online.start('ride');bus.flush();step(bus,cs,3.05);return{bus,cs,host}}
+const put=(c,x,y=602)=>Object.assign(c.t.p,{x,y,vx:0,vy:0,ground:true,jumps:0,inv:0,hurt:0,dash:0});
+check('ride: bottom 1 out with 2-4 players, 2 with 5-7, 3 with 8; eight raptor colours, one per player',()=>{
+ const t=boot(null).t;assert.deepEqual([2,3,4,5,6,7,8].map(t.rideCut),[1,1,1,2,2,2,3]);
+ assert.deepEqual(t.RIDE.colors.map(c=>c[0]),['빨강','주황','노랑','초록','파랑','남색','보라','흰색']);assert.equal(new Set(t.RIDE.colors.map(c=>c[1])).size,8);
+ const r=rideStarted(8);for(const c of r.cs){const s=state(c);assert.equal(s.round.game,'ride');assert.equal(s.round.killer,null);assert.equal(s.round.runners.length,8);assert.equal(c.t.o.round.cut,3)}
+ assert.equal(new Set(state(r.host).round.runners.map(id=>r.host.t.rideColor(id)[0])).size,8,'every rider a different colour');
+ assert.deepEqual(state(r.host).round.runners.map(id=>r.cs[3].t.rideColor(id)[0]),state(r.host).round.runners.map(id=>r.host.t.rideColor(id)[0]),'same colours on every screen')});
+check('ride: on the raptor you cannot get off: one high jump (no air jump), faster run, dash once every 8 seconds',()=>{
+ const r=rideStarted(2),a=r.cs[1];a.keepInv=99;put(a,1500);a.t.keys.right=true;step(r.bus,r.cs,.6);assert(Math.abs(a.t.p.vx-420)<5,'runs at 420: '+a.t.p.vx);a.t.keys.right=false;step(r.bus,r.cs,.6);
+ put(a,1500);a.t.press.jump=true;step(r.bus,r.cs,DT);assert.equal(a.t.p.vy<-800,true,'high jump');let top=602;for(let k=0;k<12;k++){step(r.bus,r.cs,DT);top=Math.min(top,a.t.p.y)}
+ const vy=a.t.p.vy;a.t.press.jump=true;step(r.bus,r.cs,DT);assert(a.t.p.vy>vy,'no second jump in the air');for(let k=0;k<40;k++){step(r.bus,r.cs,DT);top=Math.min(top,a.t.p.y)}assert(602-top>230,'jump height '+(602-top));
+ step(r.bus,r.cs,1);put(a,3700);a.t.press.dash=true;step(r.bus,r.cs,DT);assert(a.t.p.dash>0);assert(Math.abs(a.t.p.vx-950)<1);assert(Math.abs(a.t.p.dashCD-8)<.1);
+ step(r.bus,r.cs,1);a.t.press.dash=true;step(r.bus,r.cs,DT);assert(a.t.p.dash<=0,'still cooling down');step(r.bus,r.cs,7);a.t.press.dash=true;step(r.bus,r.cs,DT);assert(a.t.p.dash>0,'ready again after 8s');
+ a.t.p.dash=0;a.t.p.hurt=0;assert.equal(a.t.throwSpear(),false,'no spear while riding');a.t.keys.attack=true;step(r.bus,r.cs,DT);a.t.keys.attack=false;assert.equal(a.t.p.atk,0,'no spear swing while riding')});
+check('ride: a hazard costs 1 of 3 HP; at 0 HP or in a pit you restart at the last save flag with 3 HP; flags never touch the journey save',()=>{
+ const KEY='primalJourney.progress.v1',save=JSON.stringify({version:1,stage:2,checkpoint:'camp',cleared:{1:true,2:false}}),storage={[KEY]:save};
+ const r=rideStarted(2,storage),a=r.host,me=()=>state(a).round.state[state(a).me];
+ put(a,3000);step(r.bus,r.cs,.1);assert.equal(a.t.run.flag,0,'first save flag lit');assert.equal(storage[KEY],save,'journey save untouched');
+ put(a,2585,450);step(r.bus,r.cs,.1);assert.equal(me().lives,2,'spike -1');a.t.p.inv=0;put(a,2585,450);step(r.bus,r.cs,.1);assert.equal(me().lives,1);
+ a.t.p.inv=0;put(a,2585,450);step(r.bus,r.cs,.1);assert.equal(me().lives,3,'back to 3 HP');assert(Math.abs(a.t.p.x-3000)<20&&Math.abs(a.t.p.y-602)<2,'restarted at the flag '+a.t.p.x+','+a.t.p.y);
+ a.t.p.inv=0;put(a,3450);step(r.bus,r.cs,1.5);assert(Math.abs(a.t.p.x-3000)<20,'pit → flag');assert.equal(me().lives,3);assert.equal(state(a).phase,'run','nobody is eliminated by HP')});
+check('ride: finishing order is the ranking; the round ends as soon as only the bottom places are left, and they are out',()=>{
+ const r=rideStarted(3),[h,a,b]=r.cs;put(a,8850);step(r.bus,r.cs,.2);assert(state(h).round.state[state(a).me].fin);assert.equal(state(h).phase,'run');
+ put(h,8850);step(r.bus,r.cs,.3);const res=state(h).round.result;assert(res,'ended when 2 of 3 finished');assert.deepEqual(res.elim,[state(b).me]);
+ const five=rideStarted(5),[x,y,z,u,v]=five.cs;put(u,1100);put(v,700);step(five.bus,five.cs,.3);for(const c of [y,x,z]){put(c,8850);step(five.bus,five.cs,.2)}
+ const res5=state(x).round.result;assert(res5,'ended when 3 of 5 finished');assert.deepEqual([...res5.elim].sort(),[state(u).me,state(v).me].sort())});
+check('ride: when 120 seconds run out, the unfinished are ranked by distance and the bottom place is out',()=>{
+ const r=rideStarted(4),[h,a,b,c]=r.cs;put(h,3100);put(a,1100);put(b,700);put(c,300);step(r.bus,r.cs,121);const res=state(h).round.result;assert(res);assert.deepEqual(res.elim,[state(c).me])});
+check('ride: the camera follows my own raptor; the side ranking board and riders render on every screen',()=>{
+ const r=rideStarted(3),[h,a,b]=r.cs;put(a,3800);step(r.bus,r.cs,.5);assert(Math.abs(a.t.cam-(a.t.p.x-560))<2,'camera on me');assert.equal(h.t.cam,0);
+ for(const c of r.cs){c.draws.length=0;c.t.render();assert(c.draws.some(d=>d.text.includes('랩터라이더')));assert(c.draws.some(d=>d.text.startsWith('1위')));assert(c.draws.some(d=>d.text.includes('(나)')))}
+ put(a,8850);step(r.bus,r.cs,.3);a.t.render();assert(a.draws.some(d=>d.text.includes('완주')))});
 check('every online screen renders without errors (lobby, countdown, run as killer/runner, result, over)',()=>{
  const r=started(3);for(const c of r.cs)c.t.render();step(r.bus,r.cs,1);for(const c of r.cs){c.draws.length=0;c.t.render();assert(c.draws.some(d=>d.text.includes('원시런')))}assert(r.killer.draws.some(d=>d.text.includes('킬러')))});
 check('Supabase Realtime wire format: join with broadcast config, heartbeat topic, broadcast event m',()=>{

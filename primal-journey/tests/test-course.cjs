@@ -12,7 +12,7 @@ function boot(storage={}){
 }
 let count=0;function check(label,f){f();console.log('PASS: '+label);count++}
 const DT=1/120,near=(a,b,eps,msg='')=>assert(Math.abs(a-b)<eps,`${msg} ${a} != ${b}`);
-function inCourse(n,e=boot()){e.t.startStage(n);assert(e.t.enterCourse(n,null));return e}
+function inCourse(n,e=boot()){e.t.startStage(typeof n==='number'?n:2);assert(e.t.enterCourse(n,null));return e}
 function frame(t,dt=DT){t.updateCourse(dt);t.updatePlayer(dt);t.press.jump=false;t.press.dash=false;t.press.drop=false}
 function stand(t,x,y){Object.assign(t.p,{x,y,vx:0,vy:0,ground:true,jumps:0,coyote:.1,jumpBuffer:0,dash:0,dashCD:0,hurt:0,dropTime:0,safe:{x,y}})}
 
@@ -36,7 +36,7 @@ function attempt(t,from,tgt,o){
   if(o.jump2!==null&&!jumped2&&!t.p.ground&&t.p.vy>=o.jump2){t.press.jump=true;jumped2=true}
   if(o.dash!==null&&!dashed&&elapsed>=o.dash){t.p.dir=dx>=0?1:-1;t.press.dash=true;dashed=true}
   frame(t);elapsed+=DT;keep();
-  if(!t.course)return 'finished';if(t.p.hp<6)return false;
+  if(!t.course)return 'finished';if(t.course.online){const E=t.course.end;if(t.p.x>=E[0]&&t.p.x<=E[0]+E[2]&&t.p.y>=E[1]&&t.p.y<=E[1]+E[3])return 'finished';if(t.p.y>t.course.bottom)return false}if(t.p.hp<6)return false;
   if(elapsed>.05&&t.p.ground&&tgt.ok())return true;
  }
  t.keys.right=t.keys.left=false;return false}
@@ -63,12 +63,14 @@ function solveRoute(n,hazards=false){
   let tries=0;for(const o of options(cur,steps[k])){if(o.r==='finished')return[o.opt];const rest=solve(k+1,o.snap);if(rest)return[o.opt,...rest];if(++tries>=4)break}
   return null}
  const found=solve(0,snapshot(t));assert(found,`stage ${n}${hazards?' (hazards on)':''}: stuck at ${where}`);
- assert.equal(t.course,null,'finished');return{e,found};
+ if(!C.online)assert.equal(t.course,null,'finished');return{e,found};
 }
 for(const n of [2,3,4])check(`stage ${n} course is completable with the real physics (route bot), and the end leads to the camp`,()=>{
  const {e,found}=solveRoute(n),t=e.t;assert.equal(t.course,null);t.updatePlayer(0);assert.equal(t.p.x,1430);assert.equal(t.progress.checkpoint,'camp');assert(!t.getState().arena);
  assert(found.some(f=>f.jump2!==null),'needs double jumps somewhere (hard)');
 });
+check('online 3 랩터라이더 map is completable riding a raptor: one high jump only, no double jump, no dash needed',()=>{
+ const {e,found}=solveRoute('ride'),t=e.t;assert(found.every(f=>f.dash===null),'no dash needed');assert.equal(t.p.jumps<=1,true)});
 check('stage 4 is beatable without taking a single hit in the dark: drips and spikes have safe timings',()=>{
  const {e}=solveRoute(4,true);assert.equal(e.t.course,null)});
 check('stage 2 is beatable without taking a single hit: maces, falling rocks and spikes all have a safe timing',()=>{
