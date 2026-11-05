@@ -2178,6 +2178,73 @@ if(typeof document!=='undefined'){
   });
 })();
 
+/* ===================== 뮤됴구: 중요한 경기엔 3학년 에이스가 더 나온다 (사용자 요청) =====================
+   체육대회 · 호실축구 · 현제관 체육대회 · HFL · 왕중왕전의 결승(과 4강)처럼 중요한 경기에는
+   3학년(37기) 중 오버롤 높은 선배들이 나올 확률을 높인다.
+   - 호실축구·현제관 등(3학년은 수능 준비로 2~3명만): 결승은 1명 더 · 4강은 최대 1명 더 나오고,
+     누가 나올지 고를 때 오버롤이 높을수록 훨씬 유리하게 (오버롤²  →  4강 오버롤⁴ · 결승 오버롤⁶)
+   - 체육대회(반 대항): 결승에선 3학년 상위권이 빠지지 않고(결석 12% → 0%), 준결승은 4%
+   원본 prepMatch 는 그대로 두고, 같은 순서로 명단을 짜되 위 규칙만 더한 함수로 바꿔 끼운다. */
+(function lifeBigMatch(){
+  if (typeof prepMatch !== 'function') return;
+  var MUD_BG_FX = null;   // 배경 경기(내 팀이 아닌 경기)의 대진표 칸
+  function bigLevel(m){
+    if (m.comp === 'sports') {
+      const k = m.skey || (typeof sportsNext === 'function' ? sportsNext() : '');
+      return k === 'f' ? 2 : (k === 'sf1' || k === 'sf2') ? 1 : 0;
+    }
+    const f = m.fx || MUD_BG_FX;
+    const st = f && f.st;
+    return st === 'FIN' ? 2 : (st === 'SF' || st === '3RD' || st === 'PO') ? 1 : 0;
+  }
+  const origPrep = prepMatch;
+  prepMatch = function (m) {
+    if (m.lu) return;
+    const lv = bigLevel(m);
+    if (!lv) return origPrep(m);
+    m.big = lv;
+    m.opt = { vary: true, senior: HCUP(m.comp) };
+    const abs = HCUP(m.comp) ? 0 : .12;
+    // 체육대회: 그 팀 3학년 중 오버롤 상위 절반은 결승에 빠지지 않는다
+    const seniorTop = sq => {
+      const s = sq.filter(p => p.gen === 37).sort((a, b) => effOvr(b) - effOvr(a));
+      return new Set(s.slice(0, Math.ceil(s.length / 2)).map(p => p.id));
+    };
+    const av = sq => {
+      if (sq.length <= 14) return sq;
+      const top = seniorTop(sq);
+      return sq.filter(p => p.id === S.hero || Math.random() >= (top.has(p.id) ? (lv === 2 ? 0 : .04) : abs));
+    };
+    const lim37x = sq => {
+      if (!HCUP(m.comp)) return sq;
+      const s = sq.filter(p => p.gen === 37); const keep = new Set();
+      const base = (m.comp === 'hoju' || m.comp === 'hjc') ? ri(2, 3) : ri(1, 2);
+      const n = Math.min(s.length, base + (lv === 2 ? 1 : ri(0, 1)));
+      const pw = lv === 2 ? 6 : 4;
+      let pool = s.slice();
+      for (let k = 0; k < n; k++) { const p = wpick(pool, x => Math.pow(effOvr(x), pw)); keep.add(p.id); pool = pool.filter(x => x !== p); }
+      return sq.filter(p => p.gen !== 37 || keep.has(p.id));
+    };
+    // ↓ 여기부터는 원본 prepMatch 와 같은 순서
+    const sA = av(lim37x(squad(m.A))), sB = av(lim37x(squad(m.B)));
+    m.sq = [sA.map(p => p.id), sB.map(p => p.id)];
+    m.hs = sA.some(p => p.id === S.hero) ? 0 : sB.some(p => p.id === S.hero) ? 1 : -1;
+    const myF = m.mini ? FORM6.id : (S.unlocked && S.myForm ? S.myForm : null);
+    const fB = m.mini ? FORM6.id : null, fA = m.mini ? FORM6.id : null;
+    m.lu = [autoLineup(sA, m.hs === 0 ? S.hero : null, m.hs === 0 ? myF : fA, m.opt), autoLineup(sB, m.hs === 1 ? S.hero : null, m.hs === 1 ? myF : fB, m.opt)];
+    if ((S.unlocked || m.mini) && m.hs >= 0) {
+      const sp = m.hs === 0 ? m.A : m.B; const sv = S.myLu && S.myLu[teamKey(sp)];
+      if (sv) { const lu = fillLineup(m.hs === 0 ? sA : sB, sv.form, sv.pids, m.opt); m.lu[m.hs] = lu; m.kept = { kept: lu.kept, total: sv.pids.filter(x => x != null).length }; }
+    }
+  };
+  // 배경 경기(내 팀이 아닌 경기)도 대진표의 단계(4강·결승)를 알 수 있게
+  ['runFixtureBg', 'runHflBg', 'runHjcBg'].forEach((name) => {
+    const fn = window[name];
+    if (typeof fn !== 'function') return;
+    window[name] = function (f) { MUD_BG_FX = f; try { return fn.apply(this, arguments); } finally { MUD_BG_FX = null; } };
+  });
+})();
+
 /* ===================== 뮤됴구: 엔터키로 대화 넘기기 =====================
    원본은 대화창을 클릭하거나, 대화창에 포커스가 있을 때만 엔터가 먹었다.
    → 어디서든 엔터를 누르면 지금 대화를 다음 줄로 넘긴다.
