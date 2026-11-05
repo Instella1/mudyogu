@@ -818,7 +818,7 @@ function chips(el, items, cur, onPick) {
 function renderSetup() {
   chips($('#cCount'), [1, 2, 3, 4, 5].map((n) => [n, n + '명']), SETUP.count, (v) => { SETUP.count = v; renderSetup(); });
   chips($('#cLevel'), Object.keys(LEVELS).map((k) => [k, LEVELS[k].name]), SETUP.level, (v) => { SETUP.level = v; renderSetup(); });
-  chips($('#cTime'), [6, 8, 10, 12].map((m) => [m, m + '분']), SETUP.min, (v) => { SETUP.min = v; renderSetup(); });
+  chips($('#cTime'), [4, 6, 8, 10, 12].map((m) => [m, m + '분']), SETUP.min, (v) => { SETUP.min = v; renderSetup(); });
   chips($('#cSec'), SEC_CHOICES.map((n) => [n, n + '초']), SETUP.sec, (v) => { SETUP.sec = v; renderSetup(); });
   $('#levelDesc').textContent = LEVELS[SETUP.level].desc;
   store.set('codelab:ai', SETUP);
@@ -1837,7 +1837,7 @@ function openMakeRoom() {
     '<input id="mkPwIn" class="inp" maxlength="12" placeholder="비밀번호 (1~12자)" autocomplete="off" style="margin-top:10px;display:none"></div>' +
     '<div class="row"><button class="btn" id="mkNo">취소</button><button class="btn pri" id="mkYes">만들기</button></div>');
   const draw = () => {
-    chips($('#mkTime'), [6, 8, 10, 12].map((m) => [m, m + '분']), MK.min, (v) => { MK.min = v; draw(); });
+    chips($('#mkTime'), [4, 6, 8, 10, 12].map((m) => [m, m + '분']), MK.min, (v) => { MK.min = v; draw(); });
     chips($('#mkSec'), SEC_CHOICES.map((n) => [n, n + '초']), MK.sec, (v) => { MK.sec = v; draw(); });
     chips($('#mkMax'), [2, 3, 4, 5, 6].map((n) => [n, n + '명']), MK.max, (v) => { MK.max = v; draw(); });
     chips($('#mkPw'), [[false, '없음'], [true, '🔒 있음']], MK.pw, (v) => { MK.pw = v; draw(); if (v) $('#mkPwIn').focus(); });
