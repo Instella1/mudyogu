@@ -120,7 +120,13 @@ check('fall: if the last players all drop at once, those who fell last stay in',
  const res=state(r.cs[0]).round.result;assert(res);assert.deepEqual(res.elim,[state(a).me]);assert(!res.winner)});
 check('fall: renders lobby picker, run and spectator HUD without errors',()=>{
  const r=fallStarted(2),[a,b]=r.cs;a.t.throwSpear();r.bus.flush();for(const c of r.cs){c.draws.length=0;c.t.render();assert(c.draws.some(d=>d.text.includes('떨어지는 발판')))}
- a.t.p.x=-300;hoverFor(r,1.5,[b]);a.t.render();const lobby=room(2);assert.equal(lobby.host.els.onlineGameRow.hidden,false);assert.equal(lobby.cs[1].els.onlineGameRow.hidden,true)});
+ a.t.p.x=-300;hoverFor(r,1.5,[b]);a.t.render();});
+check('nobody picks the minigame: the start button begins a random game each round (never the same twice in a row) until one is left',()=>{
+ assert(!/id="onlineGame/.test(html),'no game picker in the lobby');
+ const {bus,cs}=room(4),h=cs[0];h.els.onlineStartBtn.onclick();bus.flush();const s=state(h);assert(['run','fall','ride'].includes(s.round.game));assert.equal(h.t.o.nextGame,'');for(const c of cs)assert.equal(state(c).round.game,s.round.game,'same game on every screen');
+ const r=fallStarted(3);r.cs[0].t.o.nextGame='';hoverFor(r,61);step(r.bus,r.cs,5.2);const two=state(r.cs[0]).round;assert.equal(two.no,2);assert.notEqual(two.game,'fall','a different game follows');
+ for(const c of r.cs){assert.equal(state(c).round.game,two.game);assert.equal(state(c).phase,'countdown');c.t.render()}step(r.bus,r.cs,3.1);for(const c of r.cs)assert.equal(state(c).phase,'run');
+ const seen=new Set();for(let i=0;i<200;i++){const last=h.t.o.lastGame,g=h.t.pickGame();assert.notEqual(g,last);seen.add(g);h.t.o.lastGame=g}assert.equal(seen.size,3,'all three games come up')});
 // ── 3번 랩터라이더 ──
 function rideStarted(n=3,storage){const bus=makeBus(),cs=[];const host=boot(bus,storage);host.t.online.create('방장');bus.flush();cs.push(host);for(let i=1;i<n;i++){const c=boot(bus);c.t.online.join('친구'+i,host.t.o.code);cs.push(c);bus.flush();bus.flush()}step(bus,cs,.2);host.t.online.start('ride');bus.flush();step(bus,cs,3.05);return{bus,cs,host}}
 const put=(c,x,y=602)=>Object.assign(c.t.p,{x,y,vx:0,vy:0,ground:true,jumps:0,inv:0,hurt:0,dash:0});
