@@ -2182,6 +2182,7 @@ function hostStartGame() {
   rsend('room', publicRoom());
   trackLobby();
   emit({ t: 'start' });
+  beginMatch();
 }
 /* 방장: 게임이 끝나면 방을 다시 대기 상태로 (나간 사람은 빼고) */
 function hostAfterGame() {
@@ -2251,6 +2252,7 @@ function onGs(m) {
   if (gs.phase !== 'over') O.room.status = 'playing';
   const onScreen = $('#sGame').classList.contains('on');
   applyState(gs);
+  if (newGame && gs.phase !== 'over') beginMatch();
   if (gs.phase === 'over') {
     if (ev.t === 'end' || (onScreen && !$('#sResult').classList.contains('on'))) showResults(gs.reason);
     return;
@@ -2411,10 +2413,29 @@ function quitOnline() {
   setTimeout(() => { leaveRoom(); enterLobby(); toast(playing ? '기권했어요 (꼴등으로 기록)' : '방에서 나왔어요'); }, 200);
 }
 
+/* 게임 시작: 탈주 벌점을 먼저 맡겨 둔다 (끝까지 해서 결과를 저장하면 돌려받음).
+   앱을 닫거나 끊겨서 결과를 못 내도 레이팅이 떨어지게 하려는 것. 같은 판은 서버가 한 번만 뺀다. */
+async function beginMatch() {
+  if (!O.sb || !me || !G.gid || NET.begun === G.gid) return;
+  NET.begun = G.gid; NET.penalty = 0;
+  const opp = G.players.filter((p) => !p.me && typeof p.rating === 'number');
+  const mine = O.profile ? O.profile.rating : 1000;
+  const avg = opp.length ? Math.round(opp.reduce((a, p) => a + p.rating, 0) / opp.length) : mine;
+  try {
+    const r = await withTimeout(O.sb.rpc('codelab_begin_match', { p_match_id: G.gid, p_players: G.players.length, p_avg: avg }), 10000);
+    if (!r.error && typeof r.data === 'number') NET.penalty = r.data || NET.penalty;
+  } catch (e) { /* 새 SQL 전이면 없음 — 그래도 게임은 그대로 */ }
+}
+
 /* 대전 기록 저장 (각자 자기 결과) → 레이팅 변화 표시 */
 async function recordMatch(quit) {
   if (!O.sb || !me || !G.gid || NET.recorded === G.gid) return;
-  if (!quit && me.st === 'left') { $('#rRating').textContent = ''; return; }
+  if (!quit && me.st === 'left') {
+    // 연결이 끊겨 기권 처리됨 → 시작 때 맡긴 벌점이 그대로 빠진다
+    $('#rRating').innerHTML = NET.penalty ? '🏳 연결이 끊겨 기권 처리됐어요 · 레이팅 <b class="neg">−' + NET.penalty + '</b>' : '';
+    if (NET.penalty && O.profile) { O.profile.rating -= NET.penalty; NET.penalty = 0; renderMeChip(); }
+    return;
+  }
   NET.recorded = G.gid;
   const n = G.players.length;
   const rank = quit ? n : me.rank;

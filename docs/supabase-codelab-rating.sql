@@ -5,6 +5,9 @@
 --   ③ 판마다 '참가 보상' — 다 같이 비슷하게 하면 1020·1010·990·980 처럼 제자리라 아쉬움 →
 --      끝까지 한 사람은 +2 + 포인트/20 (최대 +7, 기권은 0). 하다 보면 조금씩 올라간다.
 --   ④ 지금까지 한 판수 × 4 를 한 번만 보상 (맨 아래, bonus_given 으로 두 번 안 줌)
+--   ⑤ 탈주는 무조건 떨어진다: 게임 시작 때 '탈주 벌점'을 먼저 빼 두고(codelab_begin_match),
+--      끝까지 해서 결과를 저장하면 벌점을 돌려준 뒤 진짜 변화를 적용. 앱을 닫거나 끊겨서 결과를 못 내면 벌점이 그대로 남는다.
+--      탈주(기권) 변화 = −max(10, K × E)  — 포인트·참가 보상 없음. 레이팅 차이가 아무리 나도 최소 10은 떨어짐.
 --
 --   K  = 20 + 5 × 인원              (인원이 많을수록 크게 오르내림 — 예전과 같은 크기)
 --   순위 몫  = (인원 − 내 순위) / (인원 − 1)              (1등 1, 꼴등 0)
@@ -17,6 +20,16 @@
 --     내가 1400, 상대 평균 1000: 1등 +4 · 꼴등 −36   /  내가 1000, 상대 평균 1400: 1등 +36 · 꼴등 −4
 -- 게임이 p_avg 를 넘기고, 이 함수가 없으면 게임은 옛 함수(p_avg 없음)로 저장한다.
 -- 다른 참가자의 포인트는 게임이 보내는 p_detail(참가자별 결과)에서 읽는다.
+
+-- 탈주 벌점을 잠시 맡아 두는 표 (게임이 끝나 결과를 저장하면 지워지고 벌점은 돌려줌)
+create table if not exists public.codelab_pending (
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  match_id   text not null,
+  penalty    int  not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, match_id)
+);
+alter table public.codelab_pending enable row level security;   -- 직접 읽기/쓰기 금지 (함수로만)
 
 create or replace function public.codelab_record_match(
   p_match_id text, p_players int, p_rank int, p_points int, p_cards int, p_detail jsonb, p_avg int
@@ -34,6 +47,8 @@ declare
   e     numeric;
   k     numeric;
   bonus int;
+  quit  boolean;
+  held  int;
   delta int;
   done  int;
 begin
@@ -60,12 +75,22 @@ begin
   s := 0.7 * s + 0.3 * sp;
   e := 1 / (1 + power(10::numeric, (p_avg - prof.rating)::numeric / 400));
   delta := round(k * (s - e));
-  -- 참가 보상: 끝까지 한 사람만 (p_detail 에서 내 줄의 left 로 기권 확인)
-  bonus := case when exists (
+  -- 기권(탈주)인지: p_detail 에서 내 줄의 left
+  quit := exists (
              select 1 from jsonb_array_elements(case when jsonb_typeof(p_detail) = 'array' then p_detail else '[]'::jsonb end) x
-              where x->>'nick' = prof.nickname and coalesce((x->>'left')::boolean, false))
-           then 0 else least(7, 2 + round(p_points / 20.0))::int end;
-  delta := delta + bonus;
+              where x->>'nick' = prof.nickname and coalesce((x->>'left')::boolean, false));
+  if quit then
+    delta := -greatest(10, round(k * e)::int);          -- 무조건 떨어짐, 포인트·보상 없음
+  else
+    bonus := least(7, 2 + round(p_points / 20.0))::int; -- 참가 보상 (끝까지 한 사람만)
+    delta := delta + bonus;
+  end if;
+  -- 시작 때 미리 뺀 탈주 벌점을 돌려준다 (그 위에 진짜 변화를 적용)
+  delete from public.codelab_pending where user_id = uid and match_id = p_match_id returning penalty into held;
+  if held is not null then
+    prof.rating := prof.rating + held;
+    update public.codelab_profiles set rating = prof.rating where user_id = uid;
+  end if;
 
   insert into public.codelab_matches
     (user_id, match_id, players, rank, points, cards, rating_before, rating_after, detail)
@@ -94,3 +119,38 @@ alter table public.codelab_profiles add column if not exists bonus_given boolean
 update public.codelab_profiles
    set rating = rating + games * 4, bonus_given = true, updated_at = now()
  where not bonus_given;
+
+-- ⑤ 게임 시작: 탈주 벌점을 먼저 뺀다 (같은 판은 한 번만 — 다시 들어와도 또 빼지 않음). 뺀 양을 돌려준다.
+create or replace function public.codelab_begin_match(p_match_id text, p_players int, p_avg int)
+returns int
+language plpgsql security definer set search_path = public
+as $$
+declare
+  uid  uuid := auth.uid();
+  prof public.codelab_profiles;
+  k    numeric;
+  e    numeric;
+  pen  int;
+  done int;
+begin
+  if uid is null then raise exception 'not_signed_in'; end if;
+  if p_players < 2 or p_players > 6 or p_avg < 0 or p_avg > 10000
+     or length(coalesce(p_match_id, '')) not between 6 and 64 then
+    raise exception 'bad_result';
+  end if;
+  select * into prof from public.codelab_profiles where user_id = uid for update;
+  if not found then raise exception 'no_profile'; end if;
+  if exists (select 1 from public.codelab_matches where user_id = uid and match_id = p_match_id) then return 0; end if;
+  k := 20 + 5 * p_players;
+  e := 1 / (1 + power(10::numeric, (p_avg - prof.rating)::numeric / 400));
+  pen := greatest(10, round(k * e)::int);
+  insert into public.codelab_pending (user_id, match_id, penalty) values (uid, p_match_id, pen)
+  on conflict (user_id, match_id) do nothing;
+  get diagnostics done = row_count;
+  if done = 0 then return 0; end if;
+  update public.codelab_profiles set rating = greatest(0, rating - pen), updated_at = now() where user_id = uid;
+  return pen;
+end $$;
+
+revoke all on function public.codelab_begin_match(text, int, int) from public, anon;
+grant execute on function public.codelab_begin_match(text, int, int) to authenticated;
