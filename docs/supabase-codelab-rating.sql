@@ -103,7 +103,7 @@ begin
 
   update public.codelab_profiles
      set rating = greatest(0, rating + delta),
-         games = games + 1,
+         games = games + case when held is null then 1 else 0 end,   -- 시작 때 이미 셌으면 또 세지 않음
          wins = wins + case when p_rank = 1 then 1 else 0 end,
          updated_at = now()
    where user_id = uid
@@ -148,7 +148,8 @@ begin
   on conflict (user_id, match_id) do nothing;
   get diagnostics done = row_count;
   if done = 0 then return 0; end if;
-  update public.codelab_profiles set rating = greatest(0, rating - pen), updated_at = now() where user_id = uid;
+  -- 판수는 시작할 때 센다 (탈주해서 결과를 못 내도 랭킹에 '참여'로 남게)
+  update public.codelab_profiles set rating = greatest(0, rating - pen), games = games + 1, updated_at = now() where user_id = uid;
   return pen;
 end $$;
 
