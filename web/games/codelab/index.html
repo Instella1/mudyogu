@@ -1932,7 +1932,8 @@ function onJoinReq(p) {
   if (p.uid === O.uid) reason = 'self';
   else if (R.banned.indexOf(p.uid) >= 0) reason = 'kicked';
   else if (R.status !== 'waiting' && !already) reason = 'playing';
-  else if (R.status !== 'waiting' && (G.players.find((x) => x.uid === p.uid) || {}).st === 'left') reason = 'playing';
+  // 메뉴로 기권한 사람만 못 돌아옴. 끊겨서 기권 처리된 사람은 게임이 끝나기 전이면 다시 들어와 이어서 (2026-11-06)
+  else if (R.status !== 'waiting' && (G.players.find((x) => x.uid === p.uid) || {}).quit) reason = 'playing';
   else if (!already && R.members.length >= R.max) reason = 'full';
   else if (!already && R.locked && p.pw !== R.pwHash) reason = p.pw ? 'bad_pw' : 'need_pw';
   if (!reason) {
@@ -2148,7 +2149,8 @@ window.addEventListener('pagehide', () => { try { leaveRoom(); } catch (e) {} })
  * 11. 온라인 대전 진행 (3단계)
  *   방장 = 심판. 6장의 규칙 진행을 그대로 돌리고, 사건마다 { ev, gs(판 전체) } 를 'gs' 로 보낸다.
  *   참가자는 gs 로 상태를 맞추고 ev 로 연출만 한다. 식은 'sub' 로 방장에게 보내 도착 순서대로 판정.
- *   끊김: presence 에서 사라지면 '연결 끊김' → GRACE(30초) 안에 돌아오면 이어서, 넘으면 기권(꼴등).
+ *   끊김: presence 에서 사라지면 '연결 끊김' → GRACE(30초)가 지나면 '기권' 표시. 그래도 게임이 끝나기 전에 돌아오면
+ *         다시 참가(그 라운드만 쉼). 끝날 때까지 안 돌아오면 기권(꼴등). 메뉴로 기권한 사람(quit)은 못 돌아옴.
  *   방장이 끊기면 5초 뒤 먼저 들어온 사람부터 심판을 이어받는다 (epoch 이 큰 쪽이 진짜 방장).
  * ───────────────────────────────────────────────────────────── */
 function snapshot() {
@@ -2157,7 +2159,7 @@ function snapshot() {
     epoch: NET.epoch, seq: ++NET.seq, hostUid: O.uid, code: R.code, max: R.max, locked: !!R.locked,
     gid: G.gid, min: G.min, sec: G.sec || 15, round: G.round, phase: G.phase, dice: G.dice, board: G.board, decks: G.decks,
     players: G.players.map((p) => ({ uid: p.uid, nick: p.name, rating: p.rating, score: p.score, cards: p.cards, got: p.got,
-      locked: !!p.locked, st: p.st, rank: p.rank || 0, leftAt: p.leftAt || 0, offAt: p.offAt || 0, joined: p.joined })),
+      locked: !!p.locked, st: p.st, quit: !!p.quit, rank: p.rank || 0, leftAt: p.leftAt || 0, offAt: p.offAt || 0, joined: p.joined })),
     rl: G.phase === 'play' ? Math.max(0, G.roundEnd - G.clock) : 0, gl: timeLeft(), roundMs: G.roundMs, tb: G.tb,
     tbLeft: G.phase === 'tb' && G.tb ? Math.max(0, G.tb.rollAt - G.clock) : 0,
     reason: G.result ? G.result.reason : '',
@@ -2218,7 +2220,7 @@ function onQuit(p) {
   const pl = G.players.find((x) => x.uid === p.uid);
   if (!pl || pl.st === 'left') return;
   if (isHost()) {
-    pl.st = 'left'; pl.leftAt = Date.now(); pl.locked = true;
+    pl.st = 'left'; pl.leftAt = Date.now(); pl.locked = true; pl.quit = true;
     renderScores();
     emit({ t: 'pstat' });
     if (G.running && activePlayers().length < 2) finish('alone');
@@ -2302,7 +2304,7 @@ function applyState(gs) {
   G.tb = gs.tb || null;
   G.roundMs = gs.roundMs || ROUND_MS;
   G.players = gs.players.map((x) => ({ uid: x.uid, name: x.nick, rating: x.rating, me: x.uid === O.uid, ai: false,
-    score: x.score, cards: x.cards, got: x.got || [], locked: x.locked, st: x.st, rank: x.rank, leftAt: x.leftAt,
+    score: x.score, cards: x.cards, got: x.got || [], locked: x.locked, st: x.st, quit: !!x.quit, rank: x.rank, leftAt: x.leftAt,
     offAt: x.offAt, joined: x.joined }));
   me = G.players.find((p) => p.me);
   if (NET.myLock === G.round) me.locked = true;
@@ -2376,8 +2378,10 @@ function netTick() {
     const t = Date.now();
     let changed = false;
     G.players.forEach((p) => {
-      if (p.me || p.st === 'left') return;
+      // 메뉴로 기권한 사람(quit)만 끝. 끊겨서 기권 처리된 사람은 게임이 끝나기 전에 돌아오면 다시 참가
+      if (p.me || (p.st === 'left' && p.quit)) return;
       const here = NET.present.has(p.uid);
+      if (here && p.st === 'left') { p.st = 'on'; p.locked = true; p.leftAt = 0; changed = true; return; }   // 이번 라운드만 쉬고 다음 굴림부터
       if (!here && p.st === 'on') { p.st = 'off'; p.offAt = t; changed = true; }
       else if (here && p.st === 'off') { p.st = 'on'; changed = true; }
       else if (!here && p.st === 'off' && t - p.offAt > NET.GRACE) { p.st = 'left'; p.leftAt = t; p.locked = true; changed = true; }
