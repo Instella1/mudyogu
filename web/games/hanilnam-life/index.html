@@ -2185,6 +2185,7 @@ if(typeof document!=='undefined'){
    - 상반기 호실축구·현제관(3학년은 2~3명만): 결승은 1명 더 · 4강은 최대 1명 더 나오고,
      누가 나올지 고를 때 오버롤이 높을수록 훨씬 유리하게 (오버롤²  →  4강 오버롤⁴ · 결승 오버롤⁶)
    - 체육대회(반 대항): 결승에선 3학년 상위권이 빠지지 않고(결석 12% → 0%), 준결승은 4%
+   - 수능날(11/19) 경기 — 왕중왕전 결승 · 3·4위전 — 에는 3학년이 아예 안 나온다.
    원본 prepMatch 는 그대로 두고, 같은 순서로 명단을 짜되 위 규칙만 더한 함수로 바꿔 끼운다. */
 (function lifeBigMatch(){
   if (typeof prepMatch !== 'function') return;
@@ -2201,8 +2202,19 @@ if(typeof document!=='undefined'){
     return st === 'FIN' ? 2 : (st === 'SF' || st === '3RD' || st === 'PO') ? 1 : 0;
   }
   const origPrep = prepMatch;
+  // 수능날(왕중왕전 결승 · 3·4위전): 3학년은 시험장에 있으니 아예 안 나온다
+  function suneungMatch(m) {
+    const f = m.fx || MUD_BG_FX;
+    return (m.comp === 'wjw' && f && (f.st === 'FIN' || f.st === '3RD')) ||
+           (typeof KD !== 'undefined' && S && S.day === KD.suneung);
+  }
   prepMatch = function (m) {
     if (m.lu) return;
+    if (suneungMatch(m)) {
+      const origSquad = squad;
+      squad = function (sp) { return origSquad(sp).filter(p => p.gen !== 37); };
+      try { return origPrep(m); } finally { squad = origSquad; }
+    }
     const lv = bigLevel(m);
     if (!lv) return origPrep(m);
     m.big = lv;
