@@ -391,6 +391,7 @@ kbd{font-family:var(--mf);font-size:11px;padding:0 5px;border-radius:5px;border:
     <div class="menu">
       <button class="btn pri big" id="bAI">🤖 AI 대전</button>
       <button class="btn big" id="bOnline">🌐 온라인 대전</button>
+      <button class="btn" id="bTitleRank">🏆 온라인 랭킹 · 내 기록</button>
       <div class="row">
         <button class="btn" id="bRules">📖 게임 방법</button>
         <button class="btn" id="bSound">🔊 소리 켜짐</button>
@@ -1767,8 +1768,8 @@ function enterLobby() {
     '<div id="roomList"></div></div>';
   $('#bMake').onclick = openMakeRoom;
   $('#bCode').onclick = openCodeJoin;
-  $('#bRank').onclick = () => openBoard('rank');
-  $('#bMine').onclick = () => openBoard('mine');
+  $('#bRank').onclick = () => { BD_FROM = 'lobby'; openBoard('rank'); };
+  $('#bMine').onclick = () => { BD_FROM = 'lobby'; openBoard('mine'); };
   reportRating();
   renderRooms();
   if (!O.lobby) {
@@ -2467,14 +2468,101 @@ function openBoard(tab) {
   loadBoard();
 }
 $$('.tab').forEach((t) => { t.onclick = () => { sfx('click'); openBoard(t.dataset.t); }; });
-$('#bBdBack').onclick = () => enterLobby();
+let BD_FROM = 'lobby';   // 랭킹 화면을 어디서 열었는지 (처음 화면 / 로비)
+$('#bBdBack').onclick = () => { if (BD_FROM === 'title') show('sTitle'); else enterLobby(); };
+// 처음 화면에서 바로: 로그인·인터넷이 되면 최신 순위, 안 되면 마지막으로 본 순위
+$('#bTitleRank').onclick = () => { sfx('click'); BD_FROM = 'title'; openBoard('rank'); };
 function fmtDate(iso) {
   const d = new Date(iso);
   if (isNaN(d)) return '';
   return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 }
+/* 랭킹 · 내 기록: 받아 온 결과를 기기에 저장해 두고, 와이파이가 없거나 서버가 안 되면 마지막 결과를 보여 준다
+   (localStorage 라 계정마다 따로 보관됨) */
+const BOARD_KEY = 'codelab:board';
+function boardCache() { return store.get(BOARD_KEY, {}) || {}; }
+function saveBoard(tab, data) { const c = boardCache(); c[tab] = Object.assign({ at: Date.now(), uid: O.uid }, data); store.set(BOARD_KEY, c); }
+function renderRank(rows, myRank, prof, uid) {
+  const list = $('#bdList');
+  $('#bdSum').innerHTML = prof
+    ? '<span class="tagp">🙂 ' + esc(prof.nickname) + '</span><span class="tagp">내 순위 <b>' + (myRank ? myRank + '위' : '-') + '</b></span><span class="tagp">🏅 <b>' + prof.rating + '</b></span>'
+    : '';
+  if (!rows.length) { list.innerHTML = '<div class="empty"><div class="ic">🏆</div>아직 랭킹이 없어요.<br>첫 대전의 주인공이 되어 보세요!</div>'; return; }
+  const medal = (n) => ['🥇', '🥈', '🥉'][n - 1];
+  list.innerHTML = '<div class="rkRow rkHead"><span>순위</span><span>닉네임</span><span style="text-align:right">레이팅</span><span style="text-align:right">전적</span></div>' +
+    rows.map((x) => '<div class="rkRow' + (x.user_id === uid ? ' me' : '') + '">' +
+      '<span class="no' + (x.no <= 3 ? ' top' : '') + '">' + (medal(x.no) || x.no) + '</span>' +
+      '<span class="nk">' + esc(x.nickname) + (x.user_id === uid ? ' (나)' : '') + '</span>' +
+      '<span class="rt">' + x.rating + '</span>' +
+      '<span class="gw">' + x.games + '판 · 1등 ' + x.wins + '번</span></div>').join('');
+}
+function renderMine(rows, prof) {
+  const list = $('#bdList');
+  const P = prof || { games: 0, wins: 0, rating: 1000 };
+  const best = rows.reduce((m, x) => Math.max(m, x.rating_after), P.rating);
+  $('#bdSum').innerHTML = '<span class="tagp">🎮 <b>' + P.games + '</b>판</span><span class="tagp">🏆 1등 <b>' + P.wins + '</b>번</span>' +
+    '<span class="tagp">승률 <b>' + (P.games ? Math.round(P.wins / P.games * 100) : 0) + '%</b></span><span class="tagp">🏅 지금 <b>' + P.rating + '</b> · 최고 <b>' + best + '</b></span>';
+  if (!rows.length) { list.innerHTML = '<div class="empty"><div class="ic">📜</div>아직 온라인 대전 기록이 없어요.<br>방을 만들어 첫 판을 해 보세요!</div>'; return; }
+  list.innerHTML = '';
+  rows.forEach((x) => {
+    const d = x.rating_after - x.rating_before;
+    const det = (Array.isArray(x.detail) ? x.detail : []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99));
+    const others = det.filter((y) => y.nick !== (prof && prof.nickname)).map((y) => y.nick);
+    const b = document.createElement('button');
+    b.className = 'mtRow';
+    b.innerHTML = '<span class="dt">' + fmtDate(x.played_at) + '</span>' +
+      '<span class="rk">' + (x.rank === 1 ? '🏆 ' : '') + x.rank + '<small class="mut">/' + x.players + '</small></span>' +
+      '<span class="ppl">vs ' + esc(others.join(', ') || '-') + '</span>' +
+      '<span class="pt">' + x.points + 'P</span>' +
+      '<span class="dr' + (d < 0 ? ' neg' : '') + '">' + (d >= 0 ? '+' : '') + d + ' <small class="mut">→' + x.rating_after + '</small></span>';
+    const box = document.createElement('div');
+    box.className = 'mtDet';
+    box.innerHTML = det.map((y) => '<div><span>' + (y.left ? '🏳' : y.rank + '등') + '</span><span>' + esc(y.nick) + '</span><span>' + y.points + 'P · 카드 ' + y.cards + '</span></div>').join('');
+    b.onclick = () => { box.classList.toggle('on'); sfx('click'); };
+    list.appendChild(b);
+    list.appendChild(box);
+  });
+}
+function showBoardCache(tab, why) {
+  const hit = boardCache()[tab];
+  if (!hit) {
+    $('#bdSum').innerHTML = '';
+    $('#bdList').innerHTML = '<div class="empty"><div class="ic">📴</div>' + why + '<br>인터넷에 한 번 연결해서 열어 두면, 그 뒤로는 와이파이 없이도 마지막 ' + (tab === 'rank' ? '순위' : '기록') + '를 볼 수 있어요.' +
+      '<button class="btn" id="bdRetry" style="width:200px;margin-top:8px">다시 시도</button></div>';
+    $('#bdRetry').onclick = loadBoard;
+    return;
+  }
+  if (tab === 'rank') renderRank(hit.rows || [], hit.myRank || 0, hit.prof || null, hit.uid);
+  else renderMine(hit.rows || [], hit.prof || null);
+  const d = new Date(hit.at);
+  const note = document.createElement('div');
+  note.style.cssText = 'padding:8px 12px;margin:0 0 10px;border-radius:12px;background:rgba(255,210,90,.12);color:#ffd25a;font-size:13px;text-align:center';
+  note.innerHTML = '📴 ' + why + ' · <b>' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '</b> 기준이에요.';
+  $('#bdList').prepend(note);
+}
+/* 처음 화면에서 랭킹을 열 때: 로비를 거치지 않고 조용히 온라인 연결 (실패하면 저장해 둔 순위) */
+async function ensureSb() {
+  if (O.sb) return true;
+  try {
+    const a = await getAuth();
+    if (!a.signedIn) return false;
+    O.uid = a.uid;
+    applyToken(a);
+    await loadLib();
+    O.sb = window.supabase.createClient(SB_URL, SB_KEY, { accessToken: async () => O.token });
+    const r = await withTimeout(O.sb.from('codelab_profiles').select('nickname,rating,games,wins').eq('user_id', O.uid).limit(1), 10000);
+    if (!r.error) O.profile = (r.data && r.data[0]) || null;
+    return true;
+  } catch (e) { return false; }
+}
 async function loadBoard() {
   const tab = BD, list = $('#bdList');
+  if (!O.sb && navigator.onLine !== false) {
+    list.innerHTML = '<div class="empty"><div class="ic">⏳</div>연결하는 중…</div>';
+    await ensureSb();
+    if (BD !== tab) return;
+  }
+  if (!O.sb || navigator.onLine === false) { showBoardCache(tab, navigator.onLine === false ? '오프라인이에요' : '온라인에 연결되지 않았어요'); return; }
   list.innerHTML = '<div class="empty"><div class="ic">⏳</div>불러오는 중…</div>';
   $('#bdSum').innerHTML = '';
   try {
@@ -2491,17 +2579,8 @@ async function loadBoard() {
         if (!c.error && typeof c.count === 'number') myRank = c.count + 1;
       }
       if (BD !== tab) return;
-      $('#bdSum').innerHTML = O.profile
-        ? '<span class="tagp">🙂 ' + esc(O.profile.nickname) + '</span><span class="tagp">내 순위 <b>' + (myRank ? myRank + '위' : '-') + '</b></span><span class="tagp">🏅 <b>' + O.profile.rating + '</b></span>'
-        : '';
-      if (!rows.length) { list.innerHTML = '<div class="empty"><div class="ic">🏆</div>아직 랭킹이 없어요.<br>첫 대전의 주인공이 되어 보세요!</div>'; return; }
-      const medal = (n) => ['🥇', '🥈', '🥉'][n - 1];
-      list.innerHTML = '<div class="rkRow rkHead"><span>순위</span><span>닉네임</span><span style="text-align:right">레이팅</span><span style="text-align:right">전적</span></div>' +
-        rows.map((x) => '<div class="rkRow' + (x.user_id === O.uid ? ' me' : '') + '">' +
-          '<span class="no' + (x.no <= 3 ? ' top' : '') + '">' + (medal(x.no) || x.no) + '</span>' +
-          '<span class="nk">' + esc(x.nickname) + (x.user_id === O.uid ? ' (나)' : '') + '</span>' +
-          '<span class="rt">' + x.rating + '</span>' +
-          '<span class="gw">' + x.games + '판 · 1등 ' + x.wins + '번</span></div>').join('');
+      saveBoard('rank', { rows, myRank, prof: O.profile });
+      renderRank(rows, myRank, O.profile, O.uid);
     } else {
       const r = await withTimeout(O.sb.from('codelab_matches')
         .select('match_id,played_at,players,rank,points,cards,rating_before,rating_after,detail')
@@ -2509,35 +2588,12 @@ async function loadBoard() {
       if (r.error) throw r.error;
       if (BD !== tab) return;
       const rows = r.data || [];
-      const P = O.profile || { games: 0, wins: 0, rating: 1000 };
-      const best = rows.reduce((m, x) => Math.max(m, x.rating_after), P.rating);
-      $('#bdSum').innerHTML = '<span class="tagp">🎮 <b>' + P.games + '</b>판</span><span class="tagp">🏆 1등 <b>' + P.wins + '</b>번</span>' +
-        '<span class="tagp">승률 <b>' + (P.games ? Math.round(P.wins / P.games * 100) : 0) + '%</b></span><span class="tagp">🏅 지금 <b>' + P.rating + '</b> · 최고 <b>' + best + '</b></span>';
-      if (!rows.length) { list.innerHTML = '<div class="empty"><div class="ic">📜</div>아직 온라인 대전 기록이 없어요.<br>방을 만들어 첫 판을 해 보세요!</div>'; return; }
-      list.innerHTML = '';
-      rows.forEach((x) => {
-        const d = x.rating_after - x.rating_before;
-        const det = (Array.isArray(x.detail) ? x.detail : []).slice().sort((a, b) => (a.rank || 99) - (b.rank || 99));
-        const others = det.filter((y) => y.nick !== (O.profile && O.profile.nickname)).map((y) => y.nick);
-        const b = document.createElement('button');
-        b.className = 'mtRow';
-        b.innerHTML = '<span class="dt">' + fmtDate(x.played_at) + '</span>' +
-          '<span class="rk">' + (x.rank === 1 ? '🏆 ' : '') + x.rank + '<small class="mut">/' + x.players + '</small></span>' +
-          '<span class="ppl">vs ' + esc(others.join(', ') || '-') + '</span>' +
-          '<span class="pt">' + x.points + 'P</span>' +
-          '<span class="dr' + (d < 0 ? ' neg' : '') + '">' + (d >= 0 ? '+' : '') + d + ' <small class="mut">→' + x.rating_after + '</small></span>';
-        const box = document.createElement('div');
-        box.className = 'mtDet';
-        box.innerHTML = det.map((y) => '<div><span>' + (y.left ? '🏳' : y.rank + '등') + '</span><span>' + esc(y.nick) + '</span><span>' + y.points + 'P · 카드 ' + y.cards + '</span></div>').join('');
-        b.onclick = () => { box.classList.toggle('on'); sfx('click'); };
-        list.appendChild(b);
-        list.appendChild(box);
-      });
+      saveBoard('mine', { rows, prof: O.profile });
+      renderMine(rows, O.profile);
     }
   } catch (e) {
     if (BD !== tab) return;
-    list.innerHTML = '<div class="empty"><div class="ic">⚠️</div>' + esc(errText(e)).replace(/\n/g, '<br>') + '<button class="btn" id="bdRetry" style="width:200px;margin-top:8px">다시 시도</button></div>';
-    $('#bdRetry').onclick = loadBoard;
+    showBoardCache(tab, '서버에 연결하지 못했어요');
   }
 }
 
