@@ -2422,6 +2422,17 @@ function quitOnline() {
 async function beginMatch() {
   if (!O.sb || !me || !G.gid || NET.begun === G.gid) return;
   NET.begun = G.gid; NET.penalty = 0;
+  // 시작할 때 서버의 내 레이팅으로 다시 맞춰 둔다 (SQL 로 고쳤거나 다른 기기에서 바뀐 경우 대비)
+  // 상대들 레이팅도 방에 들어올 때 값 말고 지금 서버 값으로 (레이팅 계산의 '상대 평균'에 쓰임)
+  try {
+    const pr = await withTimeout(O.sb.from('codelab_profiles').select('user_id,nickname,rating,games,wins')
+      .in('user_id', G.players.map((p) => p.uid)), 8000);
+    if (!pr.error && pr.data) pr.data.forEach((row) => {
+      if (row.user_id === O.uid) O.profile = Object.assign(O.profile || {}, { nickname: row.nickname, rating: row.rating, games: row.games, wins: row.wins });
+      const pl = G.players.find((p) => p.uid === row.user_id);
+      if (pl && !pl.me) pl.rating = row.rating;
+    });
+  } catch (e) { /* 그대로 */ }
   const opp = G.players.filter((p) => !p.me && typeof p.rating === 'number');
   const mine = O.profile ? O.profile.rating : 1000;
   const avg = opp.length ? Math.round(opp.reduce((a, p) => a + p.rating, 0) / opp.length) : mine;
@@ -2458,8 +2469,16 @@ async function recordMatch(quit) {
     }
     if (r.error) throw r.error;
     if (r.data && O.profile) Object.assign(O.profile, { rating: r.data.rating, games: r.data.games, wins: r.data.wins });
-    const after = O.profile ? O.profile.rating : before, d = after - before;
-    if (!quit) $('#rRating').innerHTML = '🏅 레이팅 ' + before + ' → ' + after + ' <b class="' + (d < 0 ? 'neg' : '') + '">(' + (d >= 0 ? '+' : '') + d + ')</b>' +
+    // 변화량은 서버에 저장된 그 판의 '전 → 후' 그대로 보여 준다.
+    // (게임이 기억하던 내 레이팅이 옛날 값이면 −5 인데 +5 처럼 틀리게 보였음 — 2026-11-07 염버지 사례)
+    let shown = { before, after: O.profile ? O.profile.rating : before };
+    try {
+      const q = await withTimeout(O.sb.from('codelab_matches').select('rating_before,rating_after')
+        .eq('user_id', O.uid).eq('match_id', G.gid).limit(1), 8000);
+      if (!q.error && q.data && q.data[0]) shown = { before: q.data[0].rating_before, after: q.data[0].rating_after };
+    } catch (e) { /* 못 읽으면 위 값 */ }
+    const after = shown.after, d = after - shown.before;
+    if (!quit) $('#rRating').innerHTML = '🏅 레이팅 ' + shown.before + ' → ' + after + ' <b class="' + (d < 0 ? 'neg' : '') + '">(' + (d >= 0 ? '+' : '') + d + ')</b>' +
       ' <small class="mut">· 상대 평균 ' + avg + ' · 참가 보상 +' + Math.min(7, 2 + Math.round(Math.min(400, me.score) / 20)) + ' 포함</small>';
     renderMeChip();
     reportRating();
