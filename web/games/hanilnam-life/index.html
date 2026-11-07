@@ -2260,6 +2260,99 @@ if(typeof document!=='undefined'){
   });
 })();
 
+/* ===================== 뮤됴구: 2026-11-07 사용자 요청 묶음 =====================
+   1) 내 정보 전적 오류 (예: 27경기 24승 4패): '승부차기 패' 도 '승'으로 시작해서 승리로도 세고 있었음
+      → 승 = '승' · '승부차기 승' 만.
+   3) 현제관 체육대회 6인제: 줄마다 이 포지션이면 100% (적합도 1)
+      맨 앞(ST 칸) ST·LW·RW / 가운데(CM 칸) RW·LW·AM·CM·DM / 수비(CB 칸) CB·LB·RB / 골키퍼 GK
+   4) LEGACY SCORE: 1학년장 +300 → +200
+   5) 3월 21일 호실축구 유니폼 정하기 (8종) → 3월 28일 택배 도착, 가방 아이템으로 (가방 22칸) */
+(function lifeNov7(){
+  if (typeof seasonStats !== 'function') return;
+
+  // 1) 전적
+  const origStats = seasonStats;
+  seasonStats = function () {
+    const o = origStats.apply(this, arguments);
+    o.w = (S.log || []).filter(x => x.r === '승' || x.r === '승부차기 승').length;
+    return o;
+  };
+
+  // 3) 6인제 줄별 포지션
+  const MINI_ROW = { ST: ['ST', 'LW', 'RW'], CM: ['RW', 'LW', 'AM', 'CM', 'DM'], CB: ['CB', 'LB', 'RB'], GK: ['GK'] };
+  let mini = false;
+  const origFit = fit;
+  fit = function (p, pos) {
+    if (mini && MINI_ROW[pos] && MINI_ROW[pos].indexOf(p.pos) >= 0) return 1;
+    return origFit(p, pos);
+  };
+  const isMini = f => f === FORM6.id || f === FORM6 || (f && f.form === FORM6.id);
+  const withMini = (fn, pick) => function () {
+    const prev = mini; mini = isMini(pick(arguments));
+    try { return fn.apply(this, arguments); } finally { mini = prev; }
+  };
+  autoLineup = withMini(autoLineup, a => a[2]);
+  fillLineup = withMini(fillLineup, a => a[1]);
+  remapForm = withMini(remapForm, a => a[1]);
+  teamCtx = withMini(teamCtx, a => a[0]);
+  lineupPitch = withMini(lineupPitch, a => a[0]);
+
+  // 4) LEGACY SCORE 1학년장 300 → 200
+  const origLS = computeLS;
+  computeLS = function () {
+    const L = origLS.apply(this, arguments);
+    let diff = 0;
+    L.items = L.items.map(([a, v]) => (a === '1학년장' && v === 300) ? (diff += 100, [a, 200]) : [a, v]);
+    if (diff) {
+      L.total -= diff;
+      const t = L.total;
+      L.grade = t >= 4500 ? 'S+' : t >= 3700 ? 'S' : t >= 3000 ? 'A' : t >= 2300 ? 'B' : t >= 1600 ? 'C' : 'D';
+    }
+    return L;
+  };
+
+  // 5) 유니폼
+  const UNI = [
+    ['u_psg', '파리 생제르망 유니폼', '남색과 붉은색이 어우러지는 축구 유니폼', [[0, .3]]],
+    ['u_chelsea', '첼시 유니폼', '파란색과 검은색이 어우러지는 축구 유니폼', [[1, .3]]],
+    ['u_real', '레알 마드리드 유니폼', '흰색과 핑크색이 어우러지는 축구 유니폼', [[2, .3]]],
+    ['u_barca', '바르셀로나 유니폼', '보라색과 남색이 어우러지는 축구 유니폼', [[3, .3]]],
+    ['u_munich', '뮌헨 유니폼', '붉은색과 금색이 어우러지는 축구 유니폼', [[4, .4]]],
+    ['u_arsenal', '아스날 유니폼', '붉은색과 흰색이 어우러지는 축구 유니폼', [[5, .3]]],
+    ['u_dortmund', '도르트문트 유니폼', '노란색과 검은색이 어우러지는 축구 유니폼', [[6, .3]]],
+    ['u_amuli', '어물리 레인저스 유니폼', '녹색과 황토색이 어우러지는 축구 유니폼', [[7, .4]]],
+  ];
+  UNI.forEach(([id, n, d, fx]) => { if (!ITEMS[id]) ITEMS[id] = { n, d: d + '. 유니폼 정하는 날(3월 21일)에 고르면 일주일 뒤 배송된다', fx }; });
+  const PICK_DAY = idxOf(3, 21), SHIP_DAY = idxOf(3, 28);
+  const origBuild = buildSteps;
+  buildSteps = function (i, auto) {
+    const st = origBuild.apply(this, arguments);
+    if (!S || !S.players || S.hero == null) return st;
+    S.ev = S.ev || {};
+    const at = st.length && st[0].kind === 'script' ? 1 : 0;
+    if (i === PICK_DAY && !S.ev.uniPick && !UNI.some(u => hasItem(u[0]))) {
+      const H = P(S.hero), c = ctxNow(), mate = c.rm || c.pt;
+      st.splice(at, 0, { kind: 'script', scene: 'dorm', li: 0, lines: [
+        N('3월 21일. 호실축구 유니폼을 정하는 날이다.'),
+        mate ? L(mate, '우리 호실 유니폼 뭐로 할래? 오늘 주문하면 다음 주 토요일에 택배로 온대.') : N('오늘 주문하면 다음 주 토요일에 택배로 온다고 한다.'),
+        C(H, '(어떤 유니폼으로 할까?)', UNI.map(([id, n, , fx]) => ({
+          l: `${n.replace(' 유니폼', '')} — ${fx.map(([k, a]) => ST[k] + ' +' + a).join(', ')}`,
+          fx: () => { S.ev.uniPick = id; },
+          r: [N(`${n}으로 정했다. 3월 28일에 택배로 온다.`)],
+        }))),
+      ] });
+    }
+    if (i === SHIP_DAY && S.ev.uniPick && !hasItem(S.ev.uniPick) && ITEMS[S.ev.uniPick]) {
+      const id = S.ev.uniPick;
+      st.splice(at, 0, { kind: 'script', scene: 'dorm', li: 0, lines: [
+        N('택배가 왔다! 일주일 전에 고른 호실축구 유니폼이다.'),
+        Object.assign(N(`${ITEMS[id].n}을(를) 얻었다!`), { fx: () => giveItem(id) }),
+      ] });
+    }
+    return st;
+  };
+})();
+
 /* ===================== 뮤됴구: 엔터키로 대화 넘기기 =====================
    원본은 대화창을 클릭하거나, 대화창에 포커스가 있을 때만 엔터가 먹었다.
    → 어디서든 엔터를 누르면 지금 대화를 다음 줄로 넘긴다.
