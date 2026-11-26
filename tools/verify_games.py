@@ -12,6 +12,7 @@ CASES = [
     ("pokequiz", "/games/pokequiz/index.html", "pokequiz"),
     ("tower-drop", "/games/tower-drop/index.html", "towerdrop"),
     ("codelab", "/games/codelab/index.html", "codelab"),
+    ("banpick", "/games/banpick/index.html", "banpick"),
 ]
 
 VIEWPORTS = [

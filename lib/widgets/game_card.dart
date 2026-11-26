@@ -195,6 +195,7 @@ class _GameGlyph extends StatelessWidget {
     'pokequiz': Icons.catching_pokemon_rounded,
     'tower-drop': Icons.apartment_rounded,
     'codelab': Icons.calculate_rounded,
+    'banpick': Icons.how_to_vote_rounded,
   };
 
   @override

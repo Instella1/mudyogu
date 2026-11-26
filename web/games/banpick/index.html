@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>밴픽 시뮬레이터</title>
+<!-- 오프라인 번들 폰트 (CDN 미사용) -->
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{
+  --bg:#0a0e17; --panel:#111827; --panel2:#172033; --line:rgba(255,255,255,.09);
+  --txt:#e8edf6; --mut:#8a96ab; --gold:#e8c66a; --gold2:#b8913a;
+  --blue:#3d8bff; --blue2:#1c4fa3; --red:#ff4d5a; --red2:#a3222c;
+  --hfont:'Black Han Sans','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+  font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  -webkit-user-select:none;user-select:none;overscroll-behavior:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input{font:inherit;color:inherit}
+.h{font-family:var(--hfont);font-weight:400;letter-spacing:.01em}
+.mut{color:var(--mut)}
+
+#app{height:100%;display:flex;flex-direction:column;
+  background:radial-gradient(1200px 500px at 0% 0%,rgba(61,139,255,.10),transparent 60%),
+             radial-gradient(1200px 500px at 100% 0%,rgba(255,77,90,.10),transparent 60%),var(--bg)}
+
+/* ── 상단 ─────────────────────────────── */
+#top{flex:0 0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;
+  padding:8px 14px;border-bottom:1px solid var(--line);background:rgba(10,14,23,.7)}
+.tm{display:flex;align-items:center;gap:10px;min-width:0}
+.tm.R{justify-content:flex-end}
+.tm .nm{font-family:var(--hfont);font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm.B .nm{color:#9cc4ff}.tm.R .nm{color:#ffa3aa}
+.tm .sd{font-size:11px;font-weight:800;padding:3px 7px;border-radius:6px;letter-spacing:.06em}
+.tm.B .sd{background:var(--blue2)}.tm.R .sd{background:var(--red2)}
+.wins{display:flex;gap:4px}
+.wins i{width:11px;height:11px;border-radius:50%;border:2px solid rgba(255,255,255,.35)}
+.wins i.on{background:var(--gold);border-color:var(--gold)}
+#mid{text-align:center;min-width:220px}
+#phase{font-size:11px;color:var(--mut);letter-spacing:.08em}
+#turn{font-family:var(--hfont);font-size:20px;line-height:1.15}
+#turn.B{color:#8ab8ff}#turn.R{color:#ff8f98}
+#timer{font-family:var(--hfont);font-size:15px;color:var(--gold)}
+#timer.low{color:var(--red);animation:blink .5s infinite alternate}
+@keyframes blink{to{opacity:.35}}
+
+#seq{flex:0 0 auto;display:flex;justify-content:center;gap:3px;padding:6px 10px 0}
+#seq b{width:20px;height:6px;border-radius:3px;opacity:.28}
+#seq b.B{background:var(--blue)}#seq b.R{background:var(--red)}
+#seq b.pk{height:10px}
+#seq b.gap{margin-left:8px}
+#seq b.done{opacity:.85}
+#seq b.now{opacity:1;box-shadow:0 0 0 2px #fff;animation:blink .6s infinite alternate}
+
+/* ── 본문 3단 ─────────────────────────── */
+#main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(190px,250px) 1fr minmax(190px,250px);
+  gap:12px;padding:10px 14px 12px}
+.side{min-height:0;display:flex;flex-direction:column;gap:8px}
+.bans{display:flex;gap:5px}
+.side.R .bans{flex-direction:row-reverse}
+.ban{flex:1;aspect-ratio:1;max-height:46px;border-radius:8px;border:1px solid var(--line);background:var(--panel);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative;overflow:hidden;
+  text-align:center;line-height:1.1;padding:2px;color:#c9cfdb}
+.ban.fill{filter:grayscale(.85) brightness(.75)}
+.ban.fill::after{content:'';position:absolute;inset:0;background:linear-gradient(to top right,transparent 46%,rgba(255,77,90,.95) 48%,rgba(255,77,90,.95) 52%,transparent 54%)}
+.ban.skip{color:var(--mut)}
+.ban.now{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.4) inset;animation:pulse 1s infinite}
+.ban.now.hov{filter:none}
+@keyframes pulse{50%{border-color:var(--gold)}}
+.picks{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
+.pick{flex:1;min-height:0;border-radius:12px;border:1px solid var(--line);background:var(--panel);display:flex;align-items:center;
+  gap:10px;padding:6px 12px;position:relative;overflow:hidden}
+.side.R .pick{flex-direction:row-reverse;text-align:right}
+.pick .ord{font-family:var(--hfont);font-size:13px;color:var(--mut);width:24px;flex:0 0 auto;text-align:center}
+.pick .info{min-width:0;flex:1}
+.pick .cn{font-family:var(--hfont);font-size:clamp(16px,2.2vw,22px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .ce{font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .rl{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.1);flex:0 0 auto}
+.pick.fill{background:var(--cbg)}
+.side.B .pick.fill{border-color:rgba(61,139,255,.45)}
+.side.R .pick.fill{border-color:rgba(255,77,90,.45)}
+.pick.now{border-color:#fff;animation:pulse 1s infinite}
+.pick.now.hov{background:var(--cbg);opacity:.85}
+.pick.empty .cn{color:rgba(255,255,255,.18);font-size:15px}
+
+.center{min-height:0;display:flex;flex-direction:column;background:rgba(17,24,39,.65);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tools{flex:0 0 auto;display:flex;gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+#q{flex:1 1 160px;min-width:120px;height:34px;border-radius:9px;border:1px solid var(--line);background:#0b111d;padding:0 11px;outline:none;
+  -webkit-user-select:text;user-select:text}
+#q:focus{border-color:var(--gold2)}
+.roles{display:flex;gap:4px;flex-wrap:wrap}
+.roles button{height:30px;padding:0 10px;border-radius:8px;background:var(--panel2);font-size:13px;font-weight:700;color:#b9c3d6}
+.roles button.on{background:var(--gold);color:#1b1500}
+#grid{flex:1 1 auto;min-height:0;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+  gap:6px;align-content:start}
+.ch{height:62px;border-radius:9px;background:var(--cbg);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:3px;text-align:center;border:2px solid transparent;transition:transform .08s}
+.ch:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.45)}
+.ch .k{font-weight:800;font-size:13.5px;line-height:1.1;word-break:keep-all;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.ch .e{font-size:9.5px;opacity:.65;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ch .r{position:absolute;top:2px;left:4px;font-size:9px;opacity:.75;font-weight:700}
+.ch.sel{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,198,106,.35)}
+.ch.off{filter:grayscale(1) brightness(.42);cursor:default;transform:none}
+.ch.off:hover{border-color:transparent}
+.ch .tag{position:absolute;bottom:2px;right:3px;font-size:9px;font-weight:800;padding:0 4px;border-radius:4px;background:rgba(0,0,0,.65);color:#fff}
+#none{display:none;grid-column:1/-1;text-align:center;color:var(--mut);padding:30px 0}
+.ctrl{flex:0 0 auto;display:flex;gap:8px;padding:8px;border-top:1px solid var(--line);align-items:center}
+.btn{height:42px;padding:0 14px;border-radius:10px;background:var(--panel2);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--line)}
+.btn:hover{filter:brightness(1.18)}
+.btn[disabled]{opacity:.4;cursor:default;filter:none}
+.btn.gold{background:linear-gradient(#f0d27c,#c49a3e);color:#211600;border-color:transparent}
+.btn.lock{flex:1;font-family:var(--hfont);font-weight:400;font-size:19px}
+.btn.B{background:linear-gradient(#4b95ff,#235fc4);border-color:transparent}
+.btn.R{background:linear-gradient(#ff5d69,#bd2b37);border-color:transparent}
+.btn.sm{height:34px;font-size:13px;padding:0 10px}
+#aiWait{display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-family:var(--hfont);font-size:20px;
+  background:rgba(10,14,23,.35);pointer-events:none}
+.gridWrap{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.ai #aiWait{display:flex}
+.ai #grid{pointer-events:none}
+
+/* ── 창 ─────────────────────────────── */
+.modal{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;padding:14px;background:rgba(4,6,12,.72);z-index:10;overflow-y:auto}
+.modal.on{display:flex}
+.card{margin:auto;background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px;width:min(560px,100%);
+  box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pop .25s cubic-bezier(.2,1.3,.4,1)}
+.card.wide{width:min(860px,100%)}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.card h2{margin:0 0 4px;font-family:var(--hfont);font-weight:400;font-size:28px;color:var(--gold)}
+.card h3{margin:14px 0 6px;font-size:13px;color:var(--mut);font-weight:700}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;height:38px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-weight:700;font-size:14px}
+.seg button.on{background:var(--gold);color:#1b1500;border-color:transparent}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.names input{height:38px;border-radius:10px;border:1px solid var(--line);background:#0b111d;padding:0 11px;outline:none;width:100%;
+  -webkit-user-select:text;user-select:text}
+.names label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px}
+.note{font-size:12px;color:var(--mut);margin-top:6px;line-height:1.5}
+.row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.row>.btn{flex:1}
+
+.lineups{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.lu{border-radius:12px;padding:10px;border:1px solid var(--line)}
+.lu.B{background:rgba(61,139,255,.08);border-color:rgba(61,139,255,.35)}
+.lu.R{background:rgba(255,77,90,.08);border-color:rgba(255,77,90,.35)}
+.lu .t{font-family:var(--hfont);font-size:18px;margin-bottom:6px}
+.lu.B .t{color:#9cc4ff}.lu.R .t{color:#ffa3aa}
+.lu .p{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;margin-bottom:4px;background:var(--cbg);cursor:pointer;border:2px solid transparent}
+.lu .p.sw{border-color:var(--gold)}
+.lu .p .rl{font-size:11px;font-weight:800;width:34px;opacity:.85}
+.lu .p .n{font-weight:800}
+.lu .bb{font-size:11.5px;color:var(--mut);margin-top:6px;line-height:1.5}
+.hist{max-height:55vh;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:8px}
+.hi{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0d1320;font-size:12.5px;line-height:1.55}
+.hi .hd{display:flex;justify-content:space-between;gap:8px;font-weight:800;margin-bottom:4px}
+.hi .bl{color:#9cc4ff}.hi .rd{color:#ffa3aa}
+.win{color:var(--gold);font-weight:800}
+.top10{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12.5px}
+.top10 ol{margin:0;padding-left:20px;line-height:1.6}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000c;padding:9px 16px;border-radius:10px;font-size:14px;
+  z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.kbd{font-size:11px;opacity:.6;font-family:inherit}
+
+/* ── 좁은 화면 (폰) ─────────────────── */
+@media (max-width:860px){
+  #top{padding:6px 10px;gap:6px}
+  .tm .nm{font-size:16px}
+  .tm .sd{display:none}
+  #mid{min-width:0}
+  #turn{font-size:16px}
+  #seq b{width:11px}
+  #main{grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:8px;padding:8px}
+  .center{grid-column:1/-1;grid-row:2}
+  .side.B{grid-column:1;grid-row:1}.side.R{grid-column:2;grid-row:1}
+  .side{gap:5px}
+  .ban{max-height:30px;font-size:9px;border-radius:6px}
+  .picks{flex:0 0 auto;gap:3px}
+  .pick{flex:0 0 auto;height:30px;padding:2px 7px;gap:6px;border-radius:7px}
+  .pick .ord{display:none}
+  .pick .ce{display:none}
+  .pick .cn{font-size:13px;font-family:inherit;font-weight:800}
+  .pick.empty .cn{font-size:12px}
+  .pick .rl{font-size:9.5px;padding:1px 5px}
+  #grid{grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:5px}
+  .ch{height:52px}.ch .k{font-size:12px}
+  .btn.lock{font-size:16px}
+  .lineups{grid-template-columns:1fr}
+  .top10{grid-template-columns:1fr}
+  .kbd{display:none}
+}
+@media (max-height:620px) and (min-width:861px){
+  .pick .ce{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div class="tm B"><span class="sd">BLUE</span><span class="nm" id="nmB">블루</span><span class="wins" id="wB"></span></div>
+    <div id="mid"><div id="phase">밴 1페이즈</div><div id="turn">-</div><div id="timer"></div></div>
+    <div class="tm R"><span class="wins" id="wR"></span><span class="nm" id="nmR">레드</span><span class="sd">RED</span></div>
+  </header>
+  <div id="seq"></div>
+  <div id="main">
+    <section class="side B"><div class="bans" id="bansB"></div><div class="picks" id="picksB"></div></section>
+    <section class="center" id="center">
+      <div class="tools">
+        <input id="q" type="search" placeholder="챔피언 검색 (초성 · 영어 가능, 예: ㅇㄹ)" autocomplete="off">
+        <div class="roles" id="roles"></div>
+      </div>
+      <div class="gridWrap"><div id="grid"></div><div id="aiWait">AI 가 고르는 중…</div></div>
+      <div class="ctrl">
+        <button class="btn" id="bUndo" title="되돌리기 (Ctrl+Z)">↶ 되돌리기</button>
+        <button class="btn" id="bSkip" title="이번 밴 넘기기">밴 안 함</button>
+        <button class="btn gold lock" id="bLock">확정 <span class="kbd">Enter</span></button>
+        <button class="btn" id="bMenu" title="설정 · 기록">☰</button>
+      </div>
+    </section>
+    <section class="side R"><div class="bans" id="bansR"></div><div class="picks" id="picksR"></div></section>
+  </div>
+</div>
+
+<!-- 설정 -->
+<div class="modal" id="mSetup"><div class="card">
+  <h2>밴픽 시뮬레이터</h2>
+  <div class="mut" style="font-size:13px">대회 방식 토너먼트 드래프트 · 챔피언 <b id="chCount"></b>명 전부</div>
+  <h3>모드</h3>
+  <div class="seg" data-k="mode"><button data-v="local">혼자 양 팀 다</button><button data-v="ai">AI 상대</button></div>
+  <div id="sideRow"><h3>내 진영 (1세트)</h3>
+    <div class="seg" data-k="userSide"><button data-v="B">🔵 블루 (선픽)</button><button data-v="R">🔴 레드 (막픽)</button></div></div>
+  <h3>세트</h3>
+  <div class="seg" data-k="bo"><button data-v="1">단판</button><button data-v="3">3판 2선승</button><button data-v="5">5판 3선승</button></div>
+  <h3>피어리스 드래프트</h3>
+  <div class="seg" data-k="fearless"><button data-v="1">켜기</button><button data-v="0">끄기</button></div>
+  <div class="note">켜면 앞 세트에서 <b>픽된</b> 챔피언은 그 시리즈 동안 양 팀 모두 다시 고를 수 없어요. (LCK 방식)</div>
+  <h3>시간 제한</h3>
+  <div class="seg" data-k="timer"><button data-v="0">없음</button><button data-v="30">30초</button><button data-v="15">15초</button></div>
+  <div class="note">시간이 끝나면 고르던 챔피언으로 확정, 안 골랐으면 밴은 넘기고 픽은 무작위.</div>
+  <h3>팀 이름</h3>
+  <div class="names">
+    <div><label id="lbA">1팀</label><input id="nA" maxlength="12"></div>
+    <div><label id="lbB">2팀</label><input id="nB" maxlength="12"></div>
+  </div>
+  <div class="row">
+    <button class="btn" id="bHist">📜 기록</button>
+    <button class="btn" id="bResume" style="display:none">이어서 하기</button>
+    <button class="btn gold" id="bStart">밴픽 시작</button>
+  </div>
+</div></div>
+
+<!-- 결과 -->
+<div class="modal" id="mResult"><div class="card wide">
+  <h2 id="rTitle">밴픽 완료</h2>
+  <div class="mut" style="font-size:12.5px" id="rSub">같은 팀 안에서 챔피언 두 개를 누르면 포지션을 바꿀 수 있어요.</div>
+  <div class="lineups" id="rLineups"></div>
+  <div id="rWinWrap"><h3 id="rWinQ">이긴 팀은?</h3>
+    <div class="row" style="margin-top:6px"><button class="btn B" id="bWinB"></button><button class="btn R" id="bWinR"></button></div></div>
+  <div class="row" id="rNext"></div>
+  <div class="row">
+    <button class="btn sm" id="bCopy">📋 텍스트 복사</button>
+    <button class="btn sm" id="bRUndo">↶ 마지막 픽 되돌리기</button>
+    <button class="btn sm" id="bRMenu">☰ 설정</button>
+  </div>
+</div></div>
+
+<!-- 기록 -->
+<div class="modal" id="mHist"><div class="card wide">
+  <h2>밴픽 기록</h2>
+  <div class="mut" style="font-size:12.5px" id="hSum"></div>
+  <div class="top10" id="hTop"></div>
+  <div class="hist" id="hList"></div>
+  <div class="row"><button class="btn sm" id="bHClear">기록 지우기</button><button class="btn gold" id="bHClose">닫기</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../mudyogu-sdk.js"></script>
+<script>
+(function () {
+'use strict';
+const MUD = window.MudyoguSDK
+  ? MudyoguSDK.create()
+  : { isEmbedded:false, ready(){}, save(){}, saveCode(){}, requestCode(){},
+      onCode(){}, onInit(){}, onControl(){}, score(){}, vibrate(){} };
+
+/* ── 챔피언 173명 (2026 로크까지) · 영어,한글,포지션(주 포지션 먼저) ──
+   T 탑 · J 정글 · M 미드 · A 원딜 · S 서폿 */
+const RAW = `Aatrox,아트록스,T
+Ahri,아리,M
+Akali,아칼리,MT
+Akshan,아크샨,MT
+Alistar,알리스타,S
+Ambessa,암베사,T
+Amumu,아무무,JS
+Anivia,애니비아,M
+Annie,애니,MS
+Aphelios,아펠리오스,A
+Ashe,애쉬,AS
+Aurelion Sol,아우렐리온 솔,M
+Aurora,오로라,MT
+Azir,아지르,M
+Bard,바드,S
+Bel'Veth,벨베스,J
+Blitzcrank,블리츠크랭크,S
+Brand,브랜드,SMJ
+Braum,브라움,S
+Briar,브라이어,J
+Caitlyn,케이틀린,A
+Camille,카밀,TS
+Cassiopeia,카시오페아,MT
+Cho'Gath,초가스,TM
+Corki,코르키,MA
+Darius,다리우스,T
+Diana,다이애나,JM
+Dr. Mundo,문도 박사,TJ
+Draven,드레이븐,A
+Ekko,에코,JM
+Elise,엘리스,JS
+Evelynn,이블린,J
+Ezreal,이즈리얼,A
+Fiddlesticks,피들스틱,JS
+Fiora,피오라,T
+Fizz,피즈,M
+Galio,갈리오,MS
+Gangplank,갱플랭크,T
+Garen,가렌,T
+Gnar,나르,T
+Gragas,그라가스,JTS
+Graves,그레이브즈,J
+Gwen,그웬,TJ
+Hecarim,헤카림,J
+Heimerdinger,하이머딩거,MST
+Hwei,흐웨이,MS
+Illaoi,일라오이,T
+Irelia,이렐리아,TM
+Ivern,아이번,J
+Janna,잔나,S
+Jarvan IV,자르반 4세,J
+Jax,잭스,TJ
+Jayce,제이스,TM
+Jhin,진,A
+Jinx,징크스,A
+K'Sante,크산테,T
+Kai'Sa,카이사,A
+Kalista,칼리스타,A
+Karma,카르마,SM
+Karthus,카서스,JM
+Kassadin,카사딘,M
+Katarina,카타리나,M
+Kayle,케일,T
+Kayn,케인,J
+Kennen,케넨,T
+Kha'Zix,카직스,J
+Kindred,킨드레드,J
+Kled,클레드,T
+Kog'Maw,코그모,A
+LeBlanc,르블랑,M
+Lee Sin,리 신,J
+Leona,레오나,S
+Lillia,릴리아,J
+Lissandra,리산드라,M
+Locke,로크,M
+Lucian,루시안,AM
+Lulu,룰루,S
+Lux,럭스,SM
+Malphite,말파이트,T
+Malzahar,말자하,M
+Maokai,마오카이,SJT
+Master Yi,마스터 이,J
+Mel,멜,MS
+Milio,밀리오,S
+Miss Fortune,미스 포츈,A
+Mordekaiser,모데카이저,T
+Morgana,모르가나,S
+Naafiri,나피리,M
+Nami,나미,S
+Nasus,나서스,T
+Nautilus,노틸러스,S
+Neeko,니코,MS
+Nidalee,니달리,J
+Nilah,닐라,A
+Nocturne,녹턴,J
+Nunu & Willump,누누와 윌럼프,J
+Olaf,올라프,TJ
+Orianna,오리아나,M
+Ornn,오른,T
+Pantheon,판테온,TSM
+Poppy,뽀삐,TJS
+Pyke,파이크,S
+Qiyana,키아나,M
+Quinn,퀸,T
+Rakan,라칸,S
+Rammus,람머스,J
+Rek'Sai,렉사이,J
+Rell,렐,S
+Renata Glasc,레나타 글라스크,S
+Renekton,레넥톤,T
+Rengar,렝가,JT
+Riven,리븐,T
+Rumble,럼블,TM
+Ryze,라이즈,MT
+Samira,사미라,A
+Sejuani,세주아니,J
+Senna,세나,SA
+Seraphine,세라핀,SM
+Sett,세트,TS
+Shaco,샤코,J
+Shen,쉔,TS
+Shyvana,쉬바나,J
+Singed,신지드,T
+Sion,사이온,T
+Sivir,시비르,A
+Skarner,스카너,JT
+Smolder,스몰더,A
+Sona,소나,S
+Soraka,소라카,S
+Swain,스웨인,SMT
+Sylas,사일러스,MJ
+Syndra,신드라,M
+Tahm Kench,탐 켄치,TS
+Taliyah,탈리야,MJ
+Talon,탈론,MJ
+Taric,타릭,S
+Teemo,티모,T
+Thresh,쓰레쉬,S
+Tristana,트리스타나,AM
+Trundle,트런들,JT
+Tryndamere,트린다미어,T
+Twisted Fate,트위스티드 페이트,M
+Twitch,트위치,A
+Udyr,우디르,J
+Urgot,우르곳,T
+Varus,바루스,A
+Vayne,베인,AT
+Veigar,베이가,M
+Vel'Koz,벨코즈,SM
+Vex,벡스,M
+Vi,바이,J
+Viego,비에고,J
+Viktor,빅토르,M
+Vladimir,블라디미르,MT
+Volibear,볼리베어,TJ
+Warwick,워윅,J
+Wukong,오공,JT
+Xayah,자야,A
+Xerath,제라스,MS
+Xin Zhao,신 짜오,J
+Yasuo,야스오,MT
+Yone,요네,MT
+Yorick,요릭,T
+Yunara,유나라,A
+Yuumi,유미,S
+Zaahen,자헨,T
+Zac,자크,J
+Zed,제드,M
+Zeri,제리,A
+Ziggs,직스,MA
+Zilean,질리언,S
+Zoe,조이,M
+Zyra,자이라,S`;
+
+/* AI 가 좋아하는 대회 단골 챔피언 (가중치만 줌) */
+const POP = new Set(('Azir,Orianna,Taliyah,Sylas,Ahri,Corki,Yone,Aurora,Viktor,Syndra,Galio,Ryze,Mel,Hwei,Locke,LeBlanc,'
+  + 'Xayah,Kai\'Sa,Varus,Ezreal,Jhin,Kalista,Ashe,Zeri,Aphelios,Lucian,Smolder,Yunara,Caitlyn,Sivir,Corki,'
+  + 'Rell,Rakan,Nautilus,Renata Glasc,Leona,Braum,Alistar,Poppy,Thresh,Bard,Neeko,Karma,Milio,'
+  + 'Lee Sin,Vi,Xin Zhao,Wukong,Maokai,Sejuani,Jarvan IV,Viego,Nidalee,Pantheon,Skarner,Trundle,Lillia,'
+  + 'K\'Sante,Rumble,Jax,Gnar,Renekton,Aatrox,Ambessa,Jayce,Gragas,Ornn,Sion,Kennen,Camille,Zaahen,Gwen').split(','));
+
+const ROLES = ['T','J','M','A','S'];
+const RN = {T:'탑',J:'정글',M:'미드',A:'원딜',S:'서폿'};
+const ALIAS = {'미포':'Miss Fortune','트페':'Twisted Fate','블츠':'Blitzcrank','아우솔':'Aurelion Sol','탐켄':'Tahm Kench',
+  '잘반':'Jarvan IV','하딩':'Heimerdinger','케틀':'Caitlyn','트타':'Tristana','볼베':'Volibear','쓰레시':'Thresh','스레쉬':'Thresh',
+  '쓰렉':'Thresh','tf':'Twisted Fate','mf':'Miss Fortune','j4':'Jarvan IV','ls':'Lee Sin','누누':'Nunu & Willump','레나타':'Renata Glasc',
+  '마이':'Master Yi','블라디':'Vladimir','피들':'Fiddlesticks','쉬바':'Shyvana','카타':'Katarina','르블':'LeBlanc','갈리':'Galio',
+  '애니비':'Anivia','오리':'Orianna','빅토':'Viktor','카사':'Kassadin','세주':'Sejuani','카밀':'Camille','이렐':'Irelia'};
+
+const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+function cho(s){let o='';for(const c of s){const n=c.charCodeAt(0)-0xAC00;o+=(n>=0&&n<11172)?CHO[Math.floor(n/588)]:c;}return o;}
+const norm = (s) => s.toLowerCase().replace(/[\s'.&]/g,'');
+function hue(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h%360;}
+
+const CHAMPS = RAW.trim().split('\n').map((l) => {
+  const [en, ko, r] = l.split(',');
+  const h = hue(en);
+  return { id: en, en, ko, roles: r.split(''), pop: POP.has(en),
+    bg: `linear-gradient(150deg,hsl(${h},42%,34%),hsl(${(h+40)%360},48%,17%))`,
+    nk: norm(ko), ne: norm(en), ck: cho(ko.replace(/\s/g,'')) };
+}).sort((a, b) => a.ko.localeCompare(b.ko, 'ko'));
+const BY = {}; CHAMPS.forEach((c) => { BY[c.id] = c; });
+for (const k in ALIAS) if (BY[ALIAS[k]]) (BY[ALIAS[k]].al = BY[ALIAS[k]].al || []).push(norm(k));
+
+/* 대회 토너먼트 드래프트 순서 (20단계) */
+const SEQ = [
+  ['B','ban'],['R','ban'],['B','ban'],['R','ban'],['B','ban'],['R','ban'],
+  ['B','pick'],['R','pick'],['R','pick'],['B','pick'],['B','pick'],['R','pick'],
+  ['R','ban'],['B','ban'],['R','ban'],['B','ban'],
+  ['R','pick'],['B','pick'],['B','pick'],['R','pick'],
+].map(([side, type]) => ({ side, type }));
+function phaseName(i){return i<6?'밴 1페이즈':i<12?'픽 1페이즈':i<16?'밴 2페이즈':'픽 2페이즈';}
+const other = (s) => (s === 'B' ? 'R' : 'B');
+
+/* 포지션 자동 배치 (120가지 중 가장 잘 맞는 것) */
+const PERMS = [];
+(function perm(a, rest){ if(!rest.length){PERMS.push(a);return;} rest.forEach((r,i)=>perm(a.concat(r), rest.slice(0,i).concat(rest.slice(i+1)))); })([], ROLES);
+function roleScore(id, r){ const i = BY[id] ? BY[id].roles.indexOf(r) : -1; return i < 0 ? -3 : 4 - i; }
+function assign(ids){
+  let best = null, bs = -1e9;
+  for (const p of PERMS) { let s = 0; for (let i = 0; i < ids.length; i++) s += roleScore(ids[i], p[i]); if (s > bs) { bs = s; best = p; } }
+  return best.slice(0, ids.length);
+}
+function openRoles(ids){ const used = assign(ids); return ROLES.filter((r) => !used.includes(r)); }
+function lineupOf(ids){ const a = assign(ids); return ROLES.map((r) => ids[a.indexOf(r)] || null); }
+
+/* ── 저장 ─────────────────────────────── */
+const K_STATE = 'banpick.state', K_CFG = 'banpick.cfg', K_HIST = 'banpick.history';
+function lsGet(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+let cfg = Object.assign({ mode:'local', userSide:'B', bo:1, fearless:1, timer:0, nA:'', nB:'' }, lsGet(K_CFG, {}));
+let st = lsGet(K_STATE, null);   // { cfg, wins:{A,B}, games:[], cur:{blue,step,bans,picks,hover,done,lineup,histId}, snaps:[], over }
+let hist = lsGet(K_HIST, []);
+function persist(){ lsSet(K_STATE, st); }
+
+function nameOf(team){ const c = st ? st.cfg : cfg; const n = team === 'A' ? c.nA : c.nB;
+  if (n) return n; if (c.mode === 'ai') return team === 'A' ? '나' : 'AI'; return team === 'A' ? '1팀' : '2팀'; }
+function teamOf(side){ return side === 'B' ? st.cur.blue : (st.cur.blue === 'A' ? 'B' : 'A'); }
+function sideOfTeam(team){ return st.cur.blue === team ? 'B' : 'R'; }
+function curSet(){ return st.games.length + 1 - (st.cur.winner && st.cfg.bo > 1 ? 1 : 0); }
+function isUserStep(){ if (!st || st.cur.done) return false; if (st.cfg.mode !== 'ai') return true; return teamOf(SEQ[st.cur.step].side) === 'A'; }
+
+function fearlessSet(){ const s = new Set(); if (!st || !st.cfg.fearless) return s;
+  st.games.forEach((g) => { g.picks.B.concat(g.picks.R).forEach((id) => s.add(id)); }); return s; }
+function statusOf(id){
+  const c = st.cur;
+  if (c.bans.B.includes(id) || c.bans.R.includes(id)) return '밴';
+  if (c.picks.B.includes(id) || c.picks.R.includes(id)) return '픽';
+  if (fearlessSet().has(id)) return '사용됨';
+  return '';
+}
+const avail = (id) => !statusOf(id);
+
+/* ── 화면 요소 ───────────────────────── */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let roleF = 'all', query = '';
+$('chCount').textContent = CHAMPS.length;
+
+/* 역할 탭 */
+$('roles').innerHTML = [['all','전체']].concat(ROLES.map((r) => [r, RN[r]])).map(([v, t]) => `<button data-r="${v}">${t}</button>`).join('');
+$('roles').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; roleF = b.dataset.r; renderGrid(); });
+
+/* 챔피언 칸 (한 번만 만들고 상태만 바꿈) */
+const tiles = {};
+CHAMPS.forEach((c) => {
+  const d = document.createElement('button');
+  d.className = 'ch'; d.style.setProperty('--cbg', c.bg); d.title = `${c.ko} (${c.en}) · ${c.roles.map((r) => RN[r]).join('/')}`;
+  d.innerHTML = `<span class="r">${c.roles.map((r) => RN[r]).slice(0, 2).join('·')}</span><span class="k">${c.ko}</span><span class="e">${c.en}</span><span class="tag" style="display:none"></span>`;
+  d.addEventListener('click', () => onTile(c.id));
+  d.addEventListener('dblclick', () => { if (st && st.cur.hover === c.id) lockIn(); });
+  tiles[c.id] = d; $('grid').appendChild(d);
+});
+const noneEl = document.createElement('div'); noneEl.id = 'none'; noneEl.textContent = '찾는 챔피언이 없어요'; $('grid').appendChild(noneEl);
+
+function matches(c){
+  if (roleF !== 'all' && !c.roles.includes(roleF)) return false;
+  if (!query) return true;
+  const q = norm(query);
+  if (c.nk.includes(q) || c.ne.includes(q)) return true;
+  if (/^[ㄱ-ㅎ]+$/.test(q) && c.ck.startsWith(q)) return true;
+  if (c.al && c.al.some((a) => a.startsWith(q))) return true;
+  return false;
+}
+function renderGrid(){
+  document.querySelectorAll('#roles button').forEach((b) => b.classList.toggle('on', b.dataset.r === roleF));
+  let shown = 0;
+  CHAMPS.forEach((c) => {
+    const t = tiles[c.id]; const m = matches(c); t.style.display = m ? '' : 'none'; if (m) shown++;
+    const s = st ? statusOf(c.id) : '';
+    t.classList.toggle('off', !!s); t.classList.toggle('sel', !!st && st.cur.hover === c.id);
+    const tag = t.querySelector('.tag'); tag.style.display = s ? '' : 'none'; tag.textContent = s;
+  });
+  noneEl.style.display = shown ? 'none' : 'block';
+}
+
+function onTile(id){
+  if (!st || st.cur.done || !isUserStep() || !avail(id)) return;
+  st.cur.hover = st.cur.hover === id ? null : id;
+  persist(); render();
+}
+
+/* ── 그리기 ─────────────────────────── */
+function render(){
+  if (!st) return;
+  const c = st.cur, step = c.step, s = SEQ[step];
+  ['B','R'].forEach((side) => {
+    const team = teamOf(side);
+    $('nm' + side).textContent = nameOf(team);
+    const need = Math.ceil(st.cfg.bo / 2);
+    $('w' + side).innerHTML = st.cfg.bo > 1 ? Array.from({ length: need }, (_, i) => `<i class="${i < st.wins[team] ? 'on' : ''}"></i>`).join('') : '';
+    // 밴
+    let bh = '';
+    for (let i = 0; i < 5; i++) {
+      const id = c.bans[side][i];
+      const isNow = !c.done && s && s.side === side && s.type === 'ban' && c.bans[side].length === i;
+      if (id !== undefined) bh += id ? `<div class="ban fill" title="${BY[id].ko}" style="background:${BY[id].bg}">${BY[id].ko}</div>` : `<div class="ban skip">—</div>`;
+      else if (isNow && c.hover) bh += `<div class="ban now hov" style="background:${BY[c.hover].bg}">${BY[c.hover].ko}</div>`;
+      else bh += `<div class="ban${isNow ? ' now' : ''}"></div>`;
+    }
+    $('bans' + side).innerHTML = bh;
+    // 픽
+    const ids = c.picks[side], roles = assign(ids);
+    let ph = '';
+    for (let i = 0; i < 5; i++) {
+      const id = ids[i];
+      const isNow = !c.done && s && s.side === side && s.type === 'pick' && ids.length === i;
+      const ord = side + (i + 1);
+      if (id) {
+        const ch = BY[id];
+        ph += `<div class="pick fill" style="--cbg:${ch.bg}"><span class="ord">${ord}</span><div class="info"><div class="cn">${ch.ko}</div><div class="ce">${ch.en}</div></div><span class="rl">${RN[roles[i]]}</span></div>`;
+      } else if (isNow && c.hover) {
+        const ch = BY[c.hover];
+        ph += `<div class="pick now hov" style="--cbg:${ch.bg}"><span class="ord">${ord}</span><div class="info"><div class="cn">${ch.ko}</div><div class="ce">고르는 중…</div></div></div>`;
+      } else {
+        ph += `<div class="pick empty${isNow ? ' now' : ''}"><span class="ord">${ord}</span><div class="info"><div class="cn">${isNow ? '선택 중' : ''}</div></div></div>`;
+      }
+    }
+    $('picks' + side).innerHTML = ph;
+  });
+  // 가운데 위
+  const gi = curSet();
+  const fl = st.cfg.fearless && st.cfg.bo > 1 && fearlessSet().size ? ` · 피어리스 ${fearlessSet().size}명 잠김` : '';
+  const setTxt = st.cfg.bo > 1 ? `${gi}세트 · ` : '';
+  if (c.done) {
+    $('phase').textContent = setTxt + '밴픽 완료' + fl;
+    $('turn').textContent = '밴픽 완료'; $('turn').className = '';
+  } else {
+    $('phase').textContent = setTxt + phaseName(step) + fl;
+    $('turn').textContent = `${s.side === 'B' ? '블루' : '레드'} ${nameOf(teamOf(s.side))} ${s.type === 'ban' ? '밴' : '픽'}`;
+    $('turn').className = s.side;
+  }
+  $('seq').innerHTML = SEQ.map((q, i) => `<b class="${q.side}${q.type === 'pick' ? ' pk' : ''}${i === 6 || i === 12 || i === 16 ? ' gap' : ''}${i < step || c.done ? ' done' : ''}${i === step && !c.done ? ' now' : ''}" title="${i + 1}. ${q.side === 'B' ? '블루' : '레드'} ${q.type === 'ban' ? '밴' : '픽'}"></b>`).join('');
+  // 아래 버튼
+  const user = isUserStep();
+  $('center').classList.toggle('ai', !c.done && !user);
+  $('bLock').disabled = !user || !c.hover;
+  $('bLock').className = 'btn lock ' + (c.done ? 'gold' : s.side);
+  $('bLock').innerHTML = c.done ? '결과 보기' : user ? `${s.type === 'ban' ? '밴' : '픽'} 확정 <span class="kbd">Enter</span>` : 'AI 차례';
+  if (c.done) $('bLock').disabled = false;
+  $('bSkip').style.display = !c.done && s.type === 'ban' && user ? '' : 'none';
+  $('bUndo').disabled = !st.snaps.length || st.over || !!(c.winner && st.cfg.bo > 1);
+  renderGrid(); renderTimer();
+}
+
+/* ── 진행 ─────────────────────────── */
+let aiToken = 0, deadline = 0, paused = false, pausedLeft = 0;
+
+function lockIn(id){
+  if (!st) return;
+  const c = st.cur;
+  if (c.done) { openResult(); return; }
+  const s = SEQ[c.step];
+  if (id === undefined) id = c.hover;
+  if (id === null && s.type === 'pick') return;
+  if (id && !avail(id)) return;
+  st.snaps.push(JSON.stringify(c));
+  if (st.snaps.length > 40) st.snaps.shift();
+  if (s.type === 'ban') c.bans[s.side].push(id || ''); else c.picks[s.side].push(id);
+  c.hover = null; c.step++;
+  MUD.vibrate(10);
+  if (c.step >= SEQ.length) finishDraft();
+  else { resetTimer(); persist(); render(); maybeAI(); }
+}
+
+function undo(){
+  if (!st || !st.snaps.length || st.over || (st.cur.winner && st.cfg.bo > 1)) return;
+  aiToken++;
+  const doneId = st.cur.done ? st.cur.histId : 0;   // 완료된 밴픽을 되돌리면 그 기록도 지움
+  do { st.cur = JSON.parse(st.snaps.pop()); }
+  while (st.cfg.mode === 'ai' && st.snaps.length && !isUserStep());
+  if (doneId) { hist = hist.filter((h) => h.id !== doneId); lsSet(K_HIST, hist); }
+  closeModals();
+  resetTimer(); persist(); render(); maybeAI();
+}
+
+function weighted(list){ let sum = 0; list.forEach((x) => sum += x.w); let r = Math.random() * sum;
+  for (const x of list) { r -= x.w; if (r <= 0) return x.id; } return list.length ? list[list.length - 1].id : null; }
+function fitScore(ch, roles){ let b = 0; roles.forEach((r) => { const i = ch.roles.indexOf(r); if (i >= 0) b = Math.max(b, 3 - Math.min(i, 2)); }); return b; }
+function aiChoose(){
+  const c = st.cur, s = SEQ[c.step];
+  const pool = CHAMPS.filter((ch) => avail(ch.id));
+  let list;
+  if (s.type === 'ban') {
+    if (c.step >= 12) { const open = openRoles(c.picks[other(s.side)]);
+      list = pool.map((ch) => ({ id: ch.id, w: (fitScore(ch, open) ** 2 + 0.1) * (ch.pop ? 4 : 1) }));
+    } else list = pool.map((ch) => ({ id: ch.id, w: (ch.pop ? 5 : 1) * (1 + 0.35 * (ch.roles.length - 1)) }));
+  } else {
+    const open = openRoles(c.picks[s.side]);
+    list = pool.map((ch) => ({ id: ch.id, w: fitScore(ch, open) ** 2 * (ch.pop ? 3 : 1) })).filter((x) => x.w > 0);
+    if (!list.length) list = pool.map((ch) => ({ id: ch.id, w: 1 }));
+  }
+  return weighted(list);
+}
+function maybeAI(){
+  if (!st || st.cur.done || isUserStep() || paused) return;
+  const t = ++aiToken;
+  setTimeout(() => {
+    if (t !== aiToken || !st || st.cur.done || isUserStep()) return;
+    st.cur.hover = aiChoose(); render();
+    setTimeout(() => { if (t === aiToken && st && !st.cur.done && !isUserStep()) lockIn(st.cur.hover); }, 650);
+  }, 600 + Math.random() * 500);
+}
+
+/* 시간 제한 */
+function resetTimer(){ deadline = st && st.cfg.timer && !st.cur.done ? Date.now() + st.cfg.timer * 1000 : 0; }
+function renderTimer(){
+  const el = $('timer');
+  if (!st || !st.cfg.timer || st.cur.done || !deadline) { el.textContent = ''; el.className = ''; return; }
+  const left = paused ? pausedLeft : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+  el.textContent = paused ? `⏸ ${left}초` : `⏱ ${left}초`; el.className = left <= 5 ? 'low' : '';
+}
+setInterval(() => {
+  if (!st || !deadline || paused || st.cur.done) return;
+  renderTimer();
+  if (Date.now() >= deadline && isUserStep()) {
+    const s = SEQ[st.cur.step];
+    if (st.cur.hover && avail(st.cur.hover)) lockIn(st.cur.hover);
+    else if (s.type === 'ban') lockIn('');
+    else lockIn(aiChoose());
+    toast('시간 끝! 자동으로 확정했어요');
+  }
+}, 250);
+
+/* ── 시작 / 세트 ─────────────────────── */
+function newCur(blue){ return { blue, step: 0, bans: { B: [], R: [] }, picks: { B: [], R: [] }, hover: null, done: false, lineup: null, histId: 0 }; }
+function startSeries(){
+  cfg.nA = $('nA').value.trim(); cfg.nB = $('nB').value.trim();
+  lsSet(K_CFG, cfg);
+  const c = JSON.parse(JSON.stringify(cfg));
+  const blue = c.mode === 'ai' && c.userSide === 'R' ? 'B' : 'A';
+  st = { cfg: c, wins: { A: 0, B: 0 }, games: [], cur: newCur(blue), snaps: [], over: false };
+  closeModals(); query = ''; $('q').value = ''; roleF = 'all';
+  resetTimer(); persist(); render(); maybeAI();
+}
+function nextGame(blueTeam){
+  st.cur = newCur(blueTeam); st.snaps = [];
+  closeModals(); resetTimer(); persist(); render(); maybeAI();
+}
+
+function finishDraft(){
+  const c = st.cur; c.done = true; deadline = 0;
+  c.lineup = { B: lineupOf(c.picks.B), R: lineupOf(c.picks.R) };
+  c.histId = Date.now();
+  hist.unshift({ id: c.histId, at: new Date().toISOString(), set: st.games.length + 1, bo: st.cfg.bo, fearless: st.cfg.fearless,
+    blue: nameOf(teamOf('B')), red: nameOf(teamOf('R')), bans: c.bans, lineup: c.lineup, winner: '' });
+  hist = hist.slice(0, 60); lsSet(K_HIST, hist);
+  MUD.save({ score: hist.length, isGameOver: true });
+  persist(); render(); openResult();
+}
+function saveLineupToHist(){ const h = hist.find((x) => x.id === st.cur.histId); if (h) { h.lineup = st.cur.lineup; lsSet(K_HIST, hist); } }
+
+/* ── 결과 창 ─────────────────────────── */
+let swapSel = null;
+function luHtml(side, lineup, bans, name, clickable){
+  return `<div class="lu ${side}"><div class="t">${side === 'B' ? '🔵' : '🔴'} ${esc(name)}</div>`
+    + ROLES.map((r, i) => { const id = lineup[i]; const ch = BY[id];
+      return ch ? `<div class="p${clickable && swapSel && swapSel.side === side && swapSel.i === i ? ' sw' : ''}" ${clickable ? `data-s="${side}" data-i="${i}"` : ''} style="--cbg:${ch.bg}"><span class="rl">${RN[r]}</span><span class="n">${ch.ko}</span></div>` : ''; }).join('')
+    + `<div class="bb">밴: ${bans.map((id) => (id ? BY[id] ? BY[id].ko : id : '—')).join(', ')}</div></div>`;
+}
+function openResult(){
+  const c = st.cur;
+  $('rTitle').textContent = st.cfg.bo > 1 ? `${curSet()}세트 밴픽 완료` : '밴픽 완료';
+  $('rLineups').innerHTML = luHtml('B', c.lineup.B, c.bans.B, nameOf(teamOf('B')), true) + luHtml('R', c.lineup.R, c.bans.R, nameOf(teamOf('R')), true);
+  $('bWinB').textContent = `🔵 ${nameOf(teamOf('B'))} 승`;
+  $('bWinR').textContent = `🔴 ${nameOf(teamOf('R'))} 승`;
+  $('rWinQ').textContent = st.cfg.bo > 1 ? '이 세트 이긴 팀은? (눌러야 다음 세트로)' : '결과 기록 (선택)';
+  const decided = !!c.winner;
+  $('rWinWrap').style.display = st.over || decided ? 'none' : '';
+  $('bRUndo').style.display = st.over || (decided && st.cfg.bo > 1) ? 'none' : '';
+  let nx = '';
+  if (st.over) {
+    const w = st.wins.A > st.wins.B ? 'A' : 'B';
+    $('rTitle').textContent = `🏆 ${nameOf(w)} 우승 ${Math.max(st.wins.A, st.wins.B)} : ${Math.min(st.wins.A, st.wins.B)}`;
+    nx = `<button class="btn gold" data-a="again">새 시리즈 (같은 설정)</button><button class="btn" data-a="hist">📜 기록 보기</button>`;
+  } else if (st.cfg.bo === 1) {
+    nx = (decided ? `<div style="width:100%" class="win">🏆 ${esc(nameOf(c.winner))} 승리로 기록됨</div>` : '')
+      + `<button class="btn gold" data-a="again">한 번 더 (같은 설정)</button>`;
+  } else if (decided) {
+    const loser = c.winner === 'A' ? 'B' : 'A';
+    nx = `<div style="width:100%;font-size:13px" class="mut">${esc(nameOf(c.winner))} 승리! ${esc(nameOf('A'))} ${st.wins.A} : ${st.wins.B} ${esc(nameOf('B'))} — 진 팀 <b>${esc(nameOf(loser))}</b> 이(가) 다음 세트 진영을 고르세요</div>`
+      + `<button class="btn B" data-a="side" data-blue="${loser}">🔵 블루로</button><button class="btn R" data-a="side" data-blue="${c.winner}">🔴 레드로</button>`;
+  }
+  $('rNext').innerHTML = nx; $('rNext').style.display = nx ? '' : 'none';
+  openModal('mResult');
+}
+$('rLineups').addEventListener('click', (e) => {
+  const p = e.target.closest('.p[data-s]'); if (!p) return;
+  const side = p.dataset.s, i = +p.dataset.i;
+  if (!swapSel || swapSel.side !== side) swapSel = { side, i };
+  else { const L = st.cur.lineup[side]; [L[i], L[swapSel.i]] = [L[swapSel.i], L[i]]; swapSel = null; saveLineupToHist(); persist(); }
+  openResult();
+});
+$('rNext').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.a === 'again') { cfg = Object.assign(cfg, st.cfg); $('nA').value = cfg.nA; $('nB').value = cfg.nB; startSeries(); }
+  if (b.dataset.a === 'hist') openHist();
+  if (b.dataset.a === 'side') nextGame(b.dataset.blue);
+});
+function setWinner(side){
+  const team = teamOf(side), c = st.cur;
+  if (!c.done || c.winner) return;
+  c.winner = team;
+  const h = hist.find((x) => x.id === c.histId); if (h) { h.winner = side; lsSet(K_HIST, hist); }
+  if (st.cfg.bo > 1) {
+    st.games.push({ blue: c.blue, picks: c.picks, bans: c.bans, winner: team });
+    st.wins[team]++;
+    if (st.wins[team] >= Math.ceil(st.cfg.bo / 2)) st.over = true;
+  }
+  persist(); render();
+  // 다음 세트 진영은 진 팀이 고른다 (AI 가 지면 블루)
+  if (!st.over && st.cfg.bo > 1 && st.cfg.mode === 'ai' && team === 'A') { toast('AI 가 다음 세트 블루 진영을 골랐어요'); nextGame('B'); return; }
+  openResult();
+}
+$('bWinB').onclick = () => setWinner('B');
+$('bWinR').onclick = () => setWinner('R');
+$('bRUndo').onclick = () => { undo(); };
+$('bRMenu').onclick = () => openSetup();
+$('bCopy').onclick = () => {
+  const c = st.cur, L = (s) => ROLES.map((r, i) => `${RN[r]} ${BY[c.lineup[s][i]].ko}`).join(' / ');
+  const B = (s) => c.bans[s].map((id) => (id ? BY[id].ko : '—')).join(', ');
+  const txt = `[밴픽${st.cfg.bo > 1 ? ' ' + curSet() + '세트' : ''}] 🔵 ${nameOf(teamOf('B'))} vs 🔴 ${nameOf(teamOf('R'))}\n`
+    + `🔵 밴: ${B('B')}\n🔵 픽: ${L('B')}\n🔴 밴: ${B('R')}\n🔴 픽: ${L('R')}`;
+  copyText(txt);
+};
+function copyText(t){
+  const done = () => toast('복사했어요');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => fallback());
+  else fallback();
+  function fallback(){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select();
+    try { document.execCommand('copy'); done(); } catch (e) { toast('복사 실패'); } a.remove(); }
+}
+
+/* ── 설정 창 ─────────────────────────── */
+function openSetup(){
+  $('nA').value = cfg.nA || ''; $('nB').value = cfg.nB || '';
+  $('bResume').style.display = st && !st.over ? '' : 'none';
+  syncSetup(); openModal('mSetup');
+}
+function syncSetup(){
+  document.querySelectorAll('#mSetup .seg').forEach((g) => { const k = g.dataset.k;
+    g.querySelectorAll('button').forEach((b) => b.classList.toggle('on', String(cfg[k]) === b.dataset.v)); });
+  $('sideRow').style.display = cfg.mode === 'ai' ? '' : 'none';
+  $('lbA').textContent = cfg.mode === 'ai' ? '내 팀' : '1팀'; $('lbB').textContent = cfg.mode === 'ai' ? 'AI 팀' : '2팀';
+  $('nA').placeholder = cfg.mode === 'ai' ? '나' : '1팀'; $('nB').placeholder = cfg.mode === 'ai' ? 'AI' : '2팀';
+}
+document.querySelectorAll('#mSetup .seg').forEach((g) => g.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return; const k = g.dataset.k; const v = b.dataset.v;
+  cfg[k] = /^\d+$/.test(v) ? +v : v; syncSetup();
+}));
+$('bStart').onclick = startSeries;
+$('bResume').onclick = () => { closeModals(); if (st && st.cur.done) openResult(); };
+$('bHist').onclick = () => openHist();
+$('bMenu').onclick = () => openSetup();
+
+/* ── 기록 창 ─────────────────────────── */
+let histBack = null;
+function openHist(){
+  histBack = document.querySelector('.modal.on') ? document.querySelector('.modal.on').id : null;
+  const pk = {}, bn = {};
+  hist.forEach((h) => { ['B','R'].forEach((s) => { h.lineup[s].forEach((id) => { if (id) pk[id] = (pk[id] || 0) + 1; });
+    h.bans[s].forEach((id) => { if (id) bn[id] = (bn[id] || 0) + 1; }); }); });
+  const top = (o) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([id, n]) => `<li>${BY[id] ? BY[id].ko : id} <span class="mut">${n}</span></li>`).join('') || '<li class="mut">아직 없음</li>';
+  $('hSum').textContent = hist.length ? `지금까지 밴픽 ${hist.length}번 (최근 60개 보관)` : '아직 완료한 밴픽이 없어요';
+  $('hTop').innerHTML = hist.length ? `<div><h3>많이 픽한 챔피언</h3><ol>${top(pk)}</ol></div><div><h3>많이 밴한 챔피언</h3><ol>${top(bn)}</ol></div>` : '';
+  $('hList').innerHTML = hist.map((h) => {
+    const d = new Date(h.at); const ds = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    const L = (s) => ROLES.map((r, i) => (h.lineup[s][i] && BY[h.lineup[s][i]] ? BY[h.lineup[s][i]].ko : '?')).join(' · ');
+    const B = (s) => h.bans[s].map((id) => (id && BY[id] ? BY[id].ko : '—')).join(', ');
+    return `<div class="hi"><div class="hd"><span><span class="bl">🔵 ${esc(h.blue)}</span> vs <span class="rd">🔴 ${esc(h.red)}</span>${h.bo > 1 ? ` <span class="mut">· ${h.set}세트</span>` : ''}</span><span class="mut">${ds}</span></div>`
+      + `<div><span class="bl">픽</span> ${L('B')}</div><div class="mut">밴 ${B('B')}</div>`
+      + `<div><span class="rd">픽</span> ${L('R')}</div><div class="mut">밴 ${B('R')}</div>`
+      + (h.winner ? `<div class="win">🏆 ${esc(h.winner === 'B' ? h.blue : h.red)} 승</div>` : '') + `</div>`;
+  }).join('');
+  openModal('mHist');
+}
+$('bHClose').onclick = () => { closeModals(); if (histBack) openModal(histBack); };
+$('bHClear').onclick = () => { if (!confirm('밴픽 기록을 모두 지울까요?')) return; hist = []; lsSet(K_HIST, hist); openHist(); };
+
+function openModal(id){ document.querySelectorAll('.modal').forEach((m) => m.classList.toggle('on', m.id === id)); }
+function closeModals(){ document.querySelectorAll('.modal').forEach((m) => m.classList.remove('on')); swapSel = null; }
+let toastT = 0;
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 1800); }
+
+/* ── 입력 ─────────────────────────── */
+$('q').addEventListener('input', () => { query = $('q').value; renderGrid(); });
+$('q').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault();
+    // 검색 결과가 하나면 바로 고르기, 이미 골랐으면 확정
+    const vis = CHAMPS.filter((c) => matches(c) && avail(c.id));
+    if (st && isUserStep()) { if (st.cur.hover) lockIn(); else if (vis.length) { st.cur.hover = vis[0].id; persist(); render(); } }
+    $('q').value = ''; query = ''; renderGrid();
+  }
+  if (e.key === 'Escape') { $('q').value = ''; query = ''; renderGrid(); }
+});
+$('bLock').onclick = () => lockIn();
+$('bSkip').onclick = () => { if (st && isUserStep() && SEQ[st.cur.step].type === 'ban') lockIn(''); };
+$('bUndo').onclick = undo;
+window.addEventListener('keydown', (e) => {
+  if (document.querySelector('.modal.on')) return;
+  if (e.target === $('q')) return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+  if (e.key === 'Enter') { e.preventDefault(); lockIn(); return; }
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) $('q').focus();
+});
+
+MUD.onControl((m) => {
+  if (!m) return;
+  if (m.type === 'pause' && !paused) { paused = true; pausedLeft = deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0; aiToken++; renderTimer(); }
+  if (m.type === 'resume' && paused) { paused = false; if (deadline) deadline = Date.now() + pausedLeft * 1000; renderTimer(); maybeAI(); }
+});
+
+/* ── 켜기 ─────────────────────────── */
+if (st && st.cur && st.cfg) {
+  if (!st.snaps) st.snaps = [];
+  resetTimer(); render(); maybeAI();
+  if (st.cur.done) openResult();
+} else {
+  st = null;
+  // 빈 판 미리보기
+  st = { cfg: JSON.parse(JSON.stringify(cfg)), wins: { A: 0, B: 0 }, games: [], cur: newCur('A'), snaps: [], over: false };
+  render(); st = null;
+  $('center').classList.remove('ai');
+  openSetup();
+}
+MUD.ready();
+})();
+</script>
+</body>
+</html>

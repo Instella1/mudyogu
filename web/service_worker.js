@@ -11,7 +11,7 @@
  *       (예: https://example.com/mudyogu/) 에서도 그대로 동작합니다.
  * ------------------------------------------------------------------ */
 
-const VERSION = 'mudyogu-v52';
+const VERSION = 'mudyogu-v53';
 const SHELL_CACHE = `${VERSION}-shell`;
 const GAME_CACHE = `${VERSION}-games`;
 
@@ -50,6 +50,9 @@ const PRECACHE_SHELL = [
   'games/codelab/index.html',
   'games/codelab/fonts/fonts.css',
   'games/codelab/vendor/supabase.js',
+  // 밴픽 시뮬레이터 (LoL 챔피언 173명, 완전 오프라인)
+  'games/banpick/index.html',
+  'games/banpick/fonts/fonts.css',
 ];
 
 /** 용량이 큰 폰트 / 그래픽 엔진 (실패해도 설치는 계속) */

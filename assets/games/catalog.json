@@ -86,6 +86,23 @@
       "bestScoreLabel": "최고 레이팅",
       "builtIn": false,
       "aspect": "16/9"
+    },
+    {
+      "id": "banpick",
+      "title": "밴픽 시뮬레이터",
+      "tagline": "LoL 대회 방식 밴픽을 모의로 해 보자",
+      "entry": "games/banpick/index.html",
+      "accent": "#E8C66A",
+      "tags": [
+        "LoL",
+        "전략",
+        "밴픽"
+      ],
+      "version": "1.0.0",
+      "supportsState": false,
+      "bestScoreLabel": "완료한 밴픽",
+      "builtIn": false,
+      "aspect": "16/9"
     }
   ]
 }
