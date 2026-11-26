@@ -18,8 +18,9 @@ Flutter PWA 미니게임 허브. HTML 게임 6개를 iframe 으로 얹어 돌린
 - 화면 맞춤은 배치를 바꾸지 말고 통째로 CSS `zoom` (한일전 `fitToScreen`, LIFE/포케퀴즈는 첫 화면이 창 높이에 맞게)
 - 게임에 외부 URL 금지 (폰트·라이브러리는 로컬). 예외: 포케퀴즈 포켓몬 그림(PokeAPI sprites, 저작권·용량),
   타워 크래시 전체 랭킹(Supabase — 온라인일 때만, 게임은 오프라인 그대로. SQL 은 `docs/supabase-ranking.sql`),
-  코드랩 온라인 대전(Supabase REST + Realtime, 라이브러리는 로컬 `vendor/supabase.js`. SQL 은 `docs/supabase-codelab.sql`)
-- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v53`)
+  코드랩 온라인 대전(Supabase REST + Realtime, 라이브러리는 로컬 `vendor/supabase.js`. SQL 은 `docs/supabase-codelab.sql`),
+  밴픽 챔피언 그림(Riot Data Dragon — 온라인일 때만, 실패하면 색 카드. 하루 한 번 최신 버전·신챔 확인)
+- 배포마다 `web/service_worker.js` 의 `VERSION` 을 올릴 것 (현재 `mudyogu-v54`)
 - `flutter build web` 만 돌리지 말고 `./build.sh` (patch_web.py 포함)
 
 ## 게임 6개
@@ -30,7 +31,7 @@ Flutter PWA 미니게임 허브. HTML 게임 6개를 iframe 으로 얹어 돌린
 | `pokequiz` | 포케퀴즈 | `PKQ1\|` | 🏅 기록저장실 → 진행 코드 옮기기 |
 | `tower-drop` | 타워 크래시 | `MUDX1\|tower-drop\|` | 첫 화면 💾 진행 코드 → 불러와서 합치기 |
 | `codelab` | 코드랩 | 없음 (온라인 기록은 Supabase) | 기획서 `docs/CODELAB-SPEC.md` — 1~4단계 완성 (AI · 온라인 · 랭킹/기록) |
-| `banpick` | 밴픽 시뮬레이터 | 없음 (기록은 localStorage `banpick.*`) | LoL 토너먼트 드래프트 · 챔피언 173명(로크까지) — 신챔 나오면 `RAW` 한 줄 추가 |
+| `banpick` | 밴픽 시뮬레이터 | 없음 (기록은 localStorage `banpick.*`) | LoL 토너먼트 드래프트 · 챔피언 173명(로크까지) — 신챔은 Data Dragon 에서 자동 추가(포지션은 대충), 정확히 하려면 `RAW` 한 줄 추가 |
 
 계정은 Supabase 온라인 계정(어느 기기에서든 로그인). 게임 localStorage 는 계정별로 바꿔 끼우고 온라인에 동기화
 (`lib/services/sync_service.dart`, SQL `docs/supabase-accounts.sql`). 게임 기록은 꼭 localStorage 에 쓸 것.

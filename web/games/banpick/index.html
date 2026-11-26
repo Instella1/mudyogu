@@ -78,11 +78,10 @@ input{font:inherit;color:inherit}
 .pick .cn{font-family:var(--hfont);font-size:clamp(16px,2.2vw,22px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pick .ce{font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pick .rl{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.1);flex:0 0 auto}
-.pick.fill{background:var(--cbg)}
 .side.B .pick.fill{border-color:rgba(61,139,255,.45)}
 .side.R .pick.fill{border-color:rgba(255,77,90,.45)}
 .pick.now{border-color:#fff;animation:pulse 1s infinite}
-.pick.now.hov{background:var(--cbg);opacity:.85}
+.pick.now.hov{opacity:.9}
 .pick.empty .cn{color:rgba(255,255,255,.18);font-size:15px}
 
 .center{min-height:0;display:flex;flex-direction:column;background:rgba(17,24,39,.65);border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -105,6 +104,21 @@ input{font:inherit;color:inherit}
 .ch.off{filter:grayscale(1) brightness(.42);cursor:default;transform:none}
 .ch.off:hover{border-color:transparent}
 .ch .tag{position:absolute;bottom:2px;right:3px;font-size:9px;font-weight:800;padding:0 4px;border-radius:4px;background:rgba(0,0,0,.65);color:#fff}
+/* 챔피언 그림 (인터넷 연결 시) */
+.ch{overflow:hidden}
+.ch img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.1);opacity:0;pointer-events:none}
+.ch.img{height:84px;justify-content:flex-end;padding:0}
+.ch.img img{opacity:1}
+.ch:not(.img) img{width:1px;height:1px}
+.ch.img .k{position:relative;width:100%;padding:12px 2px 3px;font-size:11.5px;background:linear-gradient(transparent,rgba(0,0,0,.88))}
+.ch.img .e{display:none}
+.ch.img .r{z-index:1;background:rgba(0,0,0,.6);padding:0 3px;border-radius:3px;top:3px;left:3px}
+.ch.img .tag{z-index:1;top:3px;bottom:auto;right:3px}
+.pick .cn,.pick .ce,.pick .ord{text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 8px rgba(0,0,0,.6)}
+.pick .ce{color:#c3cad8}
+.ban .bn{position:absolute;left:0;right:0;bottom:0;font-size:9px;padding:1px 0;background:rgba(0,0,0,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:1}
+.lu .p .ic{width:30px;height:30px;border-radius:6px;background-size:115%;background-position:center;flex:0 0 auto;margin:-2px 0}
+.credit{font-size:10.5px;color:#5f6b80;margin-top:12px;line-height:1.45}
 #none{display:none;grid-column:1/-1;text-align:center;color:var(--mut);padding:30px 0}
 .ctrl{flex:0 0 auto;display:flex;gap:8px;padding:8px;border-top:1px solid var(--line);align-items:center}
 .btn{height:42px;padding:0 14px;border-radius:10px;background:var(--panel2);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;
@@ -187,6 +201,7 @@ input{font:inherit;color:inherit}
   .pick .rl{font-size:9.5px;padding:1px 5px}
   #grid{grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:5px}
   .ch{height:52px}.ch .k{font-size:12px}
+  .ch.img{height:72px}.ch.img .k{font-size:11px}
   .btn.lock{font-size:16px}
   .lineups{grid-template-columns:1fr}
   .top10{grid-template-columns:1fr}
@@ -250,6 +265,8 @@ input{font:inherit;color:inherit}
     <button class="btn" id="bResume" style="display:none">이어서 하기</button>
     <button class="btn gold" id="bStart">밴픽 시작</button>
   </div>
+  <div class="credit">챔피언 이름·그림 © Riot Games. 뮤됴구는 Riot Games 가 만들거나 보증한 것이 아닌 팬 제작물이에요.
+    그림은 인터넷이 될 때 Riot 공개 데이터(Data Dragon)에서 받아 오고, 안 되면 색 카드로 보여요.</div>
 </div></div>
 
 <!-- 결과 -->
@@ -470,6 +487,27 @@ const POP = new Set(('Azir,Orianna,Taliyah,Sylas,Ahri,Corki,Yone,Aurora,Viktor,S
   + 'Lee Sin,Vi,Xin Zhao,Wukong,Maokai,Sejuani,Jarvan IV,Viego,Nidalee,Pantheon,Skarner,Trundle,Lillia,'
   + 'K\'Sante,Rumble,Jax,Gnar,Renekton,Aatrox,Ambessa,Jayce,Gragas,Ornn,Sion,Kennen,Camille,Zaahen,Gwen').split(','));
 
+/* ── 챔피언 그림: Riot Data Dragon (인터넷 될 때만, 안 되면 색 카드 그대로) ── */
+const DD = 'https://ddragon.leagueoflegends.com';
+const K_DD = 'banpick.dd';
+const DD_KEY = {'Wukong':'MonkeyKing','Nunu & Willump':'Nunu','Renata Glasc':'Renata',"Bel'Veth":'Belveth',"Cho'Gath":'Chogath',
+  "Kai'Sa":'Kaisa',"Kha'Zix":'Khazix',"Vel'Koz":'Velkoz','LeBlanc':'Leblanc'};
+let art = (function(){ try { return JSON.parse(localStorage.getItem(K_DD)) || {}; } catch (e) { return {}; } })();
+if (!art.ids) art.ids = {};
+if (!art.extra) art.extra = [];
+function ddKey(en){ return art.ids[en] || DD_KEY[en] || en.replace(/[^A-Za-z0-9]/g, ''); }
+function iconUrl(id){ return art.v ? `${DD}/cdn/${art.v}/img/champion/${ddKey(id)}.png` : ''; }
+function splashUrl(id){ return art.v ? `${DD}/cdn/img/champion/centered/${ddKey(id)}_0.jpg` : ''; }
+/* 배경: 그림이 실패해도 아래 색 카드가 보이도록 겹쳐 그림 */
+function cssUrl(u){ return u ? `url("${u}")` : ''; }
+function splashBg(ch, side){
+  const u = splashUrl(ch.id);
+  if (!u) return `background:${ch.bg}`;
+  const fade = side === 'R' ? 'to left' : 'to right';
+  return `background:linear-gradient(${fade},rgba(8,11,19,.82) 0%,rgba(8,11,19,.35) 55%,rgba(8,11,19,.1)),${cssUrl(u)} center 22%/cover no-repeat,${ch.bg}`;
+}
+function iconBg(ch){ const u = iconUrl(ch.id); return u ? `background:${cssUrl(u)} center/115% no-repeat,${ch.bg}` : `background:${ch.bg}`; }
+
 const ROLES = ['T','J','M','A','S'];
 const RN = {T:'탑',J:'정글',M:'미드',A:'원딜',S:'서폿'};
 const ALIAS = {'미포':'Miss Fortune','트페':'Twisted Fate','블츠':'Blitzcrank','아우솔':'Aurelion Sol','탐켄':'Tahm Kench',
@@ -483,7 +521,7 @@ function cho(s){let o='';for(const c of s){const n=c.charCodeAt(0)-0xAC00;o+=(n>
 const norm = (s) => s.toLowerCase().replace(/[\s'.&]/g,'');
 function hue(s){let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h%360;}
 
-const CHAMPS = RAW.trim().split('\n').map((l) => {
+const CHAMPS = RAW.trim().split('\n').concat(art.extra).map((l) => {
   const [en, ko, r] = l.split(',');
   const h = hue(en);
   return { id: en, en, ko, roles: r.split(''), pop: POP.has(en),
@@ -558,11 +596,17 @@ const tiles = {};
 CHAMPS.forEach((c) => {
   const d = document.createElement('button');
   d.className = 'ch'; d.style.setProperty('--cbg', c.bg); d.title = `${c.ko} (${c.en}) · ${c.roles.map((r) => RN[r]).join('/')}`;
-  d.innerHTML = `<span class="r">${c.roles.map((r) => RN[r]).slice(0, 2).join('·')}</span><span class="k">${c.ko}</span><span class="e">${c.en}</span><span class="tag" style="display:none"></span>`;
+  d.innerHTML = `<img alt="" loading="lazy" decoding="async"><span class="r">${c.roles.map((r) => RN[r]).slice(0, 2).join('·')}</span><span class="k">${c.ko}</span><span class="e">${c.en}</span><span class="tag" style="display:none"></span>`;
+  const im = d.querySelector('img');
+  im.addEventListener('load', () => d.classList.add('img'));
+  im.addEventListener('error', () => { d.classList.remove('img'); im.removeAttribute('src'); });
   d.addEventListener('click', () => onTile(c.id));
   d.addEventListener('dblclick', () => { if (st && st.cur.hover === c.id) lockIn(); });
   tiles[c.id] = d; $('grid').appendChild(d);
 });
+function applyArt(){ CHAMPS.forEach((c) => { const u = iconUrl(c.id); const im = tiles[c.id].querySelector('img');
+  if (u && im.getAttribute('src') !== u) im.src = u; }); }
+applyArt();
 const noneEl = document.createElement('div'); noneEl.id = 'none'; noneEl.textContent = '찾는 챔피언이 없어요'; $('grid').appendChild(noneEl);
 
 function matches(c){
@@ -606,8 +650,9 @@ function render(){
     for (let i = 0; i < 5; i++) {
       const id = c.bans[side][i];
       const isNow = !c.done && s && s.side === side && s.type === 'ban' && c.bans[side].length === i;
-      if (id !== undefined) bh += id ? `<div class="ban fill" title="${BY[id].ko}" style="background:${BY[id].bg}">${BY[id].ko}</div>` : `<div class="ban skip">—</div>`;
-      else if (isNow && c.hover) bh += `<div class="ban now hov" style="background:${BY[c.hover].bg}">${BY[c.hover].ko}</div>`;
+      const lab = (ch) => (art.v ? `<span class="bn">${ch.ko}</span>` : ch.ko);
+      if (id !== undefined) bh += id ? `<div class="ban fill" title="${BY[id].ko}" style='${iconBg(BY[id])}'>${lab(BY[id])}</div>` : `<div class="ban skip">—</div>`;
+      else if (isNow && c.hover) bh += `<div class="ban now hov" title="${BY[c.hover].ko}" style='${iconBg(BY[c.hover])}'>${lab(BY[c.hover])}</div>`;
       else bh += `<div class="ban${isNow ? ' now' : ''}"></div>`;
     }
     $('bans' + side).innerHTML = bh;
@@ -620,10 +665,10 @@ function render(){
       const ord = side + (i + 1);
       if (id) {
         const ch = BY[id];
-        ph += `<div class="pick fill" style="--cbg:${ch.bg}"><span class="ord">${ord}</span><div class="info"><div class="cn">${ch.ko}</div><div class="ce">${ch.en}</div></div><span class="rl">${RN[roles[i]]}</span></div>`;
+        ph += `<div class="pick fill" style='${splashBg(ch, side)}'><span class="ord">${ord}</span><div class="info"><div class="cn">${ch.ko}</div><div class="ce">${ch.en}</div></div><span class="rl">${RN[roles[i]]}</span></div>`;
       } else if (isNow && c.hover) {
         const ch = BY[c.hover];
-        ph += `<div class="pick now hov" style="--cbg:${ch.bg}"><span class="ord">${ord}</span><div class="info"><div class="cn">${ch.ko}</div><div class="ce">고르는 중…</div></div></div>`;
+        ph += `<div class="pick now hov" style='${splashBg(ch, side)}'><span class="ord">${ord}</span><div class="info"><div class="cn">${ch.ko}</div><div class="ce">고르는 중…</div></div></div>`;
       } else {
         ph += `<div class="pick empty${isNow ? ' now' : ''}"><span class="ord">${ord}</span><div class="info"><div class="cn">${isNow ? '선택 중' : ''}</div></div></div>`;
       }
@@ -767,7 +812,7 @@ let swapSel = null;
 function luHtml(side, lineup, bans, name, clickable){
   return `<div class="lu ${side}"><div class="t">${side === 'B' ? '🔵' : '🔴'} ${esc(name)}</div>`
     + ROLES.map((r, i) => { const id = lineup[i]; const ch = BY[id];
-      return ch ? `<div class="p${clickable && swapSel && swapSel.side === side && swapSel.i === i ? ' sw' : ''}" ${clickable ? `data-s="${side}" data-i="${i}"` : ''} style="--cbg:${ch.bg}"><span class="rl">${RN[r]}</span><span class="n">${ch.ko}</span></div>` : ''; }).join('')
+      return ch ? `<div class="p${clickable && swapSel && swapSel.side === side && swapSel.i === i ? ' sw' : ''}" ${clickable ? `data-s="${side}" data-i="${i}"` : ''} style="--cbg:${ch.bg}"><span class="rl">${RN[r]}</span>${art.v ? `<span class="ic" style='${iconBg(ch)}'></span>` : ''}<span class="n">${ch.ko}</span></div>` : ''; }).join('')
     + `<div class="bb">밴: ${bans.map((id) => (id ? BY[id] ? BY[id].ko : id : '—')).join(', ')}</div></div>`;
 }
 function openResult(){
@@ -922,6 +967,31 @@ MUD.onControl((m) => {
   if (m.type === 'resume' && paused) { paused = false; if (deadline) deadline = Date.now() + pausedLeft * 1000; renderTimer(); maybeAI(); }
 });
 
+/* ── 그림 데이터: 최신 패치 버전 + 챔피언 키 (신챔 자동 추가는 다음에 열 때) ── */
+async function refreshArt(){
+  if (art.v && art.at && Date.now() - art.at < 864e5) return;
+  try {
+    const vs = await (await fetch(`${DD}/api/versions.json`, { cache: 'no-cache' })).json();
+    const v = vs && vs[0]; if (!v) return;
+    if (v !== art.v || !art.idsOk) {
+      const [en, ko] = await Promise.all(['en_US', 'ko_KR'].map((l) => fetch(`${DD}/cdn/${v}/data/${l}/champion.json`).then((r) => r.json())));
+      const ids = {}, known = new Set(CHAMPS.map((c) => c.id)), extra = [];
+      const tagRole = { Marksman:'A', Support:'S', Mage:'M', Assassin:'M', Fighter:'T', Tank:'T' };
+      Object.values(en.data).forEach((d) => {
+        if (d.name !== d.id) ids[d.name] = d.id;
+        if (!known.has(d.name) && !Object.values(DD_KEY).includes(d.id) && !known.has(d.id)) {
+          const k = ko.data[d.id]; const roles = [...new Set((d.tags || []).map((t) => tagRole[t]).filter(Boolean))].join('') || 'M';
+          extra.push(`${d.name},${k ? k.name : d.name},${roles}`);
+        }
+      });
+      art.ids = ids; art.extra = extra; art.idsOk = 1;
+    }
+    art.v = v; art.at = Date.now();
+    try { localStorage.setItem(K_DD, JSON.stringify(art)); } catch (e) {}
+    applyArt(); if (st) render();
+  } catch (e) { /* 오프라인: 색 카드 그대로 */ }
+}
+
 /* ── 켜기 ─────────────────────────── */
 if (st && st.cur && st.cfg) {
   if (!st.snaps) st.snaps = [];
@@ -936,6 +1006,7 @@ if (st && st.cur && st.cfg) {
   openSetup();
 }
 MUD.ready();
+refreshArt();
 })();
 </script>
 </body>
